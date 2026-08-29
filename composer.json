@@ -1,0 +1,47 @@
+{
+  "name": "codeworkslabs/statamic-discussion-bridge",
+  "description": "Statamic publishing adapter for DiscussionBridge",
+  "type": "statamic-addon",
+  "license": "MIT",
+  "version": "0.1.0-alpha.1",
+  "autoload": {
+    "psr-4": {
+      "CodeWorksLabs\\DiscussionBridgeStatamic\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "CodeWorksLabs\\DiscussionBridgeStatamic\\Tests\\": "tests/"
+    }
+  },
+  "require": {
+    "php": "^8.3",
+    "statamic/cms": "^6.0"
+  },
+  "require-dev": {
+    "orchestra/testbench": "^10.8",
+    "phpunit/phpunit": "^12.5"
+  },
+  "extra": {
+    "statamic": {
+      "name": "DiscussionBridge",
+      "description": "Connect published Statamic entries and Discourse Bridge Records"
+    },
+    "laravel": {
+      "providers": [
+        "CodeWorksLabs\\DiscussionBridgeStatamic\\ServiceProvider"
+      ]
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "pixelfear/composer-dist-plugin": true
+    },
+    "sort-packages": true
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true,
+  "scripts": {
+    "test": "phpunit"
+  }
+}
