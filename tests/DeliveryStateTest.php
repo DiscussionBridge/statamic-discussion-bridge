@@ -33,10 +33,17 @@ class DeliveryStateTest extends TestCase
         $this->assertFalse($enqueuer->enqueue($entry));
         $this->assertSame(1, DB::table('discussionbridge_deliveries')->count());
 
-        Entry::shouldReceive('find')->once()->with('entry-1')->andReturn($entry);
+        Entry::shouldReceive('find')->twice()->with('entry-1')->andReturn($entry);
         $client = Mockery::mock(BridgeClient::class);
-        $client->shouldReceive('resolve')->once()->andReturn([
+        $client->shouldReceive('resolve')->twice()->andReturn([
             'outcome' => 'created',
+            'resource_id' => '63bad04c-1c2e-4c38-80ce-b379137dbb2c',
+            'topic_id' => 7,
+            'topic_url' => 'https://forum.example/t/statamic-alpha/7',
+            'direction' => 'to_discourse',
+            'core_fallback' => false,
+        ], [
+            'outcome' => 'resolved',
             'resource_id' => '63bad04c-1c2e-4c38-80ce-b379137dbb2c',
             'topic_id' => 7,
             'topic_url' => 'https://forum.example/t/statamic-alpha/7',
@@ -46,14 +53,15 @@ class DeliveryStateTest extends TestCase
         $worker = new DeliveryWorker($client, app(Configuration::class));
 
         $first = $worker->work(25);
+        $this->artisan('discussionbridge:retry', ['entry' => 'entry-1', '--delivered' => true])->assertSuccessful();
         $second = $worker->work(25);
         $row = DB::table('discussionbridge_deliveries')->first();
 
         $this->assertSame(1, $first['delivered'], json_encode(['result' => $first, 'row' => (array) $row], JSON_THROW_ON_ERROR));
-        $this->assertSame(0, $second['processed']);
+        $this->assertSame(1, $second['delivered']);
         $this->assertSame('delivered', $row->status);
         $this->assertSame('63bad04c-1c2e-4c38-80ce-b379137dbb2c', $row->resource_id);
         $this->assertSame(7, $row->topic_id);
-        $this->assertSame(1, $row->attempts);
+        $this->assertSame(2, $row->attempts);
     }
 }

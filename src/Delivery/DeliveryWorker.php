@@ -85,6 +85,15 @@ class DeliveryWorker
 
             $response = $this->client->resolve($payload);
             $this->validateResolveResponse($response);
+            if ($row->resource_id !== null && ($response['resource_id'] !== $row->resource_id
+                || $response['topic_id'] !== (int) $row->topic_id
+                || $response['topic_url'] !== $row->topic_url)) {
+                return $this->finish($id, $token, 'reconciliation_required', [
+                    'attempts' => ((int) $row->attempts) + 1,
+                    'last_error' => 'returned_identity_mismatch',
+                    'next_attempt_at' => null,
+                ]);
+            }
 
             return $this->finish($id, $token, 'delivered', [
                 'canonical_url' => $canonicalUrl,

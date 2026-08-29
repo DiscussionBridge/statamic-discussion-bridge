@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\DB;
 
 class RetryDelivery extends Command
 {
-    protected $signature = 'discussionbridge:retry {entry : Exact Statamic entry ID}';
-    protected $description = 'Authorize a retry for one failed or reconciliation-required delivery';
+    protected $signature = 'discussionbridge:retry {entry : Exact Statamic entry ID} {--delivered : Explicitly retry an already delivered identity}';
+    protected $description = 'Authorize a retry for one exact delivery identity';
 
     public function handle(): int
     {
@@ -19,9 +19,14 @@ class RetryDelivery extends Command
             return self::INVALID;
         }
 
+        $states = ['failed', 'reconciliation_required', 'cancelled'];
+        if ($this->option('delivered')) {
+            $states[] = 'delivered';
+        }
+
         $updated = DB::table('discussionbridge_deliveries')
             ->where('entry_id', $entryId)
-            ->whereIn('status', ['failed', 'reconciliation_required', 'cancelled'])
+            ->whereIn('status', $states)
             ->update([
                 'status' => 'pending',
                 'last_error' => null,

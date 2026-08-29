@@ -16,7 +16,9 @@ rollback package.
   application user.
 - `discussionbridge:retry <entry-id>` explicitly requeues one failed,
   cancelled or reconciliation-required item without changing its stable
-  external identity or original correlation ID.
+  external identity or original correlation ID. The additional
+  `--delivered` switch is required to exercise an already successful identity;
+  the returned resource/topic tuple must remain exact.
 - `discussionbridge:reconcile` scans the configured collections and enqueues
   any eligible entry missing addon state.
 - `{{ discussionbridge:record resource="{discussionbridge_resource_id}" }}`
