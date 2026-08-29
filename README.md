@@ -14,6 +14,9 @@ rollback package.
 - `discussionbridge:work --limit=25` atomically claims and processes a bounded
   batch. A root-owned systemd timer should invoke it under the owning Statamic
   application user.
+- The worker renders the entry's published Markdown into a bounded HTML
+  snapshot. The receiving topic therefore contains meaningful source content
+  plus canonical attribution; missing or oversized content fails closed.
 - `discussionbridge:retry <entry-id>` explicitly requeues one failed,
   cancelled or reconciliation-required item without changing its stable
   external identity or original correlation ID. The additional

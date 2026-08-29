@@ -24,6 +24,7 @@ class DeliveryStateTest extends TestCase
         $entry->shouldReceive('status')->andReturn('published');
         $entry->shouldReceive('get')->with('discussionbridge_publish')->andReturn(true);
         $entry->shouldReceive('get')->with('title')->andReturn('Statamic Alpha');
+        $entry->shouldReceive('get')->with('content')->andReturn("## A real Statamic article\n\nThis content crosses the bridge.");
         $entry->shouldReceive('absoluteUrl')->andReturn('https://statamic.example/statamic-alpha/');
         $entry->shouldReceive('site')->andReturn($site);
         $entry->shouldReceive('id')->andReturn('entry-1');
@@ -35,7 +36,10 @@ class DeliveryStateTest extends TestCase
 
         Entry::shouldReceive('find')->twice()->with('entry-1')->andReturn($entry);
         $client = Mockery::mock(BridgeClient::class);
-        $client->shouldReceive('resolve')->twice()->andReturn([
+        $client->shouldReceive('resolve')->twice()->withArgs(function (array $payload): bool {
+            return str_contains($payload['content_html'] ?? '', '<h2>A real Statamic article</h2>')
+                && str_contains($payload['content_html'] ?? '', 'This content crosses the bridge.');
+        })->andReturn([
             'outcome' => 'created',
             'resource_id' => '63bad04c-1c2e-4c38-80ce-b379137dbb2c',
             'topic_id' => 7,

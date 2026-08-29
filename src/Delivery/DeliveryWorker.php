@@ -62,6 +62,7 @@ class DeliveryWorker
             }
 
             $title = $entry->get('title');
+            $contentHtml = PublishedContent::fromEntry($entry);
             $canonicalUrl = $entry->absoluteUrl();
             if (! is_string($title) || trim($title) === '' || strlen($title) > 1024) {
                 throw new RuntimeException('Statamic entry title is invalid.');
@@ -75,6 +76,7 @@ class DeliveryWorker
                 'external_id' => $row->external_id,
                 'canonical_url' => $canonicalUrl,
                 'title' => $title,
+                'content_html' => $contentHtml,
                 'published' => true,
                 'visibility' => 'unlisted',
                 'adapter_id' => (string) config('discussionbridge.adapter_id'),
