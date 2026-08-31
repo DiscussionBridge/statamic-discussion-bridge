@@ -10,6 +10,10 @@ use Throwable;
 
 class StandalonePresenter
 {
+    private const INITIAL_REPLIES = 5;
+
+    private const MAX_REPLIES = 50;
+
     public function __construct(
         private readonly BridgeClient $client,
         private readonly Configuration $configuration,
@@ -21,19 +25,50 @@ class StandalonePresenter
     public function simple(int $topicId): string
     {
         $topic = $this->client->publicTopic($topicId);
-        $posts = $topic['post_stream']['posts'] ?? null;
-        if (! is_array($posts) || count($posts) > 51) {
+        $postStream = $topic['post_stream'] ?? null;
+        $posts = is_array($postStream) ? ($postStream['posts'] ?? null) : null;
+        $stream = is_array($postStream) ? ($postStream['stream'] ?? null) : null;
+        if (! is_array($posts) || ! is_array($stream)) {
             throw new RuntimeException('Discourse topic response is invalid.');
+        }
+        $targetIds = [];
+        foreach (array_slice($stream, 1, self::MAX_REPLIES) as $postId) {
+            if (! is_int($postId) || $postId < 1) {
+                throw new RuntimeException('Discourse topic response is invalid.');
+            }
+            $targetIds[] = $postId;
+        }
+
+        $postsById = [];
+        foreach ($posts as $post) {
+            if (is_array($post) && is_int($post['id'] ?? null) && ($post['id'] ?? 0) > 0) {
+                $postsById[$post['id']] = $post;
+            }
+        }
+        $missingIds = array_values(array_diff($targetIds, array_keys($postsById)));
+        foreach (array_chunk($missingIds, 20) as $batch) {
+            $additional = $this->client->publicTopicPosts($topicId, $batch);
+            $additionalPosts = $additional['post_stream']['posts'] ?? null;
+            if (! is_array($additionalPosts)) {
+                throw new RuntimeException('Discourse topic response is invalid.');
+            }
+            foreach ($additionalPosts as $post) {
+                if (! is_array($post) || ! is_int($post['id'] ?? null) || ($post['id'] ?? 0) < 1) {
+                    throw new RuntimeException('Discourse topic response is invalid.');
+                }
+                $postsById[$post['id']] = $post;
+            }
         }
 
         $slug = is_string($topic['slug'] ?? null) && preg_match('/\A[a-z0-9-]+\z/', $topic['slug'])
             ? $topic['slug']
             : 'topic';
         $topicUrl = $this->configuration->forumOrigin().'/t/'.$slug.'/'.$topicId;
-        $replies = '';
-        foreach ($posts as $post) {
-            if (! is_array($post) || ($post['post_number'] ?? null) === 1) {
-                continue;
+        $renderedReplies = [];
+        foreach ($targetIds as $postId) {
+            $post = $postsById[$postId] ?? null;
+            if (! is_array($post)) {
+                throw new RuntimeException('Discourse topic response is invalid.');
             }
             $number = $post['post_number'] ?? null;
             $username = $post['username'] ?? null;
@@ -56,7 +91,7 @@ class StandalonePresenter
             $postUrl = $topicUrl.'/'.$number;
             $postUrlHtml = htmlspecialchars($postUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
             $avatar = $this->avatar($post, $username);
-            $replies .= '<article class="discussionbridge-simple__reply">'
+            $renderedReplies[] = '<article class="discussionbridge-simple__reply">'
                 .$avatar
                 .'<div class="discussionbridge-simple__content">'
                 .'<header class="discussionbridge-simple__meta"><strong>'.$byline.'</strong><a href="'.$postUrlHtml.'" rel="nofollow noopener noreferrer"><time datetime="'.htmlspecialchars($created->format(DATE_ATOM), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'">'.$created->format('M j, Y').'</time></a></header>'
@@ -64,8 +99,18 @@ class StandalonePresenter
                 .'</article>';
         }
 
-        if ($replies === '') {
+        if ($renderedReplies === []) {
             $replies = '<p class="discussionbridge-simple__empty">No replies yet.</p>';
+        } else {
+            $replies = implode('', array_slice($renderedReplies, 0, self::INITIAL_REPLIES));
+            $remaining = array_slice($renderedReplies, self::INITIAL_REPLIES);
+            if ($remaining !== []) {
+                $count = count($remaining);
+                $replies .= '<details class="discussionbridge-simple__more"><summary><span class="discussionbridge-simple__more-closed">Show '.$count.' more '.($count === 1 ? 'comment' : 'comments').'</span><span class="discussionbridge-simple__more-open">Show fewer comments</span></summary>'.implode('', $remaining).'</details>';
+            }
+            if (count($stream) - 1 > self::MAX_REPLIES) {
+                $replies .= '<p class="discussionbridge-simple__limit">Showing the first '.self::MAX_REPLIES.' replies. <a href="'.htmlspecialchars($topicUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" rel="nofollow noopener noreferrer">View the complete discussion on The Bridge</a>.</p>';
+            }
         }
 
         return $this->chrome->styles()

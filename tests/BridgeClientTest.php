@@ -72,4 +72,33 @@ class BridgeClientTest extends TestCase
         $this->expectException(RuntimeException::class);
         $client->publicTopic(0);
     }
+
+    public function test_public_topic_posts_uses_bounded_public_batch_without_credentials(): void
+    {
+        $history = [];
+        $mock = new MockHandler([new Response(200, ['Content-Type' => 'application/json'], json_encode([
+            'post_stream' => ['posts' => []],
+        ], JSON_THROW_ON_ERROR))]);
+        $stack = HandlerStack::create($mock);
+        $stack->push(Middleware::history($history));
+        $client = new BridgeClient(new Client(['handler' => $stack]), app(Configuration::class));
+
+        $client->publicTopicPosts(42, [21, 22]);
+
+        $this->assertCount(1, $history);
+        $uri = (string) $history[0]['request']->getUri();
+        $this->assertStringStartsWith('https://forum.example/t/42/posts.json?', $uri);
+        $this->assertStringContainsString('post_ids%5B0%5D=21', $uri);
+        $this->assertStringContainsString('post_ids%5B1%5D=22', $uri);
+        $this->assertFalse($history[0]['request']->hasHeader('X-DiscussionBridge-Connection'));
+        $this->assertFalse($history[0]['request']->hasHeader('X-DiscussionBridge-Secret'));
+    }
+
+    public function test_public_topic_posts_rejects_oversized_batch_before_request(): void
+    {
+        $client = new BridgeClient(new Client(['handler' => HandlerStack::create(new MockHandler())]), app(Configuration::class));
+
+        $this->expectException(RuntimeException::class);
+        $client->publicTopicPosts(42, range(1, 21));
+    }
 }

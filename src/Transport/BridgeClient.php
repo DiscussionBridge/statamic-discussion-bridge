@@ -44,6 +44,22 @@ class BridgeClient
         return $this->request('GET', '/t/'.$topicId.'.json', null, false);
     }
 
+    /** @param list<int> $postIds */
+    public function publicTopicPosts(int $topicId, array $postIds): array
+    {
+        if ($topicId < 1 || $postIds === [] || count($postIds) > 20) {
+            throw new RuntimeException('Discourse topic post request is invalid.');
+        }
+        foreach ($postIds as $postId) {
+            if (! is_int($postId) || $postId < 1) {
+                throw new RuntimeException('Discourse topic post request is invalid.');
+            }
+        }
+        $query = http_build_query(['post_ids' => array_values(array_unique($postIds))]);
+
+        return $this->request('GET', '/t/'.$topicId.'/posts.json?'.$query, null, false);
+    }
+
     private function request(string $method, string $path, ?string $json = null, bool $authenticate = true): array
     {
         $headers = ['Accept' => 'application/json'];

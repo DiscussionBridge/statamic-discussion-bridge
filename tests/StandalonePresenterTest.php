@@ -19,9 +19,9 @@ class StandalonePresenterTest extends TestCase
         $mock = new MockHandler([new Response(200, ['Content-Type' => 'application/json'], json_encode([
             'slug' => 'public-topic',
             'post_stream' => ['posts' => [
-                ['post_number' => 1, 'username' => 'publisher', 'cooked' => '<p>Source article</p>'],
-                ['post_number' => 2, 'username' => 'reader', 'name' => 'Demo Reader', 'created_at' => '2026-08-31T12:00:00Z', 'avatar_template' => '/user_avatar/forum.example/reader/{size}/1_2.png', 'cooked' => '<p>Useful reply</p><script>bad()</script>'],
-            ]],
+                ['id' => 1, 'post_number' => 1, 'username' => 'publisher', 'cooked' => '<p>Source article</p>'],
+                ['id' => 2, 'post_number' => 2, 'username' => 'reader', 'name' => 'Demo Reader', 'created_at' => '2026-08-31T12:00:00Z', 'avatar_template' => '/user_avatar/forum.example/reader/{size}/1_2.png', 'cooked' => '<p>Useful reply</p><script>bad()</script>'],
+            ], 'stream' => [1, 2]],
         ], JSON_THROW_ON_ERROR))]);
         $configuration = app(Configuration::class);
         $presenter = new StandalonePresenter(
@@ -49,8 +49,8 @@ class StandalonePresenterTest extends TestCase
         $mock = new MockHandler([new Response(200, ['Content-Type' => 'application/json'], json_encode([
             'slug' => 'quiet-topic',
             'post_stream' => ['posts' => [
-                ['post_number' => 1, 'username' => 'publisher', 'cooked' => '<p>Source article</p>'],
-            ]],
+                ['id' => 1, 'post_number' => 1, 'username' => 'publisher', 'cooked' => '<p>Source article</p>'],
+            ], 'stream' => [1]],
         ], JSON_THROW_ON_ERROR))]);
         $configuration = app(Configuration::class);
         $presenter = new StandalonePresenter(
@@ -61,5 +61,40 @@ class StandalonePresenterTest extends TestCase
         );
 
         $this->assertStringContainsString('No replies yet.', $presenter->simple(7));
+    }
+
+    public function test_simple_fetches_missing_batches_and_discloses_replies_after_five(): void
+    {
+        $firstPosts = [
+            ['id' => 1, 'post_number' => 1, 'username' => 'publisher', 'cooked' => '<p>Source article</p>'],
+            ['id' => 2, 'post_number' => 2, 'username' => 'reader2', 'created_at' => '2026-08-31T12:00:00Z', 'cooked' => '<p>Reply 2 body</p>'],
+        ];
+        $additionalPosts = [];
+        foreach (range(3, 8) as $id) {
+            $additionalPosts[] = ['id' => $id, 'post_number' => $id, 'username' => 'reader'.$id, 'created_at' => '2026-08-31T12:00:00Z', 'cooked' => '<p>Reply '.$id.' body</p>'];
+        }
+        $mock = new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], json_encode([
+                'slug' => 'long-topic',
+                'post_stream' => ['posts' => $firstPosts, 'stream' => range(1, 8)],
+            ], JSON_THROW_ON_ERROR)),
+            new Response(200, ['Content-Type' => 'application/json'], json_encode([
+                'post_stream' => ['posts' => $additionalPosts],
+            ], JSON_THROW_ON_ERROR)),
+        ]);
+        $configuration = app(Configuration::class);
+        $presenter = new StandalonePresenter(
+            new BridgeClient(new Client(['handler' => HandlerStack::create($mock)]), $configuration),
+            $configuration,
+            new HtmlSanitizer(),
+            new PresentationChrome(),
+        );
+
+        $html = $presenter->simple(42);
+
+        $this->assertStringContainsString('Reply 8 body', $html);
+        $this->assertStringContainsString('<details class="discussionbridge-simple__more">', $html);
+        $this->assertStringContainsString('Show 2 more comments', $html);
+        $this->assertStringContainsString('Show fewer comments', $html);
     }
 }
