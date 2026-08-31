@@ -19,5 +19,7 @@ class PresentationChromeTest extends TestCase
         $this->assertStringContainsString('discussion-bridge-source-presentation', $discussion);
         $this->assertStringContainsString('<span class="discussionbridge-credit__prefix">Connected by</span>', $discussion);
         $this->assertStringContainsString('class="discussionbridge-credit__brand"', $discussion);
+        $this->assertStringContainsString('.discussionbridge-discussion{box-sizing:border-box;width:100%;max-width:48rem', $discussion);
+        $this->assertStringContainsString('.discussionbridge-discussion iframe{display:block;box-sizing:border-box;width:100%;max-width:100%', $discussion);
     }
 }
