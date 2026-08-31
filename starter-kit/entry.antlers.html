@@ -1,0 +1,9 @@
+{{ if discussionbridge_resource_id }}
+  {{ content }}
+  {{ discussionbridge:record resource="{discussionbridge_resource_id}" }}
+{{ elseif discussionbridge_publish }}
+  {{ discussionbridge:article entry="{id}" }}
+  {{ discussionbridge:discussion entry="{id}" }}
+{{ else }}
+  {{ content }}
+{{ /if }}

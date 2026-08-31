@@ -32,7 +32,7 @@ class RecordPresenter
         }
         return '<section class="discussionbridge-record">'
             .$this->chrome->styles()
-            .$this->navigation->render($content)
+            .'<article class="discussionbridge-article">'.$this->navigation->render($content).'</article>'
             .$this->chrome->discussion($record['topic_id'], $record['topic_url'], $this->configuration->forumOrigin(), true)
             .'</section>';
     }

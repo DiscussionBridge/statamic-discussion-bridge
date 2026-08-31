@@ -57,7 +57,7 @@ class DiscussionBridge extends Tags
             $entry = Entry::find($entryId);
 
             return $entry
-                ? app(PageNavigation::class)->render(PublishedContent::fromEntry($entry))
+                ? '<article class="discussionbridge-article">'.app(PageNavigation::class)->render(PublishedContent::fromEntry($entry)).'</article>'
                 : '';
         } catch (Throwable $error) {
             report($error);
