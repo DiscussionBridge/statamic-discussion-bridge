@@ -29,13 +29,16 @@ class DiscussionBridge extends Tags
 
     public function discussion(): string
     {
-        $entryId = $this->context->get('id');
-        if (! is_string($entryId) || $entryId === '') {
+        $entryId = $this->params->get('entry') ?? $this->context->get('id');
+        if (is_object($entryId) && method_exists($entryId, '__toString')) {
+            $entryId = (string) $entryId;
+        }
+        if (! is_string($entryId) || trim($entryId) === '') {
             return '';
         }
 
         try {
-            return app(DeliveryPresenter::class)->render($entryId);
+            return app(DeliveryPresenter::class)->render(trim($entryId));
         } catch (Throwable $error) {
             report($error);
 
