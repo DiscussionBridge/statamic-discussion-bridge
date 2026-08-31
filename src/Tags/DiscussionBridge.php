@@ -2,8 +2,11 @@
 
 namespace CodeWorksLabs\DiscussionBridgeStatamic\Tags;
 
+use CodeWorksLabs\DiscussionBridgeStatamic\Delivery\PublishedContent;
+use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\PageNavigation;
 use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\RecordPresenter;
 use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\DeliveryPresenter;
+use Statamic\Facades\Entry;
 use Statamic\Tags\Tags;
 use Throwable;
 
@@ -29,20 +32,47 @@ class DiscussionBridge extends Tags
 
     public function discussion(): string
     {
-        $entryId = $this->params->get('entry') ?? $this->context->get('id');
-        if (is_object($entryId) && method_exists($entryId, '__toString')) {
-            $entryId = (string) $entryId;
-        }
-        if (! is_string($entryId) || trim($entryId) === '') {
+        $entryId = $this->entryId();
+        if ($entryId === null) {
             return '';
         }
 
         try {
-            return app(DeliveryPresenter::class)->render(trim($entryId));
+            return app(DeliveryPresenter::class)->render($entryId);
         } catch (Throwable $error) {
             report($error);
 
             return '<p class="discussionbridge-unavailable">Discussion unavailable.</p>';
         }
+    }
+
+    public function article(): string
+    {
+        $entryId = $this->entryId();
+        if ($entryId === null) {
+            return '';
+        }
+
+        try {
+            $entry = Entry::find($entryId);
+
+            return $entry
+                ? app(PageNavigation::class)->render(PublishedContent::fromEntry($entry))
+                : '';
+        } catch (Throwable $error) {
+            report($error);
+
+            return '<p class="discussionbridge-unavailable">Article unavailable.</p>';
+        }
+    }
+
+    private function entryId(): ?string
+    {
+        $entryId = $this->params->get('entry') ?? $this->context->get('id');
+        if (is_object($entryId) && method_exists($entryId, '__toString')) {
+            $entryId = (string) $entryId;
+        }
+
+        return is_string($entryId) && trim($entryId) !== '' ? trim($entryId) : null;
     }
 }

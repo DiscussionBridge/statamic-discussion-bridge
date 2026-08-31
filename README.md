@@ -31,6 +31,8 @@ rollback package.
 - `{{ discussionbridge:discussion entry="{id}" }}` presents the healthy topic owned by the
   current To Discourse entry. Both tags use the same centered DiscussionBridge
   credit and responsive discussion treatment.
+- `{{ discussionbridge:article entry="{id}" }}` renders a publishing entry with a
+  native heading-derived **On this page** navigation.
 
 The addon adds two ephemeral blueprint fields to configured collection entries:
 `discussionbridge_publish` for To Discourse opt-in and
