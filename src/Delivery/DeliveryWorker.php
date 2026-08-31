@@ -82,6 +82,7 @@ class DeliveryWorker
                 'adapter_id' => (string) config('discussionbridge.adapter_id'),
                 'adapter_version' => (string) config('discussionbridge.adapter_version'),
                 'correlation_id' => $row->correlation_id,
+                ...$this->configuration->sourceAuthor(),
                 ...($this->configuration->lane() ? ['lane' => $this->configuration->lane()] : []),
             ];
 

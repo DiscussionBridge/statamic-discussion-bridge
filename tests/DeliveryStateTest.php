@@ -38,7 +38,10 @@ class DeliveryStateTest extends TestCase
         $client = Mockery::mock(BridgeClient::class);
         $client->shouldReceive('resolve')->twice()->withArgs(function (array $payload): bool {
             return str_contains($payload['content_html'] ?? '', '<h2>A real Statamic article</h2>')
-                && str_contains($payload['content_html'] ?? '', 'This content crosses the bridge.');
+                && str_contains($payload['content_html'] ?? '', 'This content crosses the bridge.')
+                && ($payload['source_authors'][0]['name'] ?? null) === 'Statamic Author'
+                && ($payload['source_authors'][0]['profile_url'] ?? null) === 'https://statamic.example/authors/statamic-author'
+                && ($payload['primary_source_author_id'] ?? null) === ($payload['source_authors'][0]['id'] ?? null);
         })->andReturn([
             'outcome' => 'created',
             'resource_id' => '63bad04c-1c2e-4c38-80ce-b379137dbb2c',

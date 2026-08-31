@@ -13,6 +13,8 @@ class RecordPresenter
         private readonly BridgeClient $client,
         private readonly Configuration $configuration,
         private readonly HtmlSanitizer $sanitizer,
+        private readonly PageNavigation $navigation,
+        private readonly PresentationChrome $chrome,
     ) {
     }
 
@@ -28,9 +30,11 @@ class RecordPresenter
         if ($content === '') {
             throw new RuntimeException('DiscussionBridge content is empty after sanitization.');
         }
-        $topic = htmlspecialchars($record['topic_url'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-
-        return '<section class="discussionbridge-record">'.$content.'<p class="discussionbridge-credit"><a href="'.$topic.'" rel="nofollow noopener noreferrer">Continue the discussion in Discourse</a></p></section>';
+        return '<section class="discussionbridge-record">'
+            .$this->chrome->styles()
+            .$this->navigation->render($content)
+            .$this->chrome->discussion($record['topic_id'], $record['topic_url'], $this->configuration->forumOrigin(), true)
+            .'</section>';
     }
 
     private function validatedRecord(string $resourceId): array

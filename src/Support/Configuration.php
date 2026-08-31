@@ -65,6 +65,23 @@ class Configuration
         return in_array($handle, config('discussionbridge.collections', []), true);
     }
 
+    /** @return array{source_authors: list<array{id: string, name: string, profile_url?: string}>, primary_source_author_id: string} */
+    public function sourceAuthor(): array
+    {
+        $name = config('discussionbridge.source_author_name');
+        if (! is_string($name) || ($name = trim(strip_tags($name))) === '' || strlen($name) > 200) {
+            throw new RuntimeException('DiscussionBridge source author name is invalid.');
+        }
+        $id = 'statamic-profile:'.hash('sha256', $this->siteOrigin());
+        $author = ['id' => $id, 'name' => $name];
+        $profile = config('discussionbridge.source_author_profile_url');
+        if (is_string($profile) && $profile !== '') {
+            $author['profile_url'] = $this->sameSiteUrl($profile);
+        }
+
+        return ['source_authors' => [$author], 'primary_source_author_id' => $id];
+    }
+
     private function origin(string $key): string
     {
         $value = config($key);
@@ -83,5 +100,22 @@ class Configuration
         $port = isset($parts['port']) ? ':'.$parts['port'] : '';
 
         return 'https://'.strtolower($parts['host']).$port;
+    }
+
+    private function sameSiteUrl(string $value): string
+    {
+        if (strlen($value) > 2048) {
+            throw new RuntimeException('DiscussionBridge source author profile URL is invalid.');
+        }
+        $parts = parse_url($value);
+        $origin = parse_url($this->siteOrigin());
+        if (! is_array($parts) || ! is_array($origin)
+            || ($parts['scheme'] ?? null) !== 'https'
+            || strtolower((string) ($parts['host'] ?? '')) !== strtolower((string) ($origin['host'] ?? ''))
+            || isset($parts['user'], $parts['pass'], $parts['query'], $parts['fragment'])) {
+            throw new RuntimeException('DiscussionBridge source author profile URL is invalid.');
+        }
+
+        return $value;
     }
 }

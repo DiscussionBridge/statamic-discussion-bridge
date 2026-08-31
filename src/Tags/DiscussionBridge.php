@@ -3,6 +3,7 @@
 namespace CodeWorksLabs\DiscussionBridgeStatamic\Tags;
 
 use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\RecordPresenter;
+use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\DeliveryPresenter;
 use Statamic\Tags\Tags;
 use Throwable;
 
@@ -19,6 +20,22 @@ class DiscussionBridge extends Tags
 
         try {
             return app(RecordPresenter::class)->render(strtolower($resourceId));
+        } catch (Throwable $error) {
+            report($error);
+
+            return '<p class="discussionbridge-unavailable">Discussion unavailable.</p>';
+        }
+    }
+
+    public function discussion(): string
+    {
+        $entryId = $this->context->get('id');
+        if (! is_string($entryId) || $entryId === '') {
+            return '';
+        }
+
+        try {
+            return app(DeliveryPresenter::class)->render($entryId);
         } catch (Throwable $error) {
             report($error);
 

@@ -26,7 +26,11 @@ rollback package.
   any eligible entry missing addon state.
 - `{{ discussionbridge:record resource="{discussionbridge_resource_id}" }}`
   performs a bounded authenticated server-side pull, sanitizes the cooked first
-  post and renders a safe Discourse topic link.
+  post, builds native page navigation, and presents the same topic's replies in
+  a credential-free fullInteractive frame.
+- `{{ discussionbridge:discussion }}` presents the healthy topic owned by the
+  current To Discourse entry. Both tags use the same centered DiscussionBridge
+  credit and responsive discussion treatment.
 
 The addon adds two ephemeral blueprint fields to configured collection entries:
 `discussionbridge_publish` for To Discourse opt-in and
@@ -46,9 +50,13 @@ DISCUSSIONBRIDGE_CONNECTION_ID=dbc_000000000000000000000000
 DISCUSSIONBRIDGE_SECRET_FILE=/etc/discussionbridge-statamic-flat/connection-secret
 DISCUSSIONBRIDGE_LANE=statamic-flat-alpha
 DISCUSSIONBRIDGE_COLLECTIONS=pages
+DISCUSSIONBRIDGE_SOURCE_AUTHOR_NAME="Statamic Flat Demo"
+DISCUSSIONBRIDGE_SOURCE_AUTHOR_PROFILE_URL=https://statamic-flat.demo.discussionbridge.dev/
 ```
 
-The secret file must be outside the webroot and readable only by the owning
+The source-author values are per-profile operator settings reported to The
+Bridge and can be mapped there to the selected Discourse user. The secret file
+must be outside the webroot and readable only by the owning
 application group. Flat and DB must never share a connection secret or secret
 directory.
 

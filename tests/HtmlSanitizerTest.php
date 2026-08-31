@@ -25,4 +25,18 @@ class HtmlSanitizerTest extends TestCase
     {
         $this->assertSame('', (new HtmlSanitizer())->sanitize(str_repeat('x', 65537)));
     }
+
+    public function test_it_preserves_portable_media_and_removes_discourse_controls(): void
+    {
+        $html = '<p>[discotoc]</p><div data-theme-toc="true"></div>'
+            .'<div class="lightbox-wrapper"><a href="https://forum.example/image.svg"><img src="https://forum.example/image.svg" alt="Flow" width="960" height="320"><div class="meta"><span>Flow</span><span>960×320 1.71 KB</span></div></a></div>'
+            .'<table><thead><tr><th>Bridge</th></tr></thead><tbody><tr><td>Statamic</td></tr></tbody></table>';
+        $result = (new HtmlSanitizer())->sanitize($html);
+
+        $this->assertStringContainsString('<img src="https://forum.example/image.svg" alt="Flow" width="960" height="320">', $result);
+        $this->assertStringContainsString('<table>', $result);
+        $this->assertStringNotContainsString('[discotoc]', $result);
+        $this->assertStringNotContainsString('data-theme-toc', $result);
+        $this->assertStringNotContainsString('1.71 KB', $result);
+    }
 }
