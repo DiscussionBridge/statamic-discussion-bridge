@@ -7,6 +7,7 @@ use CodeWorksLabs\DiscussionBridgeStatamic\Transport\BridgeClient;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
 use RuntimeException;
 
@@ -42,5 +43,33 @@ class BridgeClientTest extends TestCase
 
         $this->expectException(RuntimeException::class);
         $client->record('a4965d46-e657-4af4-af47-6439e544eeb9');
+    }
+
+    public function test_public_topic_is_bounded_and_sends_no_bridge_credentials(): void
+    {
+        $history = [];
+        $mock = new MockHandler([new Response(200, ['Content-Type' => 'application/json'], json_encode([
+            'slug' => 'public-topic',
+            'post_stream' => ['posts' => []],
+        ], JSON_THROW_ON_ERROR))]);
+        $stack = HandlerStack::create($mock);
+        $stack->push(Middleware::history($history));
+        $client = new BridgeClient(new Client(['handler' => $stack]), app(Configuration::class));
+
+        $response = $client->publicTopic(42);
+
+        $this->assertSame('public-topic', $response['slug']);
+        $this->assertCount(1, $history);
+        $this->assertSame('https://forum.example/t/42.json', (string) $history[0]['request']->getUri());
+        $this->assertFalse($history[0]['request']->hasHeader('X-DiscussionBridge-Connection'));
+        $this->assertFalse($history[0]['request']->hasHeader('X-DiscussionBridge-Secret'));
+    }
+
+    public function test_public_topic_rejects_nonpositive_identity_before_request(): void
+    {
+        $client = new BridgeClient(new Client(['handler' => HandlerStack::create(new MockHandler())]), app(Configuration::class));
+
+        $this->expectException(RuntimeException::class);
+        $client->publicTopic(0);
     }
 }

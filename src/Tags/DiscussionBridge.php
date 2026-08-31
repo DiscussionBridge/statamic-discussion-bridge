@@ -6,6 +6,7 @@ use CodeWorksLabs\DiscussionBridgeStatamic\Delivery\PublishedContent;
 use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\PageNavigation;
 use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\RecordPresenter;
 use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\DeliveryPresenter;
+use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\StandalonePresenter;
 use Statamic\Facades\Entry;
 use Statamic\Tags\Tags;
 use Throwable;
@@ -63,6 +64,42 @@ class DiscussionBridge extends Tags
             report($error);
 
             return '<p class="discussionbridge-unavailable">Article unavailable.</p>';
+        }
+    }
+
+    public function simple(): string
+    {
+        $topic = $this->params->get('topic');
+        if (! is_string($topic) && ! is_int($topic)) {
+            return '';
+        }
+        $topic = filter_var($topic, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        if (! is_int($topic)) {
+            return '';
+        }
+
+        try {
+            return app(StandalonePresenter::class)->simple($topic);
+        } catch (Throwable $error) {
+            report($error);
+
+            return '<p class="discussionbridge-unavailable">Comments unavailable.</p>';
+        }
+    }
+
+    public function full(): string
+    {
+        $canonical = $this->params->get('canonical');
+        if (! is_string($canonical) || trim($canonical) === '') {
+            return '';
+        }
+
+        try {
+            return app(StandalonePresenter::class)->full($canonical);
+        } catch (Throwable $error) {
+            report($error);
+
+            return '<p class="discussionbridge-unavailable">Comments unavailable.</p>';
         }
     }
 

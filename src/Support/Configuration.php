@@ -21,6 +21,34 @@ class Configuration
         return $this->origin('discussionbridge.site_origin');
     }
 
+    public function canonicalPageUrl(string $value): string
+    {
+        $value = trim($value);
+        if ($value === '' || strlen($value) > 2048 || preg_match('/[\x00-\x1F\x7F]/', $value)) {
+            throw new RuntimeException('DiscussionBridge canonical page URL is invalid.');
+        }
+
+        if (str_starts_with($value, '/')) {
+            if (str_starts_with($value, '//')) {
+                throw new RuntimeException('DiscussionBridge canonical page URL is invalid.');
+            }
+            $value = $this->siteOrigin().$value;
+        }
+
+        $parts = parse_url($value);
+        $site = parse_url($this->siteOrigin());
+        if (! is_array($parts) || ! is_array($site)
+            || ($parts['scheme'] ?? null) !== 'https'
+            || strtolower((string) ($parts['host'] ?? '')) !== strtolower((string) ($site['host'] ?? ''))
+            || ($parts['port'] ?? null) !== ($site['port'] ?? null)
+            || ! str_starts_with((string) ($parts['path'] ?? ''), '/')
+            || isset($parts['user'], $parts['pass'], $parts['query'], $parts['fragment'])) {
+            throw new RuntimeException('DiscussionBridge canonical page URL must belong to this site.');
+        }
+
+        return $value;
+    }
+
     public function connectionId(): string
     {
         $value = config('discussionbridge.connection_id');

@@ -22,4 +22,18 @@ class PresentationChromeTest extends TestCase
         $this->assertStringContainsString('.discussionbridge-discussion{box-sizing:border-box;width:100%;max-width:48rem', $discussion);
         $this->assertStringContainsString('.discussionbridge-discussion iframe{display:block;box-sizing:border-box;width:100%;max-width:100%', $discussion);
     }
+
+    public function test_standard_embed_uses_only_the_plugin_free_canonical_url_contract(): void
+    {
+        $discussion = (new PresentationChrome())->standardEmbed(
+            'https://statamic.example/discussionbridge/full',
+            'https://forum.example',
+        );
+
+        $this->assertStringContainsString('"discourseEmbedUrl":"https://statamic.example/discussionbridge/full"', $discussion);
+        $this->assertStringContainsString('"discourseUrl":"https://forum.example/"', $discussion);
+        $this->assertStringNotContainsString('"topicId"', $discussion);
+        $this->assertStringNotContainsString('"fullApp"', $discussion);
+        $this->assertStringNotContainsString('X-DiscussionBridge', $discussion);
+    }
 }

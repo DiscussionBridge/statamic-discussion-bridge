@@ -35,8 +35,26 @@ class BridgeClient
         return $this->request('GET', '/discussion-bridge/v1/bridge-records/'.rawurlencode(strtolower($resourceId)).'.json');
     }
 
-    private function request(string $method, string $path, ?string $json = null): array
+    public function publicTopic(int $topicId): array
     {
+        if ($topicId < 1) {
+            throw new RuntimeException('Discourse topic ID is invalid.');
+        }
+
+        return $this->request('GET', '/t/'.$topicId.'.json', null, false);
+    }
+
+    private function request(string $method, string $path, ?string $json = null, bool $authenticate = true): array
+    {
+        $headers = ['Accept' => 'application/json'];
+        if ($authenticate) {
+            $headers['X-DiscussionBridge-Connection'] = $this->configuration->connectionId();
+            $headers['X-DiscussionBridge-Secret'] = $this->configuration->secret();
+        }
+        if ($json !== null) {
+            $headers['Content-Type'] = 'application/json';
+        }
+
         try {
             $response = $this->http->request($method, $this->configuration->forumOrigin().$path, [
                 'allow_redirects' => false,
@@ -44,12 +62,7 @@ class BridgeClient
                 'timeout' => (float) config('discussionbridge.response_timeout_seconds', 5),
                 'http_errors' => false,
                 'stream' => true,
-                'headers' => [
-                    'Accept' => 'application/json',
-                    'X-DiscussionBridge-Connection' => $this->configuration->connectionId(),
-                    'X-DiscussionBridge-Secret' => $this->configuration->secret(),
-                    ...($json === null ? [] : ['Content-Type' => 'application/json']),
-                ],
+                'headers' => $headers,
                 ...($json === null ? [] : ['body' => $json]),
             ]);
         } catch (Throwable) {

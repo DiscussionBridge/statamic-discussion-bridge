@@ -1,4 +1,10 @@
-{{ if discussionbridge_resource_id }}
+{{ if discussionbridge_mode == "simple" }}
+    {{ content }}
+    {{ discussionbridge:simple topic="{discussionbridge_topic_id}" }}
+{{ elseif discussionbridge_mode == "full" }}
+    {{ content }}
+    {{ discussionbridge:full canonical="{discussionbridge_canonical_url}" }}
+{{ elseif discussionbridge_resource_id }}
   {{ content }}
   {{ discussionbridge:record resource="{discussionbridge_resource_id}" }}
 {{ elseif discussionbridge_publish }}

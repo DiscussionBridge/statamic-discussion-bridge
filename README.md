@@ -33,12 +33,22 @@ rollback package.
   credit and responsive discussion treatment.
 - `{{ discussionbridge:article entry="{id}" }}` renders a publishing entry with a
   native heading-derived **On this page** navigation.
+- `{{ discussionbridge:simple topic="{discussionbridge_topic_id}" }}` renders
+  the public replies from one ordinary Discourse topic as native Statamic
+  markup. It uses no Content Connection credential and does not create or read
+  a Bridge Record.
+- `{{ discussionbridge:full canonical="{discussionbridge_canonical_url}" }}`
+  uses Discourse Core's standard canonical-URL comments embed. It is likewise
+  plugin-free: there is no topic-ID claim, receiver credential, or Bridge
+  Record request.
 
 The addon adds two ephemeral blueprint fields to configured collection entries:
 `discussionbridge_publish` for To Discourse opt-in and
 `discussionbridge_resource_id` for From Discourse presentation. Field values
 persist through Statamic's active repository, while delivery state remains in
-the addon table.
+the addon table. The optional `discussionbridge_mode` and
+`discussionbridge_topic_id` fields select plugin-free Simple or Full
+presentation; Full resolves from the page's canonical URL.
 
 ## Configuration
 

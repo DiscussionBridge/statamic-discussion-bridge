@@ -11,3 +11,8 @@ connection, delivery, presentation and discussion behavior; a site theme owns
 the surrounding brand experience.
 
 The later DiscussionBridge showcase theme is separate and optional.
+
+The supplied template also shows the four initial presentation boundaries:
+plugin-free Simple, plugin-free Full, publishing to The Bridge with
+fullInteractive discussion, and From The Bridge. Use the site's canonical URL
+for Full mode and an ordinary public Discourse topic ID for Simple mode.
