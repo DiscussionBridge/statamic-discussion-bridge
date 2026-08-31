@@ -1,8 +1,8 @@
 {{ if discussionbridge_mode == "simple" }}
-    {{ content }}
+    {{ discussionbridge:article entry="{id}" }}
     {{ discussionbridge:simple topic="{discussionbridge_topic_id}" }}
 {{ elseif discussionbridge_mode == "full" }}
-    {{ content }}
+    {{ discussionbridge:article entry="{id}" }}
     {{ discussionbridge:full canonical="{discussionbridge_canonical_url}" }}
 {{ elseif discussionbridge_resource_id }}
   {{ content }}

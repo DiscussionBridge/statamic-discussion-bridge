@@ -21,6 +21,8 @@ class PresentationChromeTest extends TestCase
         $this->assertStringContainsString('class="discussionbridge-credit__brand"', $discussion);
         $this->assertStringContainsString('.discussionbridge-discussion{box-sizing:border-box;width:100%;max-width:48rem', $discussion);
         $this->assertStringContainsString('.discussionbridge-discussion iframe{display:block;box-sizing:border-box;width:100%;max-width:100%', $discussion);
+        $this->assertStringContainsString('min-height:0', $discussion);
+        $this->assertStringNotContainsString('height:800px', $discussion);
     }
 
     public function test_standard_embed_uses_only_the_plugin_free_canonical_url_contract(): void
