@@ -20,7 +20,7 @@ class StandalonePresenterTest extends TestCase
             'slug' => 'public-topic',
             'post_stream' => ['posts' => [
                 ['post_number' => 1, 'username' => 'publisher', 'cooked' => '<p>Source article</p>'],
-                ['post_number' => 2, 'username' => 'reader', 'name' => 'Demo Reader', 'cooked' => '<p>Useful reply</p><script>bad()</script>'],
+                ['post_number' => 2, 'username' => 'reader', 'name' => 'Demo Reader', 'created_at' => '2026-08-31T12:00:00Z', 'avatar_template' => '/user_avatar/forum.example/reader/{size}/1_2.png', 'cooked' => '<p>Useful reply</p><script>bad()</script>'],
             ]],
         ], JSON_THROW_ON_ERROR))]);
         $configuration = app(Configuration::class);
@@ -37,6 +37,9 @@ class StandalonePresenterTest extends TestCase
         $this->assertStringContainsString('Demo Reader', $html);
         $this->assertStringContainsString('Useful reply', $html);
         $this->assertStringContainsString('https://forum.example/t/public-topic/42/2', $html);
+        $this->assertStringContainsString('https://forum.example/user_avatar/forum.example/reader/48/1_2.png', $html);
+        $this->assertStringContainsString('<time datetime="2026-08-31T12:00:00+00:00">Aug 31, 2026</time>', $html);
+        $this->assertStringNotContainsString('reply 2', $html);
         $this->assertStringNotContainsString('Source article', $html);
         $this->assertStringNotContainsString('<script>', $html);
     }
