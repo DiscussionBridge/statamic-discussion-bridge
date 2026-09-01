@@ -41,6 +41,24 @@ class PresentationChrome
             .'<script async src="'.htmlspecialchars(rtrim($forumOrigin, '/').'/javascripts/embed.js', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'"></script>';
     }
 
+    public function standardTopicEmbed(int $topicId, string $forumOrigin): string
+    {
+        $configuration = [
+            'discourseUrl' => rtrim($forumOrigin, '/').'/',
+            'topicId' => $topicId,
+        ];
+        $topicUrl = rtrim($forumOrigin, '/').'/t/'.$topicId;
+
+        return $this->styles()
+            .'<section class="discussionbridge-discussion discussionbridge-discussion--full">'
+            .'<div class="discussionbridge-discussion__header"><h2>Discussion</h2><a href="'.htmlspecialchars($topicUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" rel="nofollow noopener noreferrer">Open in Discourse</a></div>'
+            .'<div id="discourse-comments"></div>'
+            .$this->credit()
+            .'</section>'
+            .'<script>window.DiscourseEmbed='.json_encode($configuration, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES).';</script>'
+            .'<script async src="'.htmlspecialchars(rtrim($forumOrigin, '/').'/javascripts/embed.js', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'"></script>';
+    }
+
     public function credit(): string
     {
         return '<footer class="discussionbridge-credit" aria-label="DiscussionBridge credit"><span class="discussionbridge-credit__prefix">Connected by</span> <a class="discussionbridge-credit__brand" href="https://discussionbridge.dev/" rel="nofollow">DiscussionBridge</a></footer>';

@@ -50,4 +50,14 @@ class PresentationChromeTest extends TestCase
         $this->assertStringContainsString('.discussionbridge-credit__prefix{opacity:.72}', $discussion);
         $this->assertStringContainsString('transition:color 160ms ease,opacity 160ms ease', $discussion);
     }
+
+    public function test_standard_topic_embed_reuses_one_discussion_without_enabling_full_app(): void
+    {
+        $discussion = (new PresentationChrome())->standardTopicEmbed(56, 'https://forum.example');
+
+        $this->assertStringContainsString('"topicId":56', $discussion);
+        $this->assertStringContainsString('https://forum.example/t/56', $discussion);
+        $this->assertStringNotContainsString('"discourseEmbedUrl"', $discussion);
+        $this->assertStringNotContainsString('"fullApp"', $discussion);
+    }
 }

@@ -14,7 +14,7 @@ class StarterKitTest extends TestCase
             $template,
         );
         $this->assertStringContainsString(
-            "{{ elseif discussionbridge_mode == \"full\" }}\n    {{ discussionbridge:article entry=\"{id}\" }}\n    {{ discussionbridge:full canonical=\"{discussionbridge_canonical_url}\" }}",
+            "{{ elseif discussionbridge_mode == \"full\" }}\n    {{ discussionbridge:article entry=\"{id}\" }}\n    {{ discussionbridge:full topic=\"{discussionbridge_topic_id}\" canonical=\"{discussionbridge_canonical_url}\" }}",
             $template,
         );
         $this->assertStringContainsString(

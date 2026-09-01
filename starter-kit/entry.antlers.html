@@ -3,7 +3,7 @@
     {{ discussionbridge:simple topic="{discussionbridge_topic_id}" }}
 {{ elseif discussionbridge_mode == "full" }}
     {{ discussionbridge:article entry="{id}" }}
-    {{ discussionbridge:full canonical="{discussionbridge_canonical_url}" }}
+    {{ discussionbridge:full topic="{discussionbridge_topic_id}" canonical="{discussionbridge_canonical_url}" }}
 {{ elseif discussionbridge_native_publication }}
   {{ discussionbridge:article entry="{id}" }}
   {{ discussionbridge:publication entry="{id}" }}

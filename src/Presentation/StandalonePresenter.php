@@ -133,6 +133,15 @@ class StandalonePresenter
         );
     }
 
+    public function fullTopic(int $topicId): string
+    {
+        if ($topicId <= 0) {
+            throw new RuntimeException('The Discourse topic identity is invalid.');
+        }
+
+        return $this->chrome->standardTopicEmbed($topicId, $this->configuration->forumOrigin());
+    }
+
     /** @param array<string, mixed> $post */
     private function avatar(array $post, string $username): string
     {

@@ -106,6 +106,20 @@ class DiscussionBridge extends Tags
 
     public function full(): string
     {
+        $topic = $this->params->get('topic');
+        if (is_string($topic) || is_int($topic)) {
+            $topic = filter_var($topic, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+            if (is_int($topic)) {
+                try {
+                    return app(StandalonePresenter::class)->fullTopic($topic);
+                } catch (Throwable $error) {
+                    report($error);
+
+                    return '<p class="discussionbridge-unavailable">Comments unavailable.</p>';
+                }
+            }
+        }
+
         $canonical = $this->params->get('canonical');
         if (! is_string($canonical) || trim($canonical) === '') {
             return '';
