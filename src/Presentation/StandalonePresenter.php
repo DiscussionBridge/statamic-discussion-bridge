@@ -142,6 +142,17 @@ class StandalonePresenter
         return $this->chrome->standardTopicEmbed($topicId, $this->configuration->forumOrigin());
     }
 
+    public function interactiveTopic(int $topicId): string
+    {
+        if ($topicId <= 0) {
+            throw new RuntimeException('The Discourse topic identity is invalid.');
+        }
+
+        $forumOrigin = $this->configuration->forumOrigin();
+
+        return $this->chrome->discussion($topicId, $forumOrigin.'/t/'.$topicId, $forumOrigin, false);
+    }
+
     /** @param array<string, mixed> $post */
     private function avatar(array $post, string $username): string
     {

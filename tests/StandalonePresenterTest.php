@@ -85,6 +85,24 @@ class StandalonePresenterTest extends TestCase
         $this->assertStringNotContainsString('connectionSecret', $source);
     }
 
+    public function test_interactive_topic_uses_the_full_app_without_receiver_credentials(): void
+    {
+        $configuration = app(Configuration::class);
+        $presenter = new StandalonePresenter(
+            new BridgeClient(new Client(), $configuration),
+            $configuration,
+            new HtmlSanitizer(),
+            new PresentationChrome(),
+        );
+
+        $html = $presenter->interactiveTopic(56);
+
+        $this->assertStringContainsString('"topicId":56', $html);
+        $this->assertStringContainsString('"fullApp":true', $html);
+        $this->assertStringContainsString('https://forum.example/t/56', $html);
+        $this->assertStringNotContainsString('X-DiscussionBridge', $html);
+    }
+
     public function test_simple_fetches_missing_batches_and_discloses_replies_after_five(): void
     {
         $firstPosts = [

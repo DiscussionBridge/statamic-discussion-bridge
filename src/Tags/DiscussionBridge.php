@@ -134,6 +134,26 @@ class DiscussionBridge extends Tags
         }
     }
 
+    public function interactive(): string
+    {
+        $topic = $this->params->get('topic');
+        if (! is_string($topic) && ! is_int($topic)) {
+            return '';
+        }
+        $topic = filter_var($topic, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        if (! is_int($topic)) {
+            return '';
+        }
+
+        try {
+            return app(StandalonePresenter::class)->interactiveTopic($topic);
+        } catch (Throwable $error) {
+            report($error);
+
+            return '<p class="discussionbridge-unavailable">Discussion unavailable.</p>';
+        }
+    }
+
     private function entryId(): ?string
     {
         $entryId = $this->params->get('entry') ?? $this->context->get('id');
