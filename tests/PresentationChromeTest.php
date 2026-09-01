@@ -38,4 +38,16 @@ class PresentationChromeTest extends TestCase
         $this->assertStringNotContainsString('"fullApp"', $discussion);
         $this->assertStringNotContainsString('X-DiscussionBridge', $discussion);
     }
+
+    public function test_each_render_includes_styles_for_long_running_ssg_generation(): void
+    {
+        $chrome = new PresentationChrome();
+        $discussion = $chrome->discussion(42, 'https://forum.example/t/topic/42', 'https://forum.example', false);
+        $full = $chrome->standardEmbed('https://statamic.example/discussionbridge/full', 'https://forum.example');
+
+        $this->assertSame(1, substr_count($discussion, 'data-discussionbridge-presentation'));
+        $this->assertSame(1, substr_count($full, 'data-discussionbridge-presentation'));
+        $this->assertStringContainsString('.discussionbridge-credit__prefix{opacity:.72}', $discussion);
+        $this->assertStringContainsString('transition:color 160ms ease,opacity 160ms ease', $discussion);
+    }
 }

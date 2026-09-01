@@ -11,7 +11,7 @@ return [
     'source_author_name' => env('DISCUSSIONBRIDGE_SOURCE_AUTHOR_NAME', 'Statamic'),
     'source_author_profile_url' => env('DISCUSSIONBRIDGE_SOURCE_AUTHOR_PROFILE_URL'),
     'adapter_id' => 'statamic-discussionbridge',
-    'adapter_version' => '0.1.0-alpha.13',
+    'adapter_version' => '0.1.0-alpha.14',
     'connect_timeout_seconds' => 2,
     'response_timeout_seconds' => 5,
     'maximum_response_bytes' => 65536,

@@ -31,7 +31,6 @@ class RecordPresenter
             throw new RuntimeException('DiscussionBridge content is empty after sanitization.');
         }
         return '<section class="discussionbridge-record">'
-            .$this->chrome->styles()
             .'<article class="discussionbridge-article">'.$this->navigation->render($content).'</article>'
             .$this->chrome->discussion($record['topic_id'], $record['topic_url'], $this->configuration->forumOrigin(), true)
             .'</section>';
