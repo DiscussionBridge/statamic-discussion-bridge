@@ -4,6 +4,7 @@ namespace CodeWorksLabs\DiscussionBridgeStatamic;
 
 use CodeWorksLabs\DiscussionBridgeStatamic\Console\RetryDelivery;
 use CodeWorksLabs\DiscussionBridgeStatamic\Console\ReconcileDeliveries;
+use CodeWorksLabs\DiscussionBridgeStatamic\Console\PrepareStaticBuild;
 use CodeWorksLabs\DiscussionBridgeStatamic\Console\WorkDeliveries;
 use CodeWorksLabs\DiscussionBridgeStatamic\Listeners\AddBlueprintFields;
 use CodeWorksLabs\DiscussionBridgeStatamic\Listeners\PublishEntry;
@@ -26,6 +27,7 @@ class ServiceProvider extends AddonServiceProvider
     protected $commands = [
         RetryDelivery::class,
         ReconcileDeliveries::class,
+        PrepareStaticBuild::class,
         WorkDeliveries::class,
     ];
 

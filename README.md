@@ -24,6 +24,10 @@ rollback package.
   the returned resource/topic tuple must remain exact.
 - `discussionbridge:reconcile` scans the configured collections and enqueues
   any eligible entry missing addon state.
+- `discussionbridge:ssg-prepare` is the static-build gate. It reconciles the
+  configured collections, drains a bounded number of deliveries, and fails
+  closed while any pending, processing, failed or reconciliation-required
+  record remains. Run it immediately before `php please ssg:generate`.
 - `{{ discussionbridge:record resource="{discussionbridge_resource_id}" }}`
   performs a bounded authenticated server-side pull, sanitizes the cooked first
   post, builds native page navigation, and presents the same topic's replies in
@@ -71,6 +75,27 @@ Bridge and can be mapped there to the selected Discourse user. The secret file
 must be outside the webroot and readable only by the owning
 application group. Flat and DB must never share a connection secret or secret
 directory.
+
+## Static site generation
+
+Statamic SSG is a third installed profile of this same addon, not a separate
+adapter. Its authoring/build application owns an independent origin,
+connection, secret and delivery database. Simple comments and From The Bridge
+content are rendered into the generated files at build time. Full comments and
+Publishing through The Bridge retain their credential-free live Discourse
+frames in the generated HTML.
+
+The release build order is strict:
+
+```shell
+php please discussionbridge:ssg-prepare
+php please ssg:generate
+```
+
+Do not deploy output when the preparation command fails. A generated site may
+be hosted without PHP, Statamic, a connection secret or an adapter worker; only
+the protected authoring/build application performs receiver-authenticated
+requests.
 
 Install the package through Composer, run `php artisan migrate --force`, clear
 configuration and Statamic caches, and add the presentation tag to the selected
