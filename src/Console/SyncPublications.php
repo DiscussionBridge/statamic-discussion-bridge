@@ -9,6 +9,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Statamic\Facades\Entry;
+use Statamic\Facades\Collection;
 use Statamic\Facades\Site;
 use Throwable;
 
@@ -66,20 +67,25 @@ class SyncPublications extends Command
                 throw new RuntimeException('Statamic publication identity collision.');
             }
         } else {
-            $parent = Entry::findByUri('/discussionbridge', $site);
-            if (! $parent) {
-                throw new RuntimeException('Statamic DiscussionBridge parent page is unavailable.');
-            }
-            $entry = Entry::make()->collection('pages')->locale($site)->slug($publication['slug'])->published(true);
-            $entry->afterSave(function ($saved) use ($parent, $site): void {
-                $structure = $saved->collection()->structure();
-                if (! $structure) {
-                    throw new RuntimeException('Statamic pages structure is unavailable.');
+            $collection = Collection::findByHandle('discussionbridge');
+            if ($collection) {
+                $entry = Entry::make()->collection($collection)->locale($site)->slug($publication['slug'])->published(true);
+            } else {
+                $parent = Entry::findByUri('/discussionbridge', $site);
+                if (! $parent) {
+                    throw new RuntimeException('Statamic DiscussionBridge destination is unavailable.');
                 }
-                $tree = $structure->in($site);
-                $tree->appendTo($parent->id(), $saved);
-                $tree->save();
-            });
+                $entry = Entry::make()->collection('pages')->locale($site)->slug($publication['slug'])->published(true);
+                $entry->afterSave(function ($saved) use ($parent, $site): void {
+                    $structure = $saved->collection()->structure();
+                    if (! $structure) {
+                        throw new RuntimeException('Statamic pages structure is unavailable.');
+                    }
+                    $tree = $structure->in($site);
+                    $tree->appendTo($parent->id(), $saved);
+                    $tree->save();
+                });
+            }
         }
 
         $content = $sanitizer->sanitize($publication['content_html']);
