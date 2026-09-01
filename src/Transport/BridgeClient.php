@@ -10,6 +10,9 @@ use Throwable;
 
 class BridgeClient
 {
+    /** @var array<string, array{expires: int, enabled: bool}> */
+    private static array $brandingCache = [];
+
     public function __construct(
         private readonly Client $http,
         private readonly Configuration $configuration,
@@ -67,6 +70,57 @@ class BridgeClient
         $query = http_build_query(['post_ids' => array_values(array_unique($postIds))]);
 
         return $this->request('GET', '/t/'.$topicId.'/posts.json?'.$query, null, false);
+    }
+
+    public function publicPoweredByDiscourse(): bool
+    {
+        $origin = $this->configuration->forumOrigin();
+        $cached = self::$brandingCache[$origin] ?? null;
+        if (is_array($cached) && $cached['expires'] > time()) {
+            return $cached['enabled'];
+        }
+        try {
+            $response = $this->http->request('GET', $origin.'/', [
+                'allow_redirects' => false,
+                'connect_timeout' => (float) config('discussionbridge.connect_timeout_seconds', 2),
+                'timeout' => (float) config('discussionbridge.response_timeout_seconds', 5),
+                'http_errors' => false,
+                'stream' => true,
+                'headers' => [
+                    'Accept' => 'text/html',
+                    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36',
+                ],
+            ]);
+        } catch (Throwable) {
+            throw new RuntimeException('Discourse branding transport failed.');
+        }
+        if ($response->getStatusCode() !== 200 || ! str_starts_with(strtolower($response->getHeaderLine('Content-Type')), 'text/html')) {
+            throw new RuntimeException('Discourse branding response is invalid.');
+        }
+        $body = $response->getBody();
+        $html = '';
+        while (! $body->eof()) {
+            $html .= $body->read(min(8192, 512 * 1024 + 1 - strlen($html)));
+            if (strlen($html) > 512 * 1024) {
+                throw new RuntimeException('Discourse branding response is too large.');
+            }
+        }
+        if (preg_match('/<script[^>]+id=["\']data-preloaded["\'][^>]*>(.*?)<\/script>/is', $html, $match) !== 1) {
+            throw new RuntimeException('Discourse branding setting is unavailable.');
+        }
+        try {
+            $outer = json_decode($match[1], true, 64, JSON_THROW_ON_ERROR);
+            $settings = json_decode($outer['siteSettings'] ?? '', true, 64, JSON_THROW_ON_ERROR);
+        } catch (Throwable) {
+            throw new RuntimeException('Discourse branding setting is invalid.');
+        }
+        $enabled = $settings['enable_powered_by_discourse'] ?? null;
+        if (! is_bool($enabled)) {
+            throw new RuntimeException('Discourse branding setting is invalid.');
+        }
+        self::$brandingCache[$origin] = ['expires' => time() + 600, 'enabled' => $enabled];
+
+        return $enabled;
     }
 
     private function request(string $method, string $path, ?string $json = null, bool $authenticate = true): array

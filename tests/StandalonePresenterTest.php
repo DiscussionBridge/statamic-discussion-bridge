@@ -22,7 +22,7 @@ class StandalonePresenterTest extends TestCase
                 ['id' => 1, 'post_number' => 1, 'username' => 'publisher', 'cooked' => '<p>Source article</p>'],
                 ['id' => 2, 'post_number' => 2, 'username' => 'reader', 'name' => 'Demo Reader', 'created_at' => '2026-08-31T12:00:00Z', 'avatar_template' => '/user_avatar/forum.example/reader/{size}/1_2.png', 'cooked' => '<p>Useful reply</p><script>bad()</script>'],
             ], 'stream' => [1, 2]],
-        ], JSON_THROW_ON_ERROR))]);
+        ], JSON_THROW_ON_ERROR)), $this->brandingResponse()]);
         $configuration = app(Configuration::class);
         $presenter = new StandalonePresenter(
             new BridgeClient(new Client(['handler' => HandlerStack::create($mock)]), $configuration),
@@ -49,6 +49,8 @@ class StandalonePresenterTest extends TestCase
         $this->assertStringContainsString('credentials:"omit"', $html);
         $this->assertStringContainsString('Showing the saved comment snapshot', $html);
         $this->assertStringContainsString('Open the discussion for current replies', $html);
+        $this->assertStringContainsString('Powered by Discourse', $html);
+        $this->assertStringContainsString('discussionbridge-powered-by__wordmark', $html);
         $this->assertStringNotContainsString('X-DiscussionBridge-Secret', $html);
     }
 
@@ -59,7 +61,7 @@ class StandalonePresenterTest extends TestCase
             'post_stream' => ['posts' => [
                 ['id' => 1, 'post_number' => 1, 'username' => 'publisher', 'cooked' => '<p>Source article</p>'],
             ], 'stream' => [1]],
-        ], JSON_THROW_ON_ERROR))]);
+        ], JSON_THROW_ON_ERROR)), $this->brandingResponse()]);
         $configuration = app(Configuration::class);
         $presenter = new StandalonePresenter(
             new BridgeClient(new Client(['handler' => HandlerStack::create($mock)]), $configuration),
@@ -122,6 +124,7 @@ class StandalonePresenterTest extends TestCase
             new Response(200, ['Content-Type' => 'application/json'], json_encode([
                 'post_stream' => ['posts' => $additionalPosts],
             ], JSON_THROW_ON_ERROR)),
+            $this->brandingResponse(),
         ]);
         $configuration = app(Configuration::class);
         $presenter = new StandalonePresenter(
@@ -137,5 +140,13 @@ class StandalonePresenterTest extends TestCase
         $this->assertStringContainsString('<details class="discussionbridge-simple__more">', $html);
         $this->assertStringContainsString('Show 2 more comments', $html);
         $this->assertStringContainsString('Show fewer comments', $html);
+    }
+
+    private function brandingResponse(bool $enabled = true): Response
+    {
+        $settings = json_encode(['enable_powered_by_discourse' => $enabled], JSON_THROW_ON_ERROR);
+        $preload = json_encode(['siteSettings' => $settings], JSON_THROW_ON_ERROR);
+
+        return new Response(200, ['Content-Type' => 'text/html'], '<script type="application/json" id="data-preloaded">'.$preload.'</script>');
     }
 }

@@ -114,6 +114,11 @@ class StandalonePresenter
         }
 
         $forumOrigin = $this->configuration->forumOrigin();
+        try {
+            $poweredBy = $this->client->publicPoweredByDiscourse();
+        } catch (Throwable) {
+            $poweredBy = false;
+        }
 
         return $this->chrome->styles()
             .'<section class="discussionbridge-simple">'
@@ -121,6 +126,7 @@ class StandalonePresenter
             .'<div class="discussionbridge-simple__header"><h2>Comments</h2><a href="'.htmlspecialchars($topicUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" rel="nofollow noopener noreferrer">Open discussion</a></div>'
             .$replies
             .'<p data-discussionbridge-simple-status hidden>Showing the saved comment snapshot. Open the discussion for current replies.</p>'
+            .$this->chrome->discourseCredit($poweredBy)
             .'</div>'.$this->chrome->credit().'</section>'
             .'<script>'.$this->simpleLoader().'</script>';
     }
