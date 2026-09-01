@@ -39,8 +39,10 @@ rollback package.
   native heading-derived **On this page** navigation.
 - `{{ discussionbridge:simple topic="{discussionbridge_topic_id}" }}` renders
   the public replies from one ordinary Discourse topic as native Statamic
-  markup. It uses no Content Connection credential and does not create or read
-  a Bridge Record.
+  markup. The generated or server-rendered reply snapshot is an immediate
+  no-JavaScript/failure fallback; a credential-free browser refresh retrieves
+  current public replies on every page load. It uses no Content Connection
+  credential and does not create or read a Bridge Record.
 - `{{ discussionbridge:full canonical="{discussionbridge_canonical_url}" }}`
   uses Discourse Core's standard canonical-URL comments embed. It is likewise
   plugin-free: there is no topic-ID claim, receiver credential, or Bridge
@@ -81,8 +83,10 @@ directory.
 Statamic SSG is a third installed profile of this same addon, not a separate
 adapter. Its authoring/build application owns an independent origin,
 connection, secret and delivery database. Simple comments and From The Bridge
-content are rendered into the generated files at build time. Full comments and
-Publishing through The Bridge retain their credential-free live Discourse
+content are rendered into the generated files at build time. Simple then
+refreshes its public replies in the browser, so new comments do not require a
+new static build; the generated snapshot remains the fallback. Full comments
+and Publishing through The Bridge retain their credential-free live Discourse
 frames in the generated HTML.
 
 The release build order is strict:

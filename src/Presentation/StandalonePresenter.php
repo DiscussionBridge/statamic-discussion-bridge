@@ -113,10 +113,16 @@ class StandalonePresenter
             }
         }
 
+        $forumOrigin = $this->configuration->forumOrigin();
+
         return $this->chrome->styles()
             .'<section class="discussionbridge-simple">'
+            .'<div data-discussionbridge-simple-live data-discussionbridge-simple-state="snapshot" data-discourse-origin="'.htmlspecialchars($forumOrigin, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" data-topic-id="'.$topicId.'" data-topic-url="'.htmlspecialchars($topicUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'">'
             .'<div class="discussionbridge-simple__header"><h2>Comments</h2><a href="'.htmlspecialchars($topicUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" rel="nofollow noopener noreferrer">Open discussion</a></div>'
-            .$replies.$this->chrome->credit().'</section>';
+            .$replies
+            .'<p data-discussionbridge-simple-status hidden>Live comments are temporarily unavailable; showing the most recently generated snapshot.</p>'
+            .'</div>'.$this->chrome->credit().'</section>'
+            .'<script>'.$this->simpleLoader().'</script>';
     }
 
     public function full(string $canonicalUrl): string
@@ -144,5 +150,16 @@ class StandalonePresenter
         $initial = strtoupper(substr(trim($username), 0, 1));
 
         return '<span class="discussionbridge-simple__avatar discussionbridge-simple__avatar--fallback" aria-hidden="true">'.htmlspecialchars($initial, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'</span>';
+    }
+
+    private function simpleLoader(): string
+    {
+        $path = dirname(__DIR__, 2).'/resources/dist/discussionbridge-simple.js';
+        $script = file_get_contents($path);
+        if (! is_string($script) || $script === '' || str_contains(strtolower($script), '</script')) {
+            throw new RuntimeException('DiscussionBridge Simple browser asset is unavailable.');
+        }
+
+        return $script;
     }
 }

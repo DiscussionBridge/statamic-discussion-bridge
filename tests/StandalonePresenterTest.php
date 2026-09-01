@@ -41,7 +41,14 @@ class StandalonePresenterTest extends TestCase
         $this->assertStringContainsString('<time datetime="2026-08-31T12:00:00+00:00">Aug 31, 2026</time>', $html);
         $this->assertStringNotContainsString('reply 2', $html);
         $this->assertStringNotContainsString('Source article', $html);
-        $this->assertStringNotContainsString('<script>', $html);
+        $this->assertStringNotContainsString('<script>bad()', $html);
+        $this->assertStringContainsString('data-discussionbridge-simple-live', $html);
+        $this->assertStringContainsString('data-discourse-origin="https://forum.example"', $html);
+        $this->assertStringContainsString('data-topic-id="42"', $html);
+        $this->assertStringContainsString('data-topic-url="https://forum.example/t/public-topic/42"', $html);
+        $this->assertStringContainsString('credentials:"omit"', $html);
+        $this->assertStringContainsString('Live comments are temporarily unavailable', $html);
+        $this->assertStringNotContainsString('X-DiscussionBridge-Secret', $html);
     }
 
     public function test_simple_shows_an_empty_state_when_topic_has_no_replies(): void
@@ -61,6 +68,21 @@ class StandalonePresenterTest extends TestCase
         );
 
         $this->assertStringContainsString('No replies yet.', $presenter->simple(7));
+    }
+
+    public function test_simple_browser_source_is_bounded_sanitized_and_credential_free(): void
+    {
+        $source = file_get_contents(__DIR__.'/../resources/js/browser-simple.mjs');
+
+        $this->assertIsString($source);
+        $this->assertStringContainsString('credentials: "omit"', $source);
+        $this->assertStringContainsString('redirect: "error"', $source);
+        $this->assertStringContainsString('DOMPurify.sanitize', $source);
+        $this->assertStringContainsString('MAX_REPLIES = 50', $source);
+        $this->assertStringContainsString('INITIAL_REPLIES = 5', $source);
+        $this->assertStringContainsString('discussionbridgeSimpleState = "snapshot"', $source);
+        $this->assertStringNotContainsString('X-DiscussionBridge', $source);
+        $this->assertStringNotContainsString('connectionSecret', $source);
     }
 
     public function test_simple_fetches_missing_batches_and_discloses_replies_after_five(): void

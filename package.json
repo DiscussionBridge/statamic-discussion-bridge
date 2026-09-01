@@ -1,0 +1,15 @@
+{
+  "name": "statamic-discussion-bridge-browser-assets",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild resources/js/browser-simple.mjs --bundle --format=iife --minify --outfile=resources/dist/discussionbridge-simple.js",
+    "check": "node --check resources/js/browser-simple.mjs"
+  },
+  "dependencies": {
+    "dompurify": "^3.4.14"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.9"
+  }
+}
