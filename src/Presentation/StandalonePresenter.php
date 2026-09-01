@@ -120,7 +120,7 @@ class StandalonePresenter
             .'<div data-discussionbridge-simple-live data-discussionbridge-simple-state="snapshot" data-discourse-origin="'.htmlspecialchars($forumOrigin, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" data-topic-id="'.$topicId.'" data-topic-url="'.htmlspecialchars($topicUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'">'
             .'<div class="discussionbridge-simple__header"><h2>Comments</h2><a href="'.htmlspecialchars($topicUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" rel="nofollow noopener noreferrer">Open discussion</a></div>'
             .$replies
-            .'<p data-discussionbridge-simple-status hidden>Live comments are temporarily unavailable; showing the most recently generated snapshot.</p>'
+            .'<p data-discussionbridge-simple-status hidden>Showing the saved comment snapshot. Open the discussion for current replies.</p>'
             .'</div>'.$this->chrome->credit().'</section>'
             .'<script>'.$this->simpleLoader().'</script>';
     }

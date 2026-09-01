@@ -47,7 +47,8 @@ class StandalonePresenterTest extends TestCase
         $this->assertStringContainsString('data-topic-id="42"', $html);
         $this->assertStringContainsString('data-topic-url="https://forum.example/t/public-topic/42"', $html);
         $this->assertStringContainsString('credentials:"omit"', $html);
-        $this->assertStringContainsString('Live comments are temporarily unavailable', $html);
+        $this->assertStringContainsString('Showing the saved comment snapshot', $html);
+        $this->assertStringContainsString('Open the discussion for current replies', $html);
         $this->assertStringNotContainsString('X-DiscussionBridge-Secret', $html);
     }
 
