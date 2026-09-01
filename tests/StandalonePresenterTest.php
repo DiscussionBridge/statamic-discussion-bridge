@@ -68,7 +68,7 @@ class StandalonePresenterTest extends TestCase
             new PresentationChrome(),
         );
 
-        $this->assertStringContainsString('No replies yet.', $presenter->simple(7));
+        $this->assertStringContainsString('No comments yet.', $presenter->simple(7));
     }
 
     public function test_simple_browser_source_is_bounded_sanitized_and_credential_free(): void

@@ -100,7 +100,7 @@ class StandalonePresenter
         }
 
         if ($renderedReplies === []) {
-            $replies = '<p class="discussionbridge-simple__empty">No replies yet.</p>';
+            $replies = '<p class="discussionbridge-simple__empty">No comments yet.</p>';
         } else {
             $replies = implode('', array_slice($renderedReplies, 0, self::INITIAL_REPLIES));
             $remaining = array_slice($renderedReplies, self::INITIAL_REPLIES);
