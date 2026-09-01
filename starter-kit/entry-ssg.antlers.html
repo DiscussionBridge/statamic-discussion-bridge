@@ -1,0 +1,18 @@
+{{ if discussionbridge_mode == "simple" }}
+    {{ discussionbridge:article entry="{id}" }}
+    {{ discussionbridge:simple topic="{discussionbridge_topic_id}" }}
+{{ elseif discussionbridge_mode == "full" }}
+    {{ discussionbridge:article entry="{id}" }}
+    {{ discussionbridge:full canonical="{discussionbridge_canonical_url}" }}
+{{ elseif discussionbridge_native_publication }}
+  {{ discussionbridge:article entry="{id}" }}
+  {{ discussionbridge:publication entry="{id}" }}
+{{ elseif discussionbridge_resource_id }}
+  {{ content }}
+  {{ discussionbridge:record resource="{discussionbridge_resource_id}" }}
+{{ elseif discussionbridge_publish }}
+  {{ discussionbridge:article entry="{id}" }}
+  {{ discussionbridge:discussion entry="{id}" }}
+{{ else }}
+  <article class="db-copy">{{ content }}</article>
+{{ /if }}

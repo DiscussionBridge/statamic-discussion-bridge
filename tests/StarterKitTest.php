@@ -22,4 +22,13 @@ class StarterKitTest extends TestCase
             $template,
         );
     }
+
+    public function test_ssg_template_preserves_static_copy_wrapper_and_native_publications(): void
+    {
+        $template = file_get_contents(dirname(__DIR__).'/starter-kit/entry-ssg.antlers.html');
+
+        $this->assertIsString($template);
+        $this->assertStringContainsString('{{ elseif discussionbridge_native_publication }}', $template);
+        $this->assertStringContainsString('<article class="db-copy">{{ content }}</article>', $template);
+    }
 }

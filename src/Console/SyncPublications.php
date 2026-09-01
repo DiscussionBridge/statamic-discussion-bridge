@@ -104,7 +104,7 @@ class SyncPublications extends Command
 
         DB::table('discussionbridge_publications')->updateOrInsert(
             ['resource_id' => $publication['resource_id']],
-            ['entry_id' => (string) $entry->id(), 'canonical_url' => $publication['canonical_url'], 'source_revision' => $publication['source_revision'], 'topic_id' => $publication['topic_id'], 'topic_url' => $publication['topic_url'], 'created_at' => $prior?->created_at ?? now(), 'updated_at' => now()],
+            ['entry_id' => (string) $entry->id(), 'canonical_url' => $publication['canonical_url'], 'canonical_url_digest' => hash('sha256', $publication['canonical_url']), 'source_revision' => $publication['source_revision'], 'topic_id' => $publication['topic_id'], 'topic_url' => $publication['topic_url'], 'created_at' => $prior?->created_at ?? now(), 'updated_at' => now()],
         );
         $summary[$prior ? 'updated' : 'created']++;
     }

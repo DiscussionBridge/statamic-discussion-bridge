@@ -12,7 +12,8 @@ return new class extends Migration
             $table->id();
             $table->uuid('resource_id')->unique();
             $table->string('entry_id', 255)->unique();
-            $table->string('canonical_url', 2048)->unique();
+            $table->string('canonical_url', 2048);
+            $table->char('canonical_url_digest', 64)->unique();
             $table->string('source_revision', 100);
             $table->unsignedBigInteger('topic_id');
             $table->string('topic_url', 2048);
