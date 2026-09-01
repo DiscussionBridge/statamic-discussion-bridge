@@ -17,5 +17,9 @@ class StarterKitTest extends TestCase
             "{{ elseif discussionbridge_mode == \"full\" }}\n    {{ discussionbridge:article entry=\"{id}\" }}\n    {{ discussionbridge:full canonical=\"{discussionbridge_canonical_url}\" }}",
             $template,
         );
+        $this->assertStringContainsString(
+            "{{ elseif discussionbridge_native_publication }}\n  {{ discussionbridge:article entry=\"{id}\" }}\n  {{ discussionbridge:publication entry=\"{id}\" }}",
+            $template,
+        );
     }
 }

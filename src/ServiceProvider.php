@@ -6,6 +6,7 @@ use CodeWorksLabs\DiscussionBridgeStatamic\Console\RetryDelivery;
 use CodeWorksLabs\DiscussionBridgeStatamic\Console\ReconcileDeliveries;
 use CodeWorksLabs\DiscussionBridgeStatamic\Console\PrepareStaticBuild;
 use CodeWorksLabs\DiscussionBridgeStatamic\Console\WorkDeliveries;
+use CodeWorksLabs\DiscussionBridgeStatamic\Console\SyncPublications;
 use CodeWorksLabs\DiscussionBridgeStatamic\Listeners\AddBlueprintFields;
 use CodeWorksLabs\DiscussionBridgeStatamic\Listeners\PublishEntry;
 use CodeWorksLabs\DiscussionBridgeStatamic\Tags\DiscussionBridge;
@@ -29,6 +30,7 @@ class ServiceProvider extends AddonServiceProvider
         ReconcileDeliveries::class,
         PrepareStaticBuild::class,
         WorkDeliveries::class,
+        SyncPublications::class,
     ];
 
     public function bootAddon(): void

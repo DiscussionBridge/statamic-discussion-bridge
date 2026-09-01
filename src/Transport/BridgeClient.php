@@ -35,6 +35,15 @@ class BridgeClient
         return $this->request('GET', '/discussion-bridge/v1/bridge-records/'.rawurlencode(strtolower($resourceId)).'.json');
     }
 
+    public function records(int $page = 1): array
+    {
+        if ($page < 1 || $page > 10000) {
+            throw new RuntimeException('DiscussionBridge records page is invalid.');
+        }
+
+        return $this->request('GET', '/discussion-bridge/v1/bridge-records.json?page='.$page);
+    }
+
     public function publicTopic(int $topicId): array
     {
         if ($topicId < 1) {

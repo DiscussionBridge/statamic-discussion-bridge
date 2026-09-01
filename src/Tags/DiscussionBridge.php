@@ -7,6 +7,7 @@ use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\PageNavigation;
 use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\RecordPresenter;
 use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\DeliveryPresenter;
 use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\StandalonePresenter;
+use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\PublicationPresenter;
 use Statamic\Facades\Entry;
 use Statamic\Tags\Tags;
 use Throwable;
@@ -40,6 +41,22 @@ class DiscussionBridge extends Tags
 
         try {
             return app(DeliveryPresenter::class)->render($entryId);
+        } catch (Throwable $error) {
+            report($error);
+
+            return '<p class="discussionbridge-unavailable">Discussion unavailable.</p>';
+        }
+    }
+
+    public function publication(): string
+    {
+        $entryId = $this->entryId();
+        if ($entryId === null) {
+            return '';
+        }
+
+        try {
+            return app(PublicationPresenter::class)->render($entryId);
         } catch (Throwable $error) {
             report($error);
 

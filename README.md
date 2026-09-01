@@ -28,6 +28,13 @@ rollback package.
   configured collections, drains a bounded number of deliveries, and fails
   closed while any pending, processing, failed or reconciliation-required
   record remains. Run it immediately before `php please ssg:generate`.
+- `discussionbridge:sync-publications` consumes only From Discourse bindings
+  carrying explicit native-materialization authority. It creates or updates a
+  genuine entry beneath `/discussionbridge`, records the exact Discourse post
+  revision in an addon-owned table and leaves presentation-only records alone.
+  Flat, DB and SSG use the same package but retain independent connections,
+  storage and native entry identities. Exact retries are unchanged;
+  destination or resource collisions fail closed.
 - `{{ discussionbridge:record resource="{discussionbridge_resource_id}" }}`
   performs a bounded authenticated server-side pull, sanitizes the cooked first
   post, builds native page navigation, and presents the same topic's replies in
