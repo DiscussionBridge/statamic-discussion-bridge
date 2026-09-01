@@ -109,7 +109,7 @@ class StandalonePresenter
                 $replies .= '<details class="discussionbridge-simple__more"><summary><span class="discussionbridge-simple__more-closed">Show '.$count.' more '.($count === 1 ? 'comment' : 'comments').'</span><span class="discussionbridge-simple__more-open">Show fewer comments</span></summary>'.implode('', $remaining).'</details>';
             }
             if (count($stream) - 1 > self::MAX_REPLIES) {
-                $replies .= '<p class="discussionbridge-simple__limit">Showing the first '.self::MAX_REPLIES.' replies. <a href="'.htmlspecialchars($topicUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" rel="nofollow noopener noreferrer">View the complete discussion on The Bridge</a>.</p>';
+                $replies .= '<p class="discussionbridge-simple__limit">Showing the first '.self::MAX_REPLIES.' comments. <a href="'.htmlspecialchars($topicUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" rel="nofollow noopener noreferrer">View the complete discussion on The Bridge</a>.</p>';
             }
         }
 
