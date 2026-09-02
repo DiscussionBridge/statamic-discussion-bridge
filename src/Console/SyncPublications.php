@@ -5,6 +5,7 @@ namespace CodeWorksLabs\DiscussionBridgeStatamic\Console;
 use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\HtmlSanitizer;
 use CodeWorksLabs\DiscussionBridgeStatamic\Publication\NativePublication;
 use CodeWorksLabs\DiscussionBridgeStatamic\Transport\BridgeClient;
+use CodeWorksLabs\DiscussionBridgeStatamic\Version;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -92,7 +93,7 @@ class SyncPublications extends Command
         if ($content === '') {
             throw new RuntimeException('Statamic publication content is empty after sanitization.');
         }
-        $content .= '<hr><aside class="discussionbridge-publication"><p><strong>Published from <a href="'.htmlspecialchars($publication['topic_url'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'">The Bridge</a></strong></p><p>Source author: '.htmlspecialchars($publication['source_author'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').' · Revision '.htmlspecialchars($publication['source_revision'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').' · Statamic 6 · DiscussionBridge for Statamic 0.1.0-alpha.17</p></aside><script src="/discussionbridge/rich-content.js" defer></script>';
+        $content .= '<hr><aside class="discussionbridge-publication"><p><strong>Published from <a href="'.htmlspecialchars($publication['topic_url'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'">The Bridge</a></strong></p><p>Source author: '.htmlspecialchars($publication['source_author'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').' · Revision '.htmlspecialchars($publication['source_revision'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').' · Statamic 6 · DiscussionBridge for Statamic '.Version::VALUE.'</p></aside><script src="/discussionbridge/rich-content.js" defer></script>';
         $entry->data(array_merge($entry->data()->all(), [
             'title' => $publication['title'],
             'content' => $content,
