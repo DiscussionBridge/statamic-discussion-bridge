@@ -2,10 +2,23 @@
 
 namespace CodeWorksLabs\DiscussionBridgeStatamic\Tests;
 
+use CodeWorksLabs\DiscussionBridgeStatamic\Transport\BridgeClient;
 use Illuminate\Support\Facades\DB;
+use Mockery;
 
 class PrepareStaticBuildTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $client = Mockery::mock(BridgeClient::class);
+        $client->shouldReceive('records')->with(1)->andReturn([
+            'bridge_records' => [],
+            'pagination' => ['page' => 1, 'pages' => 1],
+        ]);
+        $this->app->instance(BridgeClient::class, $client);
+    }
+
     public function test_static_build_gate_succeeds_with_no_unresolved_deliveries(): void
     {
         $this->artisan('discussionbridge:ssg-prepare')->assertSuccessful();

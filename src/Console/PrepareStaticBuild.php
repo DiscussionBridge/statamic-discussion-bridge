@@ -64,6 +64,12 @@ class PrepareStaticBuild extends Command
             return self::FAILURE;
         }
 
+        if ($this->call('discussionbridge:sync-publications') !== self::SUCCESS) {
+            $this->error('DiscussionBridge From Discourse publication sync failed. Static generation is blocked.');
+
+            return self::FAILURE;
+        }
+
         return self::SUCCESS;
     }
 

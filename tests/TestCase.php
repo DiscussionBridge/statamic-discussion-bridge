@@ -41,7 +41,7 @@ abstract class TestCase extends AddonTestCase
 
     protected function setUp(): void
     {
-        file_put_contents(sys_get_temp_dir().'/discussionbridge-statamic-test-secret', 'test-secret');
+        file_put_contents(sys_get_temp_dir().'/discussionbridge-statamic-test-secret', str_repeat('s', 40));
         parent::setUp();
         $this->artisan('migrate', ['--force' => true]);
     }

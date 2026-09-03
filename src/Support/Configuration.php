@@ -68,7 +68,7 @@ class Configuration
         }
 
         $secret = @file_get_contents($path);
-        if (! is_string($secret) || ($secret = trim($secret)) === '' || strlen($secret) > 4096) {
+        if (! is_string($secret) || ($secret = trim($secret)) === '' || strlen($secret) < 32 || strlen($secret) > 256 || preg_match('/[\x00-\x1f\x7f]/', $secret) === 1) {
             throw new RuntimeException('DiscussionBridge secret file is unreadable or invalid.');
         }
 
@@ -81,7 +81,7 @@ class Configuration
         if ($lane === null || $lane === '') {
             return null;
         }
-        if (! is_string($lane) || strlen($lane) > 64) {
+        if (! is_string($lane) || preg_match('/\A[a-z0-9][a-z0-9_-]{0,63}\z/', $lane) !== 1) {
             throw new RuntimeException('DiscussionBridge lane is invalid.');
         }
 
