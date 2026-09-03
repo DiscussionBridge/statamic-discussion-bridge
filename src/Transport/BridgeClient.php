@@ -38,13 +38,21 @@ class BridgeClient
         return $this->request('GET', '/discussion-bridge/v1/bridge-records/'.rawurlencode(strtolower($resourceId)).'.json');
     }
 
-    public function records(int $page = 1): array
+    public function records(int $page = 1, ?string $snapshot = null): array
     {
         if ($page < 1 || $page > 10000) {
             throw new RuntimeException('DiscussionBridge records page is invalid.');
         }
 
-        return $this->request('GET', '/discussion-bridge/v1/bridge-records.json?page='.$page);
+        if ($snapshot !== null && ($snapshot === '' || strlen($snapshot) > 8192)) {
+            throw new RuntimeException('DiscussionBridge records snapshot is invalid.');
+        }
+        $query = ['page' => $page];
+        if ($snapshot !== null) {
+            $query['snapshot'] = $snapshot;
+        }
+
+        return $this->request('GET', '/discussion-bridge/v1/bridge-records.json?'.http_build_query($query, '', '&', PHP_QUERY_RFC3986));
     }
 
     public function publicTopic(int $topicId): array

@@ -24,14 +24,28 @@ class SyncPublications extends Command
     {
         $summary = ['created' => 0, 'updated' => 0, 'unchanged' => 0, 'skipped' => 0, 'failed' => 0];
         $page = 1;
+        $snapshot = null;
+        $expectedPages = null;
+        $expectedTotal = null;
+        $seenResources = [];
         do {
-            $response = $client->records($page);
+            $response = $client->records($page, $snapshot);
             $records = $response['bridge_records'] ?? null;
             $pagination = $response['pagination'] ?? null;
-            if (! is_array($records) || ! is_array($pagination) || ($pagination['page'] ?? null) !== $page || ! is_int($pagination['pages'] ?? null) || $pagination['pages'] < 1 || $pagination['pages'] > 10000) {
+            $reportedSnapshot = $pagination['snapshot'] ?? null;
+            $reportedTotal = $pagination['total'] ?? null;
+            if (! is_array($records) || ! is_array($pagination) || ($pagination['page'] ?? null) !== $page || ! is_int($pagination['pages'] ?? null) || $pagination['pages'] < 1 || $pagination['pages'] > 10000 || ! is_int($reportedTotal) || $reportedTotal < 0 || ! is_string($reportedSnapshot) || $reportedSnapshot === '' || strlen($reportedSnapshot) > 8192 || ($expectedPages !== null && $pagination['pages'] !== $expectedPages) || ($expectedTotal !== null && $reportedTotal !== $expectedTotal) || ($snapshot !== null && $reportedSnapshot !== $snapshot)) {
                 throw new RuntimeException('DiscussionBridge publication feed is invalid.');
             }
+            $snapshot ??= $reportedSnapshot;
+            $expectedPages ??= $pagination['pages'];
+            $expectedTotal ??= $reportedTotal;
             foreach ($records as $record) {
+                $resourceId = is_array($record) ? strtolower((string) ($record['resource_id'] ?? '')) : '';
+                if (! preg_match('/\A[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/i', $resourceId) || isset($seenResources[$resourceId])) {
+                    throw new RuntimeException('DiscussionBridge publication feed contains a duplicate or invalid resource identity.');
+                }
+                $seenResources[$resourceId] = true;
                 try {
                     $publication = is_array($record) ? $validator->fromRecord($record) : throw new RuntimeException('DiscussionBridge publication record is invalid.');
                     if ($publication === null) {
@@ -46,6 +60,10 @@ class SyncPublications extends Command
             }
             $page++;
         } while ($page <= $pagination['pages']);
+
+        if (count($seenResources) !== $expectedTotal) {
+            throw new RuntimeException('DiscussionBridge publication feed did not produce its complete unique census.');
+        }
 
         $this->line(json_encode($summary, JSON_THROW_ON_ERROR));
 

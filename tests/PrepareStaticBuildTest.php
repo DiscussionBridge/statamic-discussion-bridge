@@ -12,9 +12,9 @@ class PrepareStaticBuildTest extends TestCase
     {
         parent::setUp();
         $client = Mockery::mock(BridgeClient::class);
-        $client->shouldReceive('records')->with(1)->andReturn([
+        $client->shouldReceive('records')->with(1, null)->andReturn([
             'bridge_records' => [],
-            'pagination' => ['page' => 1, 'pages' => 1],
+            'pagination' => ['page' => 1, 'pages' => 1, 'total' => 0, 'snapshot' => 'snapshot-one'],
         ]);
         $this->app->instance(BridgeClient::class, $client);
     }
