@@ -1,5 +1,9 @@
 # DiscussionBridge for Statamic
 
+```sh
+git clone https://github.com/DiscussionBridge/statamic-discussion-bridge.git
+```
+
 This Statamic 6 addon connects an explicitly opted-in, durably published entry
 to the DiscussionBridge Bridge Record contract. The same package serves the
 Alpha Statamic Flat and Statamic DB profiles; each installation has its own
