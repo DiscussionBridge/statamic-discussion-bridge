@@ -14,7 +14,7 @@ The later DiscussionBridge showcase theme is separate and optional.
 
 The supplied template also shows the four initial presentation boundaries:
 plugin-free Simple, plugin-free Full, publishing to The Bridge with
-fullInteractive discussion, and From The Bridge. Use the site's canonical URL
+Interactive discussion, and From The Bridge. Use the site's canonical URL
 for Full mode and an ordinary public Discourse topic ID for Simple mode.
 Simple and Full both render their entry body through the addon's native article
 typography and heading-derived page navigation. Full leaves iframe height under

@@ -42,7 +42,7 @@ rollback package.
 - `{{ discussionbridge:record resource="{discussionbridge_resource_id}" }}`
   performs a bounded authenticated server-side pull, sanitizes the cooked first
   post, builds native page navigation, and presents the same topic's replies in
-  a credential-free fullInteractive frame.
+  a credential-free Interactive frame.
 - `{{ discussionbridge:discussion entry="{id}" }}` presents the healthy topic owned by the
   current To Discourse entry. Both tags use the same centered DiscussionBridge
   credit and responsive discussion treatment.
