@@ -37,13 +37,13 @@
     @endif
 
     <section class="db-utility__panel">
-        <h3>Synchronize publications</h3>
+        <h3>Publish from Discourse</h3>
         <div class="db-utility__action">
             <form method="POST" action="{{ cp_route('utilities.discussionbridge.synchronize') }}">
                 @csrf
-                <button type="submit" class="btn-primary" @disabled(! $configured)>Synchronize publications</button>
+                <button type="submit" class="btn-primary" @disabled(! $configured)>Synchronize now</button>
             </form>
-            <p>Create or update explicitly authorized Discourse publications. Existing identities are preserved, and an already-current retry refreshes Statamic's presentation state.</p>
+            <p>Create or update Statamic entries authorized in The Bridge. Existing entries are updated in place; no duplicate pages are created.</p>
         </div>
     </section>
 </section>

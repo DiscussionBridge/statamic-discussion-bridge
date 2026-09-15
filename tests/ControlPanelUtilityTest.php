@@ -22,7 +22,7 @@ class ControlPanelUtilityTest extends TestCase
         $this->assertSame('discussionbridge::utility', $utility->view());
         $this->assertNotNull($utility->routes());
         $data = $utility->viewData(request());
-        $this->assertSame('0.2.0-alpha.24', $data['adapterVersion']);
+        $this->assertSame('0.2.0-alpha.25', $data['adapterVersion']);
         $this->assertSame('dbc_0123456789abcdef01234567', $data['connectionId']);
         $this->assertSame(0, $data['publicationCount']);
         $this->assertArrayHasKey('lastResult', $data);
@@ -30,7 +30,9 @@ class ControlPanelUtilityTest extends TestCase
         $html = view($utility->view(), $data)->render();
         $this->assertStringContainsString('DiscussionBridge for Statamic', $html);
         $this->assertStringContainsString('Connection ready', $html);
-        $this->assertStringContainsString('Synchronize publications', $html);
+        $this->assertStringContainsString('Publish from Discourse', $html);
+        $this->assertStringContainsString('Synchronize now', $html);
+        $this->assertStringContainsString('no duplicate pages are created', $html);
         $this->assertStringContainsString('class="db-utility__metrics"', $html);
         $this->assertStringNotContainsString('<style', $html);
         $this->assertStringNotContainsString((string) config('discussionbridge.secret_file'), $html);
