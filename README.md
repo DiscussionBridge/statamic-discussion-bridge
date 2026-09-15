@@ -88,7 +88,15 @@ secret outside the public webroot with owner-only permissions, updates `.env`
 atomically after creating a timestamped backup, runs migrations, clears cached
 configuration, and verifies the connection without creating content. A
 successful verification records the addon identity, version and last-seen time
-on The Bridge.
+on The Bridge. The installer also publishes the addon's versioned Control Panel
+stylesheet through Statamic's normal addon asset mechanism.
+
+After updating an existing installation, refresh the published Control Panel
+asset from the application root:
+
+```shell
+php please vendor:publish --tag=statamic-discussion-bridge --force
+```
 
 The resulting protected environment contains these nonsecret values:
 

@@ -72,8 +72,10 @@ class InstallDiscussionBridge extends Command
             ];
             $backup = $this->updateEnvironment(base_path('.env'), $values);
 
-            if ($this->call('config:clear') !== self::SUCCESS || $this->call('migrate', ['--force' => true]) !== self::SUCCESS) {
-                throw new RuntimeException('Statamic configuration or migration failed.');
+            if ($this->call('config:clear') !== self::SUCCESS
+                || $this->call('migrate', ['--force' => true]) !== self::SUCCESS
+                || $this->call('vendor:publish', ['--tag' => 'statamic-discussion-bridge', '--force' => true]) !== self::SUCCESS) {
+                throw new RuntimeException('Statamic configuration, migration, or Control Panel asset publication failed.');
             }
             config([
                 'discussionbridge.enabled' => true,

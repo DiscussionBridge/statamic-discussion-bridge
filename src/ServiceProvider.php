@@ -22,6 +22,10 @@ use Statamic\Facades\Utility;
 
 class ServiceProvider extends AddonServiceProvider
 {
+    protected $stylesheets = [
+        __DIR__.'/../resources/css/control-panel.css',
+    ];
+
     protected $listen = [
         EntrySaved::class => [PublishEntry::class],
         EntryBlueprintFound::class => [AddBlueprintFields::class],

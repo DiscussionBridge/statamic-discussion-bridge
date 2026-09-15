@@ -6,6 +6,7 @@ use CodeWorksLabs\DiscussionBridgeStatamic\Http\Controllers\PublicationSyncContr
 use CodeWorksLabs\DiscussionBridgeStatamic\Publication\PublicationSynchronizer;
 use Illuminate\Support\Facades\Cache;
 use Mockery;
+use Statamic\Statamic;
 use Statamic\Facades\Utility;
 
 class ControlPanelUtilityTest extends TestCase
@@ -21,7 +22,7 @@ class ControlPanelUtilityTest extends TestCase
         $this->assertSame('discussionbridge::utility', $utility->view());
         $this->assertNotNull($utility->routes());
         $data = $utility->viewData(request());
-        $this->assertSame('0.2.0-alpha.23', $data['adapterVersion']);
+        $this->assertSame('0.2.0-alpha.24', $data['adapterVersion']);
         $this->assertSame('dbc_0123456789abcdef01234567', $data['connectionId']);
         $this->assertSame(0, $data['publicationCount']);
         $this->assertArrayHasKey('lastResult', $data);
@@ -30,7 +31,14 @@ class ControlPanelUtilityTest extends TestCase
         $this->assertStringContainsString('DiscussionBridge for Statamic', $html);
         $this->assertStringContainsString('Connection ready', $html);
         $this->assertStringContainsString('Synchronize publications', $html);
+        $this->assertStringContainsString('class="db-utility__metrics"', $html);
+        $this->assertStringNotContainsString('<style', $html);
         $this->assertStringNotContainsString((string) config('discussionbridge.secret_file'), $html);
+
+        $styles = Statamic::availableStyles(request());
+        $this->assertArrayHasKey('statamic-discussion-bridge', $styles);
+        $this->assertStringContainsString('control-panel.css?v=', $styles['statamic-discussion-bridge'][0]);
+        $this->assertFileExists(__DIR__.'/../resources/css/control-panel.css');
     }
 
     public function test_control_panel_synchronization_persists_a_safe_last_run_summary(): void
