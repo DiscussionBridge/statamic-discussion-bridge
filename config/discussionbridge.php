@@ -10,7 +10,7 @@ return [
     'collections' => array_values(array_filter(array_map('trim', explode(',', (string) env('DISCUSSIONBRIDGE_COLLECTIONS', 'pages'))))),
     'source_author_name' => env('DISCUSSIONBRIDGE_SOURCE_AUTHOR_NAME', 'Statamic'),
     'source_author_profile_url' => env('DISCUSSIONBRIDGE_SOURCE_AUTHOR_PROFILE_URL'),
-    'adapter_id' => 'statamic-discussionbridge',
+    'adapter_id' => 'statamic-discussion-bridge',
     'adapter_version' => \CodeWorksLabs\DiscussionBridgeStatamic\Version::VALUE,
     'connect_timeout_seconds' => 2,
     'response_timeout_seconds' => 5,

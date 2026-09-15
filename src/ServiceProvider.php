@@ -3,6 +3,7 @@
 namespace CodeWorksLabs\DiscussionBridgeStatamic;
 
 use CodeWorksLabs\DiscussionBridgeStatamic\Console\RetryDelivery;
+use CodeWorksLabs\DiscussionBridgeStatamic\Console\InstallDiscussionBridge;
 use CodeWorksLabs\DiscussionBridgeStatamic\Console\ReconcileDeliveries;
 use CodeWorksLabs\DiscussionBridgeStatamic\Console\PrepareStaticBuild;
 use CodeWorksLabs\DiscussionBridgeStatamic\Console\WorkDeliveries;
@@ -26,6 +27,7 @@ class ServiceProvider extends AddonServiceProvider
     ];
 
     protected $commands = [
+        InstallDiscussionBridge::class,
         RetryDelivery::class,
         ReconcileDeliveries::class,
         PrepareStaticBuild::class,

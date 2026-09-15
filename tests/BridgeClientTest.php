@@ -15,6 +15,7 @@ class BridgeClientTest extends TestCase
 {
     public function test_resolve_uses_bounded_json_contract(): void
     {
+        $history = [];
         $mock = new MockHandler([new Response(201, ['Content-Type' => 'application/json'], json_encode([
             'outcome' => 'created',
             'resource_id' => '63bad04c-1c2e-4c38-80ce-b379137dbb2c',
@@ -23,7 +24,9 @@ class BridgeClientTest extends TestCase
             'direction' => 'to_discourse',
             'core_fallback' => false,
         ], JSON_THROW_ON_ERROR))]);
-        $client = new BridgeClient(new Client(['handler' => HandlerStack::create($mock)]), app(Configuration::class));
+        $stack = HandlerStack::create($mock);
+        $stack->push(Middleware::history($history));
+        $client = new BridgeClient(new Client(['handler' => $stack]), app(Configuration::class));
 
         $response = $client->resolve([
             'direction' => 'to_discourse',
@@ -34,6 +37,8 @@ class BridgeClientTest extends TestCase
         ]);
 
         $this->assertSame('created', $response['outcome']);
+        $this->assertSame('statamic-discussion-bridge', $history[0]['request']->getHeaderLine('X-DiscussionBridge-Adapter'));
+        $this->assertSame('0.2.0-alpha.21', $history[0]['request']->getHeaderLine('X-DiscussionBridge-Adapter-Version'));
     }
 
     public function test_record_rejects_oversized_response(): void

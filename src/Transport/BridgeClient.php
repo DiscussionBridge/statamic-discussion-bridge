@@ -137,6 +137,8 @@ class BridgeClient
         if ($authenticate) {
             $headers['X-DiscussionBridge-Connection'] = $this->configuration->connectionId();
             $headers['X-DiscussionBridge-Secret'] = $this->configuration->secret();
+            $headers['X-DiscussionBridge-Adapter'] = (string) config('discussionbridge.adapter_id');
+            $headers['X-DiscussionBridge-Adapter-Version'] = (string) config('discussionbridge.adapter_version');
         }
         if ($json !== null) {
             $headers['Content-Type'] = 'application/json';

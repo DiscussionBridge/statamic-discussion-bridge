@@ -69,14 +69,28 @@ presentation; Full resolves from the page's canonical URL.
 
 ## Configuration
 
-Set these nonsecret values in the application's protected environment:
+Run the native guided installer from the Statamic application root:
+
+```shell
+php please discussionbridge:install
+```
+
+It prompts for the forum and site origins, Content Connection ID, hidden
+connection secret, optional lane, collections and source author. It stores the
+secret outside the public webroot with owner-only permissions, updates `.env`
+atomically after creating a timestamped backup, runs migrations, clears cached
+configuration, and verifies the connection without creating content. A
+successful verification records the addon identity, version and last-seen time
+on The Bridge.
+
+The resulting protected environment contains these nonsecret values:
 
 ```dotenv
 DISCUSSIONBRIDGE_ENABLED=true
 DISCUSSIONBRIDGE_FORUM_URL=https://sandbox-forum.discussionbridge.dev
-DISCUSSIONBRIDGE_SITE_ORIGIN=https://statamic-flat-sandbox.codeworkslabs.net
+DISCUSSIONBRIDGE_SITE_ORIGIN=https://statamic-flat.sandbox.discussionbridge.dev
 DISCUSSIONBRIDGE_CONNECTION_ID=dbc_000000000000000000000000
-DISCUSSIONBRIDGE_SECRET_FILE=/etc/discussionbridge-statamic-flat/connection-secret
+DISCUSSIONBRIDGE_SECRET_FILE=/absolute/application/storage/app/discussionbridge/connection-secret
 DISCUSSIONBRIDGE_LANE=statamic-flat-alpha
 DISCUSSIONBRIDGE_COLLECTIONS=pages
 DISCUSSIONBRIDGE_SOURCE_AUTHOR_NAME="Statamic Flat Demo"
@@ -112,7 +126,7 @@ be hosted without PHP, Statamic, a connection secret or an adapter worker; only
 the protected authoring/build application performs receiver-authenticated
 requests.
 
-Install the package through Composer, run `php artisan migrate --force`, clear
-configuration and Statamic caches, and add the presentation tag to the selected
-Antlers template. Before installation, preserve the profile-specific backup
-set described in the DiscussionBridge successor checkpoint.
+Install the package through Composer, run `php please discussionbridge:install`,
+and add the presentation tag to the selected Antlers template. Before
+installation, preserve the profile-specific backup set described in the
+DiscussionBridge successor checkpoint.
