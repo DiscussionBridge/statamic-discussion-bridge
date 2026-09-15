@@ -3,11 +3,14 @@
 namespace CodeWorksLabs\DiscussionBridgeStatamic\StaticSite;
 
 use Composer\InstalledVersions;
-use Illuminate\Support\Facades\Artisan;
 use RuntimeException;
 
 class StaticSiteGenerator
 {
+    public function __construct(private readonly PleaseCommandRunner $commands)
+    {
+    }
+
     public function available(): bool
     {
         return InstalledVersions::isInstalled('statamic/ssg');
@@ -22,13 +25,8 @@ class StaticSiteGenerator
             throw new RuntimeException('Static site generation is not active for this Statamic profile.');
         }
 
-        if (Artisan::call('discussionbridge:ssg-prepare', ['--no-interaction' => true]) !== 0) {
-            throw new RuntimeException('DiscussionBridge preparation failed. Static generation was not started.');
-        }
-
-        if (Artisan::call('ssg:generate', ['--no-interaction' => true]) !== 0) {
-            throw new RuntimeException('Statamic static generation failed.');
-        }
+        $this->commands->run('discussionbridge:ssg-prepare');
+        $this->commands->run('ssg:generate');
 
         return [
             'prepared' => true,

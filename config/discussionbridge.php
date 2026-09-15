@@ -17,4 +17,5 @@ return [
     'maximum_response_bytes' => 65536,
     'presentation_cache_seconds' => 60,
     'worker_batch_limit' => 25,
+    'php_binary' => env('DISCUSSIONBRIDGE_PHP_BINARY', rtrim(PHP_BINDIR, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.(PHP_OS_FAMILY === 'Windows' ? 'php.exe' : 'php')),
 ];
