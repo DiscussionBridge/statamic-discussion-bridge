@@ -11,6 +11,9 @@ use CodeWorksLabs\DiscussionBridgeStatamic\Console\SyncPublications;
 use CodeWorksLabs\DiscussionBridgeStatamic\Listeners\AddBlueprintFields;
 use CodeWorksLabs\DiscussionBridgeStatamic\Listeners\PublishEntry;
 use CodeWorksLabs\DiscussionBridgeStatamic\Http\Controllers\PublicationSyncController;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use CodeWorksLabs\DiscussionBridgeStatamic\Tags\DiscussionBridge;
 use Statamic\Events\EntrySaved;
 use Statamic\Events\EntryBlueprintFound;
@@ -45,7 +48,31 @@ class ServiceProvider extends AddonServiceProvider
 
         Utility::extend(function ($utilities): void {
             $utilities->register('discussionbridge')
-                ->view('discussionbridge::utility')
+                ->view('discussionbridge::utility', function (): array {
+                    $connectionId = (string) config('discussionbridge.connection_id', '');
+                    $forumUrl = (string) config('discussionbridge.forum_url', '');
+                    $siteOrigin = (string) config('discussionbridge.site_origin', '');
+                    $secretFile = (string) config('discussionbridge.secret_file', '');
+                    $configured = (bool) config('discussionbridge.enabled')
+                        && $connectionId !== ''
+                        && $forumUrl !== ''
+                        && $siteOrigin !== ''
+                        && $secretFile !== ''
+                        && is_file($secretFile)
+                        && is_readable($secretFile);
+
+                    return [
+                        'adapterVersion' => Version::VALUE,
+                        'configured' => $configured,
+                        'connectionId' => $connectionId,
+                        'forumUrl' => $forumUrl,
+                        'siteOrigin' => $siteOrigin,
+                        'publicationCount' => Schema::hasTable('discussionbridge_publications')
+                            ? DB::table('discussionbridge_publications')->count()
+                            : 0,
+                        'lastResult' => Cache::get(PublicationSyncController::LAST_RESULT_CACHE_KEY),
+                    ];
+                })
                 ->title('DiscussionBridge')
                 ->navTitle('DiscussionBridge')
                 ->icon('earth')
