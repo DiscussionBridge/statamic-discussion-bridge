@@ -46,6 +46,11 @@ rollback package.
   publications** action prevents concurrent runs and reports created, updated,
   already-current, skipped and failed totals. The command remains available
   for automation, recovery and SSG build gates.
+- The same utility always shows the **Static site generation** capability.
+  Statamic SSG enables **Regenerate static site**, which first runs the
+  fail-closed DiscussionBridge preparation gate and then generates the public
+  static site. Flat and DB show the capability as inactive because those
+  profiles render saved content dynamically.
 - `{{ discussionbridge:record resource="{discussionbridge_resource_id}" }}`
   performs a bounded authenticated server-side pull, sanitizes the cooked first
   post, builds native page navigation, and presents the same topic's replies in
@@ -135,6 +140,13 @@ The release build order is strict:
 php please discussionbridge:ssg-prepare
 php please ssg:generate
 ```
+
+An operator may run the same two-step content generation safely from
+**Utilities → DiscussionBridge → Regenerate static site**. This action is
+available only when `statamic/ssg` is installed. Synchronizing publications
+and regenerating the static site remain separate actions with separate last-run
+results so the Control Panel never implies that saved authoring changes are
+already public.
 
 Do not deploy output when the preparation command fails. A generated site may
 be hosted without PHP, Statamic, a connection secret or an adapter worker; only

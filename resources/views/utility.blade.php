@@ -46,4 +46,39 @@
             <p>Create or update Statamic entries authorized in The Bridge. Existing entries are updated in place; no duplicate pages are created.</p>
         </div>
     </section>
+
+    <section class="db-utility__panel">
+        <div class="db-utility__panel-heading">
+            <h3>Static site generation</h3>
+            <span class="db-utility__capability" data-active="{{ $staticGenerationAvailable ? 'true' : 'false' }}">
+                {{ $staticGenerationAvailable ? 'Active for this profile' : 'Not active for this profile' }}
+            </span>
+        </div>
+
+        @if ($lastGenerationResult)
+            <section class="db-utility__result" data-success="{{ $lastGenerationResult['succeeded'] ? 'true' : 'false' }}" aria-live="polite">
+                <strong>{{ $lastGenerationResult['succeeded'] ? 'Last static generation completed' : 'Last static generation needs attention' }}</strong>
+                <div class="db-utility__counts">
+                    <span>Prepared {{ $lastGenerationResult['prepared'] ? 'yes' : 'no' }}</span>
+                    <span>Generated {{ $lastGenerationResult['generated'] ? 'yes' : 'no' }}</span>
+                    <span>{{ $lastGenerationResult['completed_at'] }}</span>
+                </div>
+                @if (! empty($lastGenerationResult['error']))<p>{{ $lastGenerationResult['error'] }}</p>@endif
+            </section>
+        @endif
+
+        <div class="db-utility__action">
+            <form method="POST" action="{{ cp_route('utilities.discussionbridge.generate-static-site') }}">
+                @csrf
+                <button type="submit" class="btn-primary" @disabled(! $configured || ! $staticGenerationAvailable)>Regenerate static site</button>
+            </form>
+            <p>
+                @if ($staticGenerationAvailable)
+                    Prepare DiscussionBridge records, refresh authorized publications, and generate the public static site. Saved authoring changes are not public until generation completes.
+                @else
+                    This Statamic profile renders dynamically. Saved content does not require static generation.
+                @endif
+            </p>
+        </div>
+    </section>
 </section>

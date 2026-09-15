@@ -11,6 +11,8 @@ use CodeWorksLabs\DiscussionBridgeStatamic\Console\SyncPublications;
 use CodeWorksLabs\DiscussionBridgeStatamic\Listeners\AddBlueprintFields;
 use CodeWorksLabs\DiscussionBridgeStatamic\Listeners\PublishEntry;
 use CodeWorksLabs\DiscussionBridgeStatamic\Http\Controllers\PublicationSyncController;
+use CodeWorksLabs\DiscussionBridgeStatamic\Http\Controllers\StaticGenerationController;
+use CodeWorksLabs\DiscussionBridgeStatamic\StaticSite\StaticSiteGenerator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -64,6 +66,7 @@ class ServiceProvider extends AddonServiceProvider
                         && $secretFile !== ''
                         && is_file($secretFile)
                         && is_readable($secretFile);
+                    $staticGenerator = app(StaticSiteGenerator::class);
 
                     return [
                         'adapterVersion' => Version::VALUE,
@@ -75,6 +78,8 @@ class ServiceProvider extends AddonServiceProvider
                             ? DB::table('discussionbridge_publications')->count()
                             : 0,
                         'lastResult' => Cache::get(PublicationSyncController::LAST_RESULT_CACHE_KEY),
+                        'staticGenerationAvailable' => $staticGenerator->available(),
+                        'lastGenerationResult' => Cache::get(StaticGenerationController::LAST_RESULT_CACHE_KEY),
                     ];
                 })
                 ->title('DiscussionBridge')
@@ -83,6 +88,7 @@ class ServiceProvider extends AddonServiceProvider
                 ->description('Synchronize authorized Discourse publications with Statamic.')
                 ->routes(function ($router): void {
                     $router->post('synchronize', PublicationSyncController::class)->name('synchronize');
+                    $router->post('generate-static-site', StaticGenerationController::class)->name('generate-static-site');
                 });
         });
     }
