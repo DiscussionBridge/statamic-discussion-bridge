@@ -163,6 +163,39 @@
     flex-wrap: wrap;
 }
 
+.db-utility__action button {
+    display: inline-flex;
+    min-height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    padding: .6rem 1rem;
+    border: 1px solid var(--db-teal);
+    border-radius: .45rem;
+    color: #fff;
+    background: var(--db-teal);
+    box-shadow: 0 1px 2px rgb(15 118 110 / 25%);
+    cursor: pointer;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.db-utility__action button:hover {
+    border-color: #0b5f59;
+    background: #0b5f59;
+}
+
+.db-utility__action button:focus-visible {
+    outline: 3px solid rgb(15 118 110 / 30%);
+    outline-offset: 2px;
+}
+
+.db-utility__action button:disabled {
+    border-color: #9bb6b3;
+    background: #9bb6b3;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
 .db-utility__action p {
     max-width: 46rem;
     color: #45666a;
