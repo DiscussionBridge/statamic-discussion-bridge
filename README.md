@@ -38,7 +38,14 @@ rollback package.
   revision in an addon-owned table and leaves presentation-only records alone.
   Flat, DB and SSG use the same package but retain independent connections,
   storage and native entry identities. Exact retries are unchanged;
-  destination or resource collisions fail closed.
+  destination or resource collisions fail closed. Updated entries explicitly
+  invalidate Statamic's affected public-page cache and the addon's bounded
+  record cache before synchronization reports success.
+- The Statamic Control Panel exposes the same operation under
+  **Utilities → DiscussionBridge**. Its permissioned **Synchronize
+  publications** action prevents concurrent runs and reports created, updated,
+  already-current, skipped and failed totals. The command remains available
+  for automation, recovery and SSG build gates.
 - `{{ discussionbridge:record resource="{discussionbridge_resource_id}" }}`
   performs a bounded authenticated server-side pull, sanitizes the cooked first
   post, builds native page navigation, and presents the same topic's replies in
