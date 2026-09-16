@@ -47,20 +47,4 @@
         </div>
     </section>
 
-    <section class="db-utility__panel">
-        <div class="db-utility__panel-heading">
-            <h3>Static site generation</h3>
-            <span class="db-utility__capability" data-active="{{ $staticGenerationAvailable ? 'true' : 'false' }}">
-                {{ $staticGenerationAvailable ? 'Managed by Statamic SSG' : 'Not active for this profile' }}
-            </span>
-        </div>
-
-        <p>
-            @if ($staticGenerationAvailable)
-                Regenerate the public site through Statamic SSG after saving Statamic-authored content. Use DiscussionBridge synchronization separately only for authorized publications from The Bridge.
-            @else
-                This Statamic profile renders dynamically. Saved content does not require static generation.
-            @endif
-        </p>
-    </section>
 </section>
