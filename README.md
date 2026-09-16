@@ -60,11 +60,9 @@ rollback package.
   publications** action prevents concurrent runs and reports created, updated,
   already-current, skipped and failed totals. The command remains available
   for automation, recovery and SSG build gates.
-- The same utility always explains the **Static site generation** capability.
-  Statamic SSG identifies generation as managed by Statamic SSG. Flat and DB
-  show the capability as inactive because those profiles render saved content
-  dynamically. DiscussionBridge publication synchronization remains separate
-  from native Statamic static generation.
+- The same utility serves Flat, DB and SSG only for DiscussionBridge
+  publication synchronization. Native Statamic SSG generation remains a
+  separate platform operation, never implied by a successful sync.
 - `{{ discussionbridge:record resource="{discussionbridge_resource_id}" }}`
   performs a bounded authenticated server-side pull, sanitizes the cooked first
   post, builds native page navigation, and presents the same topic's replies in
