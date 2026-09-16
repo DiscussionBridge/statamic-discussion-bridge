@@ -34,8 +34,10 @@ rollback package.
   record remains. Run it immediately before `php please ssg:generate`.
 - `discussionbridge:sync-publications` consumes only From Discourse bindings
   carrying explicit native-materialization authority. It creates or updates a
-  genuine entry beneath `/discussionbridge`, records the exact Discourse post
-  revision in an addon-owned table and leaves presentation-only records alone.
+  genuine pages entry at the authorized platform-native route, records the exact
+  Discourse post revision in an addon-owned table and leaves presentation-only
+  records alone. Root publication is the default; an optional source path must
+  identify an existing Statamic parent destination.
   Flat, DB and SSG use the same package but retain independent connections,
   storage and native entry identities. Exact retries are unchanged;
   destination or resource collisions fail closed. Updated entries explicitly

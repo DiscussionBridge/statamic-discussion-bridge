@@ -7,7 +7,6 @@ use CodeWorksLabs\DiscussionBridgeStatamic\Transport\BridgeClient;
 use CodeWorksLabs\DiscussionBridgeStatamic\Version;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
-use Statamic\Facades\Collection;
 use Statamic\Facades\Entry;
 use Statamic\Facades\Site;
 use Throwable;
@@ -93,32 +92,31 @@ class PublicationSynchronizer
         }
 
         $site = Site::default()->handle();
-        $expectedUri = '/discussionbridge/'.$publication['slug'];
+        $expectedUri = $publication['path'];
         $entry = $prior ? Entry::find($prior->entry_id) : Entry::findByUri($expectedUri, $site);
         if ($entry) {
             if ($entry->uri() !== $expectedUri || $entry->get('discussionbridge_resource_id') !== $publication['resource_id'] || ($prior && (string) $entry->id() !== $prior->entry_id)) {
                 throw new RuntimeException('Statamic publication identity collision.');
             }
         } else {
-            $collection = Collection::findByHandle('discussionbridge');
-            if ($collection) {
-                $entry = Entry::make()->collection($collection)->locale($site)->slug($publication['slug'])->published(true);
-            } else {
-                $parent = Entry::findByUri('/discussionbridge', $site);
-                if (! $parent) {
-                    throw new RuntimeException('Statamic DiscussionBridge destination is unavailable.');
-                }
-                $entry = Entry::make()->collection('pages')->locale($site)->slug($publication['slug'])->published(true);
-                $entry->afterSave(function ($saved) use ($parent, $site): void {
-                    $structure = $saved->collection()->structure();
-                    if (! $structure) {
-                        throw new RuntimeException('Statamic pages structure is unavailable.');
-                    }
-                    $tree = $structure->in($site);
-                    $tree->appendTo($parent->id(), $saved);
-                    $tree->save();
-                });
+            $parent = $publication['parent_uri'] ? Entry::findByUri($publication['parent_uri'], $site) : null;
+            if ($publication['parent_uri'] && ! $parent) {
+                throw new RuntimeException('Statamic publication parent destination is unavailable.');
             }
+            $entry = Entry::make()->collection('pages')->locale($site)->slug($publication['slug'])->published(true);
+            $entry->afterSave(function ($saved) use ($parent, $site): void {
+                $structure = $saved->collection()->structure();
+                if (! $structure) {
+                    throw new RuntimeException('Statamic pages structure is unavailable.');
+                }
+                $tree = $structure->in($site);
+                if ($parent) {
+                    $tree->appendTo($parent->id(), $saved);
+                } else {
+                    $tree->append($saved);
+                }
+                $tree->save();
+            });
         }
 
         $content = $this->sanitizer->sanitize($publication['content_html']);

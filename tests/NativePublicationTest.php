@@ -15,8 +15,16 @@ class NativePublicationTest extends TestCase
         $publication = $validator->fromRecord($record);
 
         $this->assertSame('the-bridge-publishes-everywhere', $publication['slug']);
+        $this->assertSame('/the-bridge-publishes-everywhere', $publication['path']);
+        $this->assertNull($publication['parent_uri']);
         $this->assertSame('post:149:version:1', $publication['source_revision']);
-        $this->assertSame('https://statamic.example/discussionbridge/the-bridge-publishes-everywhere', $publication['canonical_url']);
+        $this->assertSame('https://statamic.example/the-bridge-publishes-everywhere', $publication['canonical_url']);
+
+        $record = $this->record();
+        $record['bindings'][0]['canonical_url'] = 'https://statamic.example/from-the-bridge/the-bridge-publishes-everywhere';
+        $nested = $validator->fromRecord($record);
+        $this->assertSame('/from-the-bridge/the-bridge-publishes-everywhere', $nested['path']);
+        $this->assertSame('/from-the-bridge', $nested['parent_uri']);
 
         $record['bindings'][0]['native_materialization'] = false;
         $this->assertNull($validator->fromRecord($record));
@@ -31,7 +39,7 @@ class NativePublicationTest extends TestCase
     {
         $validator = new NativePublication(app(Configuration::class));
         $record = $this->record();
-        $record['bindings'][0]['canonical_url'] = 'https://statamic.example/outside/the-bridge-publishes-everywhere';
+        $record['bindings'][0]['canonical_url'] = 'https://statamic.example/from-the-bridge/%2e%2e/escape';
         try {
             $validator->fromRecord($record);
             $this->fail('Expected path rejection.');
@@ -68,7 +76,7 @@ class NativePublicationTest extends TestCase
             'bindings' => [[
                 'role' => 'presentation',
                 'state' => 'active',
-                'canonical_url' => 'https://statamic.example/discussionbridge/the-bridge-publishes-everywhere',
+                'canonical_url' => 'https://statamic.example/the-bridge-publishes-everywhere',
                 'native_materialization' => true,
             ]],
         ];

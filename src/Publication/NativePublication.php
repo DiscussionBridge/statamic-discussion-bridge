@@ -37,9 +37,11 @@ class NativePublication
 
         $destination = $this->exactUrl($bindings[0]['canonical_url'] ?? null, $this->configuration->siteOrigin(), 'destination');
         $path = trim($destination['path'], '/');
-        if (! preg_match('/\Adiscussionbridge\/([a-z0-9]+(?:-[a-z0-9]+)*)\z/', $path, $match)) {
+        if (! preg_match('/\A[a-z0-9]+(?:-[a-z0-9]+)*(?:\/[a-z0-9]+(?:-[a-z0-9]+)*)*\z/', $path)) {
             throw new RuntimeException('DiscussionBridge native publication path is invalid.');
         }
+        $segments = explode('/', $path);
+        $slug = end($segments);
 
         $source = $record['source'] ?? null;
         if (! is_array($source)
@@ -67,7 +69,9 @@ class NativePublication
         return [
             'resource_id' => strtolower($record['resource_id']),
             'canonical_url' => $destination['url'],
-            'slug' => $match[1],
+            'path' => '/'.$path,
+            'parent_uri' => count($segments) > 1 ? '/'.implode('/', array_slice($segments, 0, -1)) : null,
+            'slug' => $slug,
             'title' => trim($record['title']),
             'content_html' => $record['content_html'],
             'source_revision' => $source['revision'],
