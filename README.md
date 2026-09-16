@@ -5,7 +5,7 @@ existing Statamic 6 application:
 
 ```sh
 composer config repositories.discussionbridge vcs https://github.com/DiscussionBridge/statamic-discussion-bridge.git
-composer require codeworkslabs/statamic-discussion-bridge:0.2.0-alpha.29
+composer require codeworkslabs/statamic-discussion-bridge:0.2.0-alpha.30
 php please discussionbridge:install
 ```
 
