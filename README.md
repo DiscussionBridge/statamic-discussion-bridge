@@ -1,12 +1,23 @@
 # DiscussionBridge for Statamic
 
+For the public GitHub Alpha, install the tagged Composer package into an
+existing Statamic 6 application:
+
 ```sh
-git clone https://github.com/DiscussionBridge/statamic-discussion-bridge.git
+composer config repositories.discussionbridge vcs https://github.com/DiscussionBridge/statamic-discussion-bridge.git
+composer require codeworkslabs/statamic-discussion-bridge:0.2.0-alpha.29
+php please discussionbridge:install
 ```
+
+The GitHub VCS repository is the current distribution source; this package is
+not yet listed on Packagist or the Statamic Marketplace. Do not substitute a
+mutable `main` checkout for the tagged version when reproducing an Alpha
+installation. The guided installer handles the profile-specific connection
+and protected credential after Composer installs the addon.
 
 This Statamic 6 addon connects an explicitly opted-in, durably published entry
 to the DiscussionBridge Bridge Record contract. The same package serves the
-Alpha Statamic Flat and Statamic DB profiles; each installation has its own
+Alpha Statamic Flat, DB, and SSG profiles; each installation has its own
 origin, Content Connection, secret, operational table, worker, content and
 rollback package.
 
