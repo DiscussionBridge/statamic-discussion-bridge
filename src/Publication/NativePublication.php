@@ -36,6 +36,22 @@ class NativePublication
         }
 
         $destination = $this->exactUrl($bindings[0]['canonical_url'] ?? null, $this->configuration->siteOrigin(), 'destination');
+        $migrationProof = $bindings[0]['url_migration'] ?? null;
+        $urlMigration = null;
+        if ($migrationProof !== null) {
+            if (! is_array($migrationProof)
+                || ! in_array($migrationProof['redirect_status'] ?? null, [301, 308], true)
+                || ! is_string($migrationProof['verified_at'] ?? null)
+                || strtotime($migrationProof['verified_at']) === false) {
+                throw new RuntimeException('DiscussionBridge publication URL migration proof is invalid.');
+            }
+            $oldUrl = $this->exactUrl($migrationProof['old_url'] ?? null, $this->configuration->siteOrigin(), 'previous publication')['url'];
+            $newUrl = $this->exactUrl($migrationProof['new_url'] ?? null, $this->configuration->siteOrigin(), 'migrated publication')['url'];
+            if ($oldUrl === $newUrl || $newUrl !== $destination['url']) {
+                throw new RuntimeException('DiscussionBridge publication URL migration proof is invalid.');
+            }
+            $urlMigration = ['old_url' => $oldUrl, 'new_url' => $newUrl];
+        }
         $path = trim($destination['path'], '/');
         if (! preg_match('/\A[a-z0-9]+(?:-[a-z0-9]+)*(?:\/[a-z0-9]+(?:-[a-z0-9]+)*)*\z/', $path)) {
             throw new RuntimeException('DiscussionBridge native publication path is invalid.');
@@ -69,6 +85,7 @@ class NativePublication
         return [
             'resource_id' => strtolower($record['resource_id']),
             'canonical_url' => $destination['url'],
+            'url_migration' => $urlMigration,
             'path' => '/'.$path,
             'parent_uri' => count($segments) > 1 ? '/'.implode('/', array_slice($segments, 0, -1)) : null,
             'slug' => $slug,
