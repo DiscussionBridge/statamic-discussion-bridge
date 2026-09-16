@@ -26,8 +26,9 @@ rollback package.
   external identity or original correlation ID. The additional
   `--delivered` switch is required to exercise an already successful identity;
   the returned resource/topic tuple must remain exact.
-- `discussionbridge:reconcile` scans the configured collections and enqueues
-  any eligible entry missing addon state.
+- `discussionbridge:reconcile` traverses the configured collections in bounded
+  entry batches and enqueues any eligible entry missing addon state. Statamic's
+  own Stache index remains a separate memory and build-time cost.
 - `discussionbridge:ssg-prepare` is the static-build gate. It reconciles the
   configured collections, drains a bounded number of deliveries, and fails
   closed while any pending, processing, failed or reconciliation-required
@@ -153,6 +154,27 @@ Do not deploy output when the preparation command fails. A generated site may
 be hosted without PHP, Statamic, a connection secret or an adapter worker; only
 the protected authoring/build application performs receiver-authenticated
 requests.
+
+### Large-site verification
+
+The opt-in `LargeSiteReconcileBenchmarkTest` creates a temporary file-backed
+collection and measures the addon's reconciliation pass. It is skipped during
+the ordinary test suite. On PowerShell, run it with:
+
+```powershell
+$env:DISCUSSIONBRIDGE_STATAMIC_BENCHMARK = '1'
+$env:DISCUSSIONBRIDGE_STATAMIC_BENCHMARK_PAGES = '1000'
+php vendor/bin/phpunit tests/LargeSiteReconcileBenchmarkTest.php --colors=never
+Remove-Item Env:DISCUSSIONBRIDGE_STATAMIC_BENCHMARK
+Remove-Item Env:DISCUSSIONBRIDGE_STATAMIC_BENCHMARK_PAGES
+```
+
+The separate `scripts/prepare-ssg-benchmark.php` can populate a disposable
+full Statamic application for measuring Statamic's native `ssg:generate`. It
+requires an explicit `.discussionbridge-benchmark-sandbox` marker and refuses
+to overwrite an existing benchmark collection. These are engineering fixtures,
+not release or deployment commands. A native SSG timing without this addon
+installed does not prove the end-to-end DiscussionBridge build time.
 
 Install the package through Composer, run `php please discussionbridge:install`,
 and add the presentation tag to the selected Antlers template. Before
