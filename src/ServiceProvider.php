@@ -11,7 +11,6 @@ use CodeWorksLabs\DiscussionBridgeStatamic\Console\SyncPublications;
 use CodeWorksLabs\DiscussionBridgeStatamic\Listeners\AddBlueprintFields;
 use CodeWorksLabs\DiscussionBridgeStatamic\Listeners\PublishEntry;
 use CodeWorksLabs\DiscussionBridgeStatamic\Http\Controllers\PublicationSyncController;
-use Composer\InstalledVersions;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -75,7 +74,6 @@ class ServiceProvider extends AddonServiceProvider
                             ? DB::table('discussionbridge_publications')->count()
                             : 0,
                         'lastResult' => Cache::get(PublicationSyncController::LAST_RESULT_CACHE_KEY),
-                        'staticGenerationAvailable' => InstalledVersions::isInstalled('statamic/ssg'),
                     ];
                 })
                 ->title('DiscussionBridge')
