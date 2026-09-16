@@ -12,7 +12,7 @@
 
     <div class="db-utility__metrics">
         <article class="db-utility__metric"><span>Adapter version</span><strong>{{ $adapterVersion }}</strong></article>
-        <article class="db-utility__metric"><span>Native publications</span><strong>{{ $publicationCount }}</strong></article>
+        <article class="db-utility__metric"><span>Statamic entries from The Bridge</span><strong>{{ $publicationCount }}</strong></article>
         <article class="db-utility__metric"><span>Last synchronization</span><strong>{{ $lastResult['completed_at'] ?? 'Not run yet' }}</strong></article>
     </div>
 

@@ -30,6 +30,7 @@ class ControlPanelUtilityTest extends TestCase
         $html = view($utility->view(), $data)->render();
         $this->assertStringContainsString('DiscussionBridge for Statamic', $html);
         $this->assertStringContainsString('Connection ready', $html);
+        $this->assertStringContainsString('Statamic entries from The Bridge', $html);
         $this->assertStringContainsString('Publish from Discourse', $html);
         $this->assertStringContainsString('Synchronize now', $html);
         $this->assertStringContainsString('no duplicate pages are created', $html);
