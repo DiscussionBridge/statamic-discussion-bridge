@@ -81,6 +81,11 @@ class PublicationSynchronizer
     private function materialize(array $publication, array &$summary): void
     {
         $prior = DB::table('discussionbridge_publications')->where('resource_id', $publication['resource_id'])->first();
+        if ($prior && $prior->canonical_url !== $publication['canonical_url']
+            && (($publication['url_migration']['old_url'] ?? null) !== $prior->canonical_url
+                || ($publication['url_migration']['new_url'] ?? null) !== $publication['canonical_url'])) {
+            throw new RuntimeException('Statamic publication URL change requires a verified migration and the same entry.');
+        }
         if ($prior && $prior->source_revision === $publication['source_revision'] && $prior->canonical_url === $publication['canonical_url']) {
             $existing = Entry::find($prior->entry_id);
             if (! $existing || $existing->get('discussionbridge_resource_id') !== $publication['resource_id']) {

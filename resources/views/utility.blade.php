@@ -12,7 +12,7 @@
 
     <div class="db-utility__metrics">
         <article class="db-utility__metric"><span>Adapter version</span><strong>{{ $adapterVersion }}</strong></article>
-        <article class="db-utility__metric"><span>Native publications</span><strong>{{ $publicationCount }}</strong></article>
+        <article class="db-utility__metric"><span>Statamic entries from The Bridge</span><strong>{{ $publicationCount }}</strong></article>
         <article class="db-utility__metric"><span>Last synchronization</span><strong>{{ $lastResult['completed_at'] ?? 'Not run yet' }}</strong></article>
     </div>
 
@@ -47,20 +47,4 @@
         </div>
     </section>
 
-    <section class="db-utility__panel">
-        <div class="db-utility__panel-heading">
-            <h3>Static site generation</h3>
-            <span class="db-utility__capability" data-active="{{ $staticGenerationAvailable ? 'true' : 'false' }}">
-                {{ $staticGenerationAvailable ? 'Managed by Statamic SSG' : 'Not active for this profile' }}
-            </span>
-        </div>
-
-        <p>
-            @if ($staticGenerationAvailable)
-                Regenerate the public site through Statamic SSG after saving Statamic-authored content. Use DiscussionBridge synchronization separately only for authorized publications from The Bridge.
-            @else
-                This Statamic profile renders dynamically. Saved content does not require static generation.
-            @endif
-        </p>
-    </section>
 </section>

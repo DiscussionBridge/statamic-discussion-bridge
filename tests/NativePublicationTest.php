@@ -53,6 +53,28 @@ class NativePublicationTest extends TestCase
         $validator->fromRecord($record);
     }
 
+    public function test_it_accepts_only_an_exact_verified_url_migration_pair(): void
+    {
+        $validator = new NativePublication(app(Configuration::class));
+        $record = $this->record();
+        $oldUrl = $record['bindings'][0]['canonical_url'];
+        $newUrl = 'https://statamic.example/moved-publication';
+        $record['bindings'][0]['canonical_url'] = $newUrl;
+        $record['bindings'][0]['url_migration'] = [
+            'old_url' => $oldUrl,
+            'new_url' => $newUrl,
+            'redirect_status' => 301,
+            'verified_at' => '2026-09-16T12:00:00.000000Z',
+        ];
+
+        $publication = $validator->fromRecord($record);
+        $this->assertSame(['old_url' => $oldUrl, 'new_url' => $newUrl], $publication['url_migration']);
+
+        $record['bindings'][0]['url_migration']['old_url'] = 'https://other.example/unrelated';
+        $this->expectException(RuntimeException::class);
+        $validator->fromRecord($record);
+    }
+
     private function record(): array
     {
         return [
