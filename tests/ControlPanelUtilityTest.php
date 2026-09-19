@@ -22,7 +22,7 @@ class ControlPanelUtilityTest extends TestCase
         $this->assertSame('discussionbridge::utility', $utility->view());
         $this->assertNotNull($utility->routes());
         $data = $utility->viewData(request());
-        $this->assertSame('0.2.0-alpha.30', $data['adapterVersion']);
+        $this->assertSame('0.2.0-alpha.31', $data['adapterVersion']);
         $this->assertSame('dbc_0123456789abcdef01234567', $data['connectionId']);
         $this->assertSame(0, $data['publicationCount']);
         $this->assertArrayHasKey('lastResult', $data);
