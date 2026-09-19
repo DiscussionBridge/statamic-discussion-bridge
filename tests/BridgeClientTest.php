@@ -38,7 +38,7 @@ class BridgeClientTest extends TestCase
 
         $this->assertSame('created', $response['outcome']);
         $this->assertSame('statamic-discussion-bridge', $history[0]['request']->getHeaderLine('X-DiscussionBridge-Adapter'));
-        $this->assertSame('0.2.0-alpha.30', $history[0]['request']->getHeaderLine('X-DiscussionBridge-Adapter-Version'));
+        $this->assertSame('0.2.0-alpha.31', $history[0]['request']->getHeaderLine('X-DiscussionBridge-Adapter-Version'));
     }
 
     public function test_record_rejects_oversized_response(): void
