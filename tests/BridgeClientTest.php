@@ -38,7 +38,7 @@ class BridgeClientTest extends TestCase
 
         $this->assertSame('created', $response['outcome']);
         $this->assertSame('statamic-discussion-bridge', $history[0]['request']->getHeaderLine('X-DiscussionBridge-Adapter'));
-        $this->assertSame('0.2.0-alpha.31', $history[0]['request']->getHeaderLine('X-DiscussionBridge-Adapter-Version'));
+        $this->assertSame('0.2.0-alpha.34', $history[0]['request']->getHeaderLine('X-DiscussionBridge-Adapter-Version'));
     }
 
     public function test_record_rejects_oversized_response(): void
@@ -105,5 +105,45 @@ class BridgeClientTest extends TestCase
 
         $this->expectException(RuntimeException::class);
         $client->publicTopicPosts(42, range(1, 21));
+    }
+
+    public function test_publication_claim_lease_is_carried_on_the_exact_acknowledgement(): void
+    {
+        $history = [];
+        $resourceId = 'a4965d46-e657-4af4-af47-6439e544eeb9';
+        $leaseToken = str_repeat('c', 64);
+        $mock = new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], json_encode([
+                'publication_work' => [
+                    'topic_id' => 42,
+                    'action' => 'publish',
+                    'lease_token' => $leaseToken,
+                ],
+            ], JSON_THROW_ON_ERROR)),
+            new Response(200, ['Content-Type' => 'application/json'], json_encode([
+                'resource_id' => $resourceId,
+            ], JSON_THROW_ON_ERROR)),
+        ]);
+        $stack = HandlerStack::create($mock);
+        $stack->push(Middleware::history($history));
+        $client = new BridgeClient(new Client(['handler' => $stack]), app(Configuration::class));
+
+        $client->claimPublicationWork(300);
+        $client->acknowledgePublication($resourceId, ['outcome' => 'created']);
+
+        $this->assertSame(['lease_seconds' => 300], json_decode((string) $history[0]['request']->getBody(), true));
+        $this->assertSame($leaseToken, json_decode((string) $history[1]['request']->getBody(), true)['acknowledgement']['lease_token']);
+    }
+
+    public function test_publication_lease_can_be_resumed_only_with_an_exact_token(): void
+    {
+        $client = new BridgeClient(new Client(['handler' => HandlerStack::create(new MockHandler())]), app(Configuration::class));
+        $token = str_repeat('d', 64);
+
+        $client->resumePublicationLease($token);
+        $this->assertSame($token, $client->publicationLeaseToken());
+
+        $this->expectException(RuntimeException::class);
+        $client->resumePublicationLease('not-a-token');
     }
 }

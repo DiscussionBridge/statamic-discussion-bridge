@@ -8,6 +8,11 @@ use CodeWorksLabs\DiscussionBridgeStatamic\Console\ReconcileDeliveries;
 use CodeWorksLabs\DiscussionBridgeStatamic\Console\PrepareStaticBuild;
 use CodeWorksLabs\DiscussionBridgeStatamic\Console\WorkDeliveries;
 use CodeWorksLabs\DiscussionBridgeStatamic\Console\SyncPublications;
+use CodeWorksLabs\DiscussionBridgeStatamic\Console\SyncPublicationWork;
+use CodeWorksLabs\DiscussionBridgeStatamic\Console\RefreshPlatformCatalog;
+use CodeWorksLabs\DiscussionBridgeStatamic\Console\PrepareStaticPublicationWork;
+use CodeWorksLabs\DiscussionBridgeStatamic\Console\FinalizeStaticPublicationWork;
+use CodeWorksLabs\DiscussionBridgeStatamic\Console\AbortStaticPublicationWork;
 use CodeWorksLabs\DiscussionBridgeStatamic\Listeners\AddBlueprintFields;
 use CodeWorksLabs\DiscussionBridgeStatamic\Listeners\PublishEntry;
 use CodeWorksLabs\DiscussionBridgeStatamic\Http\Controllers\PublicationSyncController;
@@ -42,6 +47,11 @@ class ServiceProvider extends AddonServiceProvider
         PrepareStaticBuild::class,
         WorkDeliveries::class,
         SyncPublications::class,
+        SyncPublicationWork::class,
+        RefreshPlatformCatalog::class,
+        PrepareStaticPublicationWork::class,
+        FinalizeStaticPublicationWork::class,
+        AbortStaticPublicationWork::class,
     ];
 
     public function bootAddon(): void

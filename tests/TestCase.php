@@ -27,6 +27,8 @@ abstract class TestCase extends AddonTestCase
             'secret_file' => sys_get_temp_dir().'/discussionbridge-statamic-test-secret',
             'lane' => 'statamic-alpha',
             'collections' => ['pages'],
+            'native_author_id' => 'statamic-service-user',
+            'ssg_transaction_file' => sys_get_temp_dir().'/discussionbridge-statamic-ssg-transaction.json',
             'source_author_name' => 'Statamic Author',
             'source_author_profile_url' => 'https://statamic.example/authors/statamic-author',
             'adapter_id' => 'statamic-discussion-bridge',
@@ -41,6 +43,8 @@ abstract class TestCase extends AddonTestCase
 
     protected function setUp(): void
     {
+        @unlink(sys_get_temp_dir().'/discussionbridge-statamic-ssg-transaction.json');
+        @unlink(sys_get_temp_dir().'/discussionbridge-statamic-ssg-transaction.json.lock');
         file_put_contents(sys_get_temp_dir().'/discussionbridge-statamic-test-secret', str_repeat('s', 40));
         parent::setUp();
         $this->artisan('migrate', ['--force' => true]);
@@ -49,6 +53,8 @@ abstract class TestCase extends AddonTestCase
     protected function tearDown(): void
     {
         @unlink(sys_get_temp_dir().'/discussionbridge-statamic-test-secret');
+        @unlink(sys_get_temp_dir().'/discussionbridge-statamic-ssg-transaction.json');
+        @unlink(sys_get_temp_dir().'/discussionbridge-statamic-ssg-transaction.json.lock');
         parent::tearDown();
     }
 }

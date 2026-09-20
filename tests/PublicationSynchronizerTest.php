@@ -7,6 +7,9 @@ use CodeWorksLabs\DiscussionBridgeStatamic\Publication\NativePublication;
 use CodeWorksLabs\DiscussionBridgeStatamic\Transport\BridgeClient;
 use Illuminate\Support\Facades\DB;
 use Mockery;
+use RuntimeException;
+use Statamic\Facades\Collection;
+use Statamic\Facades\Entry;
 
 class PublicationSynchronizerTest extends TestCase
 {
@@ -82,5 +85,135 @@ class PublicationSynchronizerTest extends TestCase
         $this->assertSame(1, $summary['failed']);
         $this->assertStringContainsString('requires a verified migration', $summary['errors'][0]);
         $this->assertSame('https://statamic.example/old-publication', DB::table('discussionbridge_publications')->where('resource_id', $resourceId)->value('canonical_url'));
+    }
+
+    public function test_incremental_queue_reports_a_changed_claim_without_scanning_all_records(): void
+    {
+        $client = Mockery::mock(BridgeClient::class);
+        $client->shouldReceive('claimPublicationWork')->once()->with(300)->andReturn([
+            'publication_work' => [
+                'topic_id' => 53,
+                'action' => 'publish',
+                'source_revision' => 'post:149:version:1',
+                'publication_revision' => str_repeat('a', 64),
+                'lease_token' => str_repeat('c', 64),
+            ],
+        ]);
+        $client->shouldReceive('sourceTopic')->once()->with(53)->andReturn([
+            'eligible' => true,
+            'source_topic' => [
+                'topic_id' => 53,
+                'source_revision' => 'post:149:version:2',
+                'publication_revision' => str_repeat('d', 64),
+            ],
+        ]);
+        $client->shouldReceive('failPublicationWork')->once()->with(
+            'statamic_delivery_failed',
+            Mockery::on(fn ($value) => str_contains($value, 'source revision changed')),
+        );
+        $client->shouldReceive('clearPublicationLease')->once();
+        $client->shouldNotReceive('records');
+        $this->app->instance(BridgeClient::class, $client);
+
+        $summary = app(PublicationSynchronizer::class)->synchronizeQueued(1, 300);
+
+        $this->assertSame(1, $summary['failed']);
+        $this->assertStringContainsString('source revision changed', $summary['errors'][0]);
+    }
+
+    public function test_incremental_queue_restores_the_exact_prior_entry_when_acknowledgement_fails(): void
+    {
+        $resourceId = '22222222-2222-4222-8222-222222222222';
+        Collection::make('pages')->routes(['default' => '/{slug}'])->save();
+        $entry = Entry::make()
+            ->id('statamic-publication-53')
+            ->collection('pages')
+            ->slug('forum-topic-53')
+            ->published(true)
+            ->data([
+                'title' => 'Prior title',
+                'content' => '<p>Prior body</p>',
+                'discussionbridge_resource_id' => $resourceId,
+                'discussionbridge_source_revision' => 'post:149:version:1',
+            ]);
+        $entry->save();
+        DB::table('discussionbridge_publications')->insert([
+            'resource_id' => $resourceId,
+            'entry_id' => (string) $entry->id(),
+            'canonical_url' => 'https://statamic.example/forum-topic-53/',
+            'canonical_url_digest' => hash('sha256', 'https://statamic.example/forum-topic-53/'),
+            'source_revision' => 'post:149:version:1',
+            'topic_id' => 53,
+            'topic_url' => 'https://forum.example/t/forum-scale-canary/53',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $priorData = Entry::find('statamic-publication-53')->data()->all();
+        $priorRow = (array) DB::table('discussionbridge_publications')->where('resource_id', $resourceId)->first();
+        $lease = str_repeat('c', 64);
+        $publicationRevision = str_repeat('a', 64);
+        $mappingRevision = str_repeat('b', 64);
+        $client = Mockery::mock(BridgeClient::class);
+        $client->shouldReceive('claimPublicationWork')->once()->with(300)->andReturn([
+            'publication_work' => [
+                'topic_id' => 53,
+                'action' => 'publish',
+                'source_revision' => 'post:149:version:2',
+                'publication_revision' => $publicationRevision,
+                'lease_token' => $lease,
+            ],
+        ]);
+        $client->shouldReceive('sourceTopic')->once()->with(53)->andReturn([
+            'eligible' => true,
+            'source_topic' => [
+                'topic_id' => 53,
+                'topic_url' => 'https://forum.example/t/forum-scale-canary/53',
+                'title' => 'Changed title',
+                'source_revision' => 'post:149:version:2',
+                'publication_revision' => $publicationRevision,
+                'source_created_at' => '2026-09-19T15:00:00.000000Z',
+                'source_updated_at' => '2026-09-20T16:00:00.000000Z',
+                'content_html' => '<h2>Changed body</h2>',
+                'author' => [
+                    'name' => 'DiscussionBridge',
+                    'profile_url' => 'https://forum.example/u/discussionbridge',
+                ],
+                'destination' => [
+                    'state' => 'ready',
+                    'destination_container_id' => 'pages',
+                    'mapping_revision' => $mappingRevision,
+                    'slug_policy' => 'topic_id',
+                    'destination_author_id' => 'user:statamic-service-user',
+                    'destination_terms' => [],
+                ],
+            ],
+        ]);
+        $client->shouldReceive('resolveSourceTopic')->once()->andReturn([
+            'outcome' => 'resolved',
+            'resource_id' => $resourceId,
+            'external_id' => 'statamic:topic:53',
+            'canonical_url' => 'https://statamic.example/forum-topic-53/',
+        ]);
+        $client->shouldReceive('acknowledgePublication')->once()->andReturnUsing(function () use ($resourceId, $publicationRevision): never {
+            $content = (string) Entry::find('statamic-publication-53')->get('content');
+            $this->assertStringContainsString('data-discussionbridge-resource-id="'.$resourceId.'"', $content);
+            $this->assertStringContainsString('data-discussionbridge-publication-revision="'.$publicationRevision.'"', $content);
+            throw new RuntimeException('receiver unavailable');
+        });
+        $client->shouldReceive('failPublicationWork')->once()->with(
+            'statamic_delivery_failed',
+            Mockery::on(fn ($value) => str_contains($value, 'receiver unavailable')),
+        );
+        $client->shouldReceive('clearPublicationLease')->once();
+        $this->app->instance(BridgeClient::class, $client);
+
+        $summary = app(PublicationSynchronizer::class)->synchronizeQueued(1, 300);
+
+        $restored = Entry::find('statamic-publication-53');
+        $this->assertSame(1, $summary['failed']);
+        $this->assertSame(0, $summary['updated']);
+        $this->assertSame($priorData, $restored->data()->all());
+        $this->assertTrue($restored->published());
+        $this->assertSame($priorRow, (array) DB::table('discussionbridge_publications')->where('resource_id', $resourceId)->first());
     }
 }

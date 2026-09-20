@@ -2,6 +2,7 @@
 
 namespace CodeWorksLabs\DiscussionBridgeStatamic\Tests;
 
+use CodeWorksLabs\DiscussionBridgeStatamic\Publication\PlatformCatalog;
 use CodeWorksLabs\DiscussionBridgeStatamic\Transport\BridgeClient;
 use Mockery;
 
@@ -31,11 +32,25 @@ class InstallDiscussionBridgeTest extends TestCase
     public function test_guided_installer_writes_protected_configuration_and_verifies_connection(): void
     {
         $client = Mockery::mock(BridgeClient::class);
+        $client->shouldReceive('platformCatalogStatus')->once()->andReturn(['catalog_revision' => null]);
+        $client->shouldReceive('updatePlatformCatalog')->once()->andReturn([
+            'catalog_revision' => str_repeat('a', 64),
+            'destination_mapping_state' => 'missing',
+        ]);
         $client->shouldReceive('records')->once()->andReturn([
             'bridge_records' => [],
             'pagination' => ['page' => 1, 'pages' => 1, 'total' => 0, 'snapshot' => 'install-verification'],
         ]);
         $this->app->instance(BridgeClient::class, $client);
+        $catalog = Mockery::mock(PlatformCatalog::class);
+        $catalog->shouldReceive('build')->once()->andReturn([
+            'schema_version' => 1,
+            'platform' => 'statamic',
+            'containers' => [],
+            'taxonomies' => [],
+            'authors' => [],
+        ]);
+        $this->app->instance(PlatformCatalog::class, $catalog);
 
         $this->artisan('discussionbridge:install', [
             '--forum-url' => 'https://forum.example',
@@ -43,11 +58,12 @@ class InstallDiscussionBridgeTest extends TestCase
             '--connection-id' => 'dbc_0123456789abcdef01234567',
             '--lane' => 'statamic-flat-alpha',
             '--collections' => 'pages,articles',
+            '--native-author-id' => 'statamic-service-user',
             '--source-author-name' => 'Statamic Editor',
             '--source-author-profile-url' => 'https://statamic.example/authors/editor',
         ])->expectsQuestion('Content Connection secret', str_repeat('x', 40))
             ->expectsOutputToContain('DiscussionBridge installation verified.')
-            ->expectsOutputToContain('Adapter version: 0.2.0-alpha.31')
+            ->expectsOutputToContain('Adapter version: 0.2.0-alpha.34')
             ->assertSuccessful();
 
         $secretPath = storage_path('app/discussionbridge/connection-secret');
@@ -58,6 +74,7 @@ class InstallDiscussionBridgeTest extends TestCase
         $this->assertStringContainsString('DISCUSSIONBRIDGE_CONNECTION_ID="dbc_0123456789abcdef01234567"', $environment);
         $this->assertStringContainsString('DISCUSSIONBRIDGE_SECRET_FILE="'.str_replace('\\', '\\\\', $secretPath).'"', $environment);
         $this->assertStringContainsString('DISCUSSIONBRIDGE_COLLECTIONS="pages,articles"', $environment);
+        $this->assertStringContainsString('DISCUSSIONBRIDGE_NATIVE_AUTHOR_ID="statamic-service-user"', $environment);
         $this->assertNotEmpty(glob($this->installationRoot.'/.env.discussionbridge-backup-*'));
     }
 

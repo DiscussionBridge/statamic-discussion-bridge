@@ -5,7 +5,7 @@ existing Statamic 6 application:
 
 ```sh
 composer config repositories.discussionbridge vcs https://github.com/DiscussionBridge/statamic-discussion-bridge.git
-composer require codeworkslabs/statamic-discussion-bridge:0.2.0-alpha.31
+composer require codeworkslabs/statamic-discussion-bridge:0.2.0-alpha.34
 php please discussionbridge:install
 ```
 
@@ -44,9 +44,15 @@ rollback package.
   configured collections, drains a bounded number of deliveries, and fails
   closed while any pending, processing, failed or reconciliation-required
   record remains. Run it immediately before `php please ssg:generate`.
+- `discussionbridge:refresh-platform-catalog` reads the installation's actual
+  configured collections, attached taxonomies and terms, and publish-capable
+  Statamic users, then uploads that bounded nonsecret inventory to The Bridge.
+  The receiver owns category/tag/author mapping; the addon never guesses a
+  destination that the operator has not selected.
 - `discussionbridge:sync-publications` consumes only From Discourse bindings
   carrying explicit native-materialization authority. It creates or updates a
-  genuine pages entry at the authorized platform-native route, records the exact
+  genuine entry in the mapped collection at its authorized native route, applies
+  mapped taxonomy terms and the selected native author, and records the exact
   Discourse post revision in an addon-owned table and leaves presentation-only
   records alone. Root publication is the default; an optional source path must
   identify an existing Statamic parent destination.
@@ -55,6 +61,25 @@ rollback package.
   destination or resource collisions fail closed. Updated entries explicitly
   invalidate Statamic's affected public-page cache and the addon's bounded
   record cache before synchronization reports success.
+- `discussionbridge:sync-publication-work --limit=20` is the steady-state
+  incremental worker for Statamic Flat and DB after the initial synchronization.
+  It claims receiver-owned work with an exact five-minute lease, processes only
+  the identified topic or withdrawal, acknowledges against that lease, and
+  reports bounded failures to the receiver's shared operator queue. It does not
+  repeat the complete Bridge Record census. The original Discourse topic
+  creation time becomes the native entry date; later first-post edits update
+  the same entry without changing that publication date.
+- Statamic SSG uses a protected two-phase lifecycle. Run
+  `discussionbridge:ssg-prepare-publication-work`, then the existing
+  `discussionbridge:ssg-prepare` delivery gate and `ssg:generate`; deploy the
+  generated estate; and run `discussionbridge:ssg-finalize-publication-work`.
+  Finalize performs a bounded public HTTPS check for the exact resource and
+  publication-revision markers before acknowledging the receiver lease.
+  `discussionbridge:ssg-abort-publication-work` restores every unacknowledged
+  native change and returns it to the shared attention queue. The protected,
+  atomically replaced transaction journal survives interrupted builds and must
+  never be copied into generated output. The dynamic publication worker must
+  not be scheduled for the SSG profile.
 - The Statamic Control Panel exposes the same operation under
   **Utilities → DiscussionBridge**. Its permissioned **Synchronize
   publications** action prevents concurrent runs and reports created, updated,
@@ -100,10 +125,12 @@ php please discussionbridge:install
 ```
 
 It prompts for the forum and site origins, Content Connection ID, hidden
-connection secret, optional lane, collections and source author. It stores the
+connection secret, optional lane, collections, native publication service
+author ID and source author. It stores the
 secret outside the public webroot with owner-only permissions, updates `.env`
 atomically after creating a timestamped backup, runs migrations, clears cached
-configuration, and verifies the connection without creating content. A
+configuration, uploads the current platform catalog, and verifies the
+connection without creating content. A
 successful verification records the addon identity, version and last-seen time
 on The Bridge. The installer also publishes the addon's versioned Control Panel
 stylesheet through Statamic's normal addon asset mechanism.
@@ -125,11 +152,15 @@ DISCUSSIONBRIDGE_CONNECTION_ID=dbc_000000000000000000000000
 DISCUSSIONBRIDGE_SECRET_FILE=/absolute/application/storage/app/discussionbridge/connection-secret
 DISCUSSIONBRIDGE_LANE=statamic-flat-alpha
 DISCUSSIONBRIDGE_COLLECTIONS=pages
+DISCUSSIONBRIDGE_NATIVE_AUTHOR_ID=publisher@example.com
+DISCUSSIONBRIDGE_SSG_TRANSACTION_FILE=/absolute/application/storage/app/discussionbridge/ssg-publication-transaction.json
 DISCUSSIONBRIDGE_SOURCE_AUTHOR_NAME="Statamic Flat Demo"
 DISCUSSIONBRIDGE_SOURCE_AUTHOR_PROFILE_URL=https://statamic-flat.demo.discussionbridge.dev/
 ```
 
-The source-author values are per-profile operator settings reported to The
+`DISCUSSIONBRIDGE_NATIVE_AUTHOR_ID` identifies the real publish-capable
+Statamic user used when the receiver mapping selects the service author. The
+source-author values are per-profile operator settings reported to The
 Bridge and can be mapped there to the selected Discourse user. The secret file
 must be outside the webroot and readable only by the owning
 application group. Flat and DB must never share a connection secret or secret
@@ -149,15 +180,30 @@ frames in the generated HTML.
 The release build order is strict:
 
 ```shell
+php please discussionbridge:refresh-platform-catalog
+php please discussionbridge:ssg-prepare-publication-work --limit=20
 php please discussionbridge:ssg-prepare
 php please ssg:generate
+# deploy the exact generated estate
+php please discussionbridge:ssg-finalize-publication-work
 ```
 
+The publication-work preparation command writes an owner-protected transaction
+journal before changing native entries. It deliberately leaves each receiver
+item leased and unacknowledged. After deployment, finalize fetches each exact
+public canonical URL without credentials or redirects and requires the prepared
+resource and publication-revision markers before acknowledging it. A failed
+build or abandoned candidate must be returned with
+`php please discussionbridge:ssg-abort-publication-work`; abort restores the
+prior native state and reports each item to the shared operator attention queue.
+An interrupted finalize is safely resumable from its journal. Never delete or
+edit that journal by hand, and never run prepare while one exists.
+
 Regenerate Statamic-authored pages through the native Statamic SSG workflow.
-Use **Utilities → DiscussionBridge → Synchronize now** only to create or update
-authorized publications from The Bridge before a subsequent native generation.
-The utility never implies that saving or synchronizing content has already
-regenerated the public static site.
+The Control Panel synchronization utility remains appropriate for Flat and DB;
+it must not replace the protected two-phase commands on the SSG profile. No
+successful preparation or native save implies that the public static site was
+regenerated or deployed.
 
 Do not deploy output when the preparation command fails. A generated site may
 be hosted without PHP, Statamic, a connection secret or an adapter worker; only
