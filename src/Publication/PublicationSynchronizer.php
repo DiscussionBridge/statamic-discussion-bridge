@@ -125,10 +125,12 @@ class PublicationSynchronizer
     public function prepareClaimedStatic(array $work, ?callable $beforeMutation = null): array
     {
         $topicId = $work['topic_id'] ?? null;
-        $leaseToken = $this->client->publicationLeaseToken();
-        if (! is_int($topicId) || $topicId < 1 || ! is_string($leaseToken)) {
+        $leaseToken = $work['lease_token'] ?? null;
+        if (! is_int($topicId) || $topicId < 1 || ! is_string($leaseToken)
+            || ! preg_match('/\A[a-f0-9]{64}\z/', $leaseToken)) {
             throw new RuntimeException('DiscussionBridge claimed Statamic topic is invalid.');
         }
+        $this->client->resumePublicationLease($leaseToken);
         $response = $this->client->sourceTopic($topicId);
         $topic = ($response['eligible'] ?? null) === true ? ($response['source_topic'] ?? null) : null;
         if (! is_array($topic)
@@ -191,11 +193,12 @@ class PublicationSynchronizer
     public function prepareClaimedStaticUnpublish(array $work, ?callable $beforeMutation = null): array
     {
         $resourceId = strtolower((string) ($work['resource_id'] ?? ''));
-        $leaseToken = $this->client->publicationLeaseToken();
+        $leaseToken = $work['lease_token'] ?? null;
         if (! preg_match('/\A[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/', $resourceId)
-            || ! is_string($leaseToken)) {
+            || ! is_string($leaseToken) || ! preg_match('/\A[a-f0-9]{64}\z/', $leaseToken)) {
             throw new RuntimeException('DiscussionBridge claimed Statamic withdrawal is invalid.');
         }
+        $this->client->resumePublicationLease($leaseToken);
         $response = $this->client->sourceRevocation($resourceId);
         $revocation = ($response['revoked'] ?? null) === true ? ($response['publication_revocation'] ?? null) : null;
         if (! is_array($revocation)

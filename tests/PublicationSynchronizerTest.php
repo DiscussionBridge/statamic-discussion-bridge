@@ -13,6 +13,55 @@ use Statamic\Facades\Entry;
 
 class PublicationSynchronizerTest extends TestCase
 {
+    public function test_static_prepare_reestablishes_the_claimed_publish_lease_on_its_client(): void
+    {
+        $lease = str_repeat('c', 64);
+        $client = Mockery::mock(BridgeClient::class);
+        $client->shouldReceive('resumePublicationLease')->once()->with($lease);
+        $client->shouldReceive('sourceTopic')->once()->with(53)->andReturn([
+            'eligible' => true,
+            'source_topic' => [
+                'source_revision' => 'post:149:version:2',
+                'publication_revision' => str_repeat('d', 64),
+            ],
+        ]);
+        $this->app->instance(BridgeClient::class, $client);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('source revision changed');
+        app(PublicationSynchronizer::class)->prepareClaimedStatic([
+            'topic_id' => 53,
+            'source_revision' => 'post:149:version:1',
+            'publication_revision' => str_repeat('a', 64),
+            'lease_token' => $lease,
+        ]);
+    }
+
+    public function test_static_prepare_reestablishes_the_claimed_unpublish_lease_on_its_client(): void
+    {
+        $lease = str_repeat('c', 64);
+        $resourceId = '11111111-1111-4111-8111-111111111111';
+        $client = Mockery::mock(BridgeClient::class);
+        $client->shouldReceive('resumePublicationLease')->once()->with($lease);
+        $client->shouldReceive('sourceRevocation')->once()->with($resourceId)->andReturn([
+            'revoked' => true,
+            'publication_revocation' => [
+                'topic_id' => 54,
+                'publication_revision' => str_repeat('d', 64),
+            ],
+        ]);
+        $this->app->instance(BridgeClient::class, $client);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('withdrawal changed');
+        app(PublicationSynchronizer::class)->prepareClaimedStaticUnpublish([
+            'topic_id' => 53,
+            'resource_id' => $resourceId,
+            'publication_revision' => str_repeat('a', 64),
+            'lease_token' => $lease,
+        ]);
+    }
+
     public function test_it_returns_a_bounded_empty_feed_summary(): void
     {
         $client = Mockery::mock(BridgeClient::class);
