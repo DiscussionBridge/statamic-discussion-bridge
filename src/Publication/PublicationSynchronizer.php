@@ -534,15 +534,18 @@ class PublicationSynchronizer
         }
 
         $restored = DB::table('discussionbridge_publications')->where('resource_id', $publication['resource_id'])->first();
-        if ($snapshot['row'] === null) {
-            return $restored === null
-                && (! $currentEntry || Entry::find((string) $currentEntry->id()) === null);
+        $rowMatches = $snapshot['row'] === null
+            ? $restored === null
+            : $restored !== null && (array) $restored === $snapshot['row'];
+        if (! $rowMatches) {
+            return false;
+        }
+        if ($snapshot['entry'] === null) {
+            return ! $currentEntry || Entry::find((string) $currentEntry->id()) === null;
         }
         $entry = Entry::find($snapshot['entry']['id']);
 
-        return $restored !== null
-            && (array) $restored === $snapshot['row']
-            && $entry !== null
+        return $entry !== null
             && $entry->data()->all() === $snapshot['entry']['data']
             && $entry->published() === $snapshot['entry']['published'];
     }

@@ -76,11 +76,13 @@ class StaticPublicationTransaction
                 return ['prepared' => count($journal['items']), 'transaction_id' => $journal['transaction_id']];
             } catch (Throwable $error) {
                 $journal = $this->readJournal();
-                if ($journal['items'] === [] && $this->client->publicationLeaseToken() !== null) {
+                if ($journal['items'] === []) {
                     try {
-                        $this->client->failPublicationWork('statamic_ssg_prepare_failed', $this->safeDetail($error));
-                        $this->removeJournal();
+                        if ($this->client->publicationLeaseToken() !== null) {
+                            $this->client->failPublicationWork('statamic_ssg_prepare_failed', $this->safeDetail($error));
+                        }
                     } finally {
+                        $this->removeJournal();
                         $this->client->clearPublicationLease();
                     }
                 } elseif ($journal['items'] !== []) {

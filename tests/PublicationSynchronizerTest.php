@@ -298,6 +298,7 @@ class PublicationSynchronizerTest extends TestCase
         $tree->append($entry);
         $tree->save();
         \Statamic\Facades\Blink::flush();
+        $priorData = Entry::find($entryId)->data()->all();
         $this->assertInstanceOf(\Statamic\Contracts\Entries\Entry::class, Entry::findByUri('/'.$slug, Site::default()->handle()));
 
         $client = Mockery::mock(BridgeClient::class);
@@ -345,6 +346,10 @@ class PublicationSynchronizerTest extends TestCase
         $this->assertSame('created', $prepared['outcome']);
         $this->assertSame($entryId, DB::table('discussionbridge_publications')->where('resource_id', $resourceId)->value('entry_id'));
         $this->assertStringContainsString('Recovered body', (string) Entry::find($entryId)->get('content'));
+
+        $this->assertTrue(app(PublicationSynchronizer::class)->restorePreparedStatic($prepared));
+        $this->assertNull(DB::table('discussionbridge_publications')->where('resource_id', $resourceId)->first());
+        $this->assertSame($priorData, Entry::find($entryId)->data()->all());
 
         Entry::find($entryId)?->delete();
         $collection->delete();

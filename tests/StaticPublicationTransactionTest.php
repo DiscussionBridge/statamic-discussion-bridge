@@ -127,6 +127,27 @@ class StaticPublicationTransactionTest extends TestCase
         $this->assertFileDoesNotExist(config('discussionbridge.ssg_transaction_file'));
     }
 
+    public function test_claim_failure_without_a_lease_removes_the_empty_journal(): void
+    {
+        $client = Mockery::mock(BridgeClient::class);
+        $client->shouldReceive('claimPublicationWork')->once()->with(3600)->andThrow(
+            new RuntimeException('receiver unavailable'),
+        );
+        $client->shouldReceive('publicationLeaseToken')->once()->andReturnNull();
+        $client->shouldReceive('clearPublicationLease')->once();
+        $synchronizer = Mockery::mock(PublicationSynchronizer::class);
+        $transaction = $this->transaction($synchronizer, $client, []);
+
+        try {
+            $transaction->prepare(1);
+            $this->fail('Expected the receiver failure to propagate.');
+        } catch (RuntimeException $error) {
+            $this->assertSame('receiver unavailable', $error->getMessage());
+        }
+
+        $this->assertFileDoesNotExist(config('discussionbridge.ssg_transaction_file'));
+    }
+
     /** @param list<Response> $responses
      *  @return array{StaticPublicationTransaction, BridgeClient&\Mockery\MockInterface, PublicationSynchronizer&\Mockery\MockInterface, array<string, mixed>}
      */
