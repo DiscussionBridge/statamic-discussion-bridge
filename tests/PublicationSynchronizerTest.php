@@ -10,6 +10,7 @@ use Mockery;
 use RuntimeException;
 use Statamic\Facades\Collection;
 use Statamic\Facades\Entry;
+use Statamic\Facades\Site;
 
 class PublicationSynchronizerTest extends TestCase
 {
@@ -264,5 +265,88 @@ class PublicationSynchronizerTest extends TestCase
         $this->assertSame($priorData, $restored->data()->all());
         $this->assertTrue($restored->published());
         $this->assertSame($priorRow, (array) DB::table('discussionbridge_publications')->where('resource_id', $resourceId)->first());
+    }
+
+    public function test_static_retry_reuses_an_existing_structured_entry(): void
+    {
+        $resourceId = '33333333-3333-4333-8333-333333333333';
+        $revision = str_repeat('a', 64);
+        $mappingRevision = str_repeat('b', 64);
+        $lease = str_repeat('c', 64);
+        $suffix = bin2hex(random_bytes(4));
+        $collectionHandle = 'retry-pages-'.$suffix;
+        $entryId = 'statamic-orphan-'.$suffix;
+        $topicId = random_int(100000, 999999);
+        $slug = 'forum-topic-'.$topicId;
+        config()->set('discussionbridge.collections', [$collectionHandle]);
+        $collection = Collection::make($collectionHandle)
+            ->routes(['default' => '/{slug}'])
+            ->structureContents(['root' => false]);
+        $collection->save();
+        $entry = Entry::make()
+            ->id($entryId)
+            ->collection($collectionHandle)
+            ->slug($slug)
+            ->published(true)
+            ->data([
+                'title' => 'Interrupted publication',
+                'content' => '<p>Prepared but not recorded.</p>',
+                'discussionbridge_resource_id' => $resourceId,
+            ]);
+        $entry->save();
+        $tree = $collection->structure()->in(Site::default()->handle());
+        $tree->append($entry);
+        $tree->save();
+        \Statamic\Facades\Blink::flush();
+        $this->assertInstanceOf(\Statamic\Contracts\Entries\Entry::class, Entry::findByUri('/'.$slug, Site::default()->handle()));
+
+        $client = Mockery::mock(BridgeClient::class);
+        $client->shouldReceive('resumePublicationLease')->once()->with($lease);
+        $client->shouldReceive('sourceTopic')->once()->with($topicId)->andReturn([
+            'eligible' => true,
+            'source_topic' => [
+                'topic_id' => $topicId,
+                'topic_url' => 'https://forum.example/t/forum-scale-canary/'.$topicId,
+                'title' => 'Forum Scale Canary',
+                'source_revision' => 'post:149:version:2',
+                'publication_revision' => $revision,
+                'source_created_at' => '2026-09-19T15:00:00.000000Z',
+                'source_updated_at' => '2026-09-20T16:00:00.000000Z',
+                'content_html' => '<h2>Recovered body</h2>',
+                'author' => [
+                    'name' => 'DiscussionBridge',
+                    'profile_url' => 'https://forum.example/u/discussionbridge',
+                ],
+                'destination' => [
+                    'state' => 'ready',
+                    'destination_container_id' => $collectionHandle,
+                    'mapping_revision' => $mappingRevision,
+                    'slug_policy' => 'topic_id',
+                    'destination_author_id' => 'user:statamic-service-user',
+                    'destination_terms' => [],
+                ],
+            ],
+        ]);
+        $client->shouldReceive('resolveSourceTopic')->once()->andReturn([
+            'outcome' => 'resolved',
+            'resource_id' => $resourceId,
+            'external_id' => 'statamic:topic:'.$topicId,
+            'canonical_url' => 'https://statamic.example/'.$slug.'/',
+        ]);
+        $this->app->instance(BridgeClient::class, $client);
+
+        $prepared = app(PublicationSynchronizer::class)->prepareClaimedStatic([
+            'topic_id' => $topicId,
+            'source_revision' => 'post:149:version:2',
+            'publication_revision' => $revision,
+            'lease_token' => $lease,
+        ]);
+
+        $this->assertSame('created', $prepared['outcome']);
+        $this->assertSame($entryId, DB::table('discussionbridge_publications')->where('resource_id', $resourceId)->value('entry_id'));
+        $this->assertStringContainsString('Recovered body', (string) Entry::find($entryId)->get('content'));
+
+        Entry::find($entryId)?->delete();
+        $collection->delete();
     }
 }

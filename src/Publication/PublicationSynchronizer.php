@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Statamic\Facades\Entry;
 use Statamic\Facades\Site;
+use Statamic\Structures\Page;
 use Throwable;
 
 class PublicationSynchronizer
@@ -303,7 +304,7 @@ class PublicationSynchronizer
 
         $site = Site::default()->handle();
         $expectedUri = $publication['path'];
-        $entry = $prior ? Entry::find($prior->entry_id) : Entry::findByUri($expectedUri, $site);
+        $entry = $prior ? Entry::find($prior->entry_id) : $this->entryByUri($expectedUri, $site);
         if ($entry) {
             if ($entry->uri() !== $expectedUri || $entry->get('discussionbridge_resource_id') !== $publication['resource_id'] || ($prior && (string) $entry->id() !== $prior->entry_id)) {
                 throw new RuntimeException('Statamic publication identity collision.');
@@ -491,7 +492,7 @@ class PublicationSynchronizer
     {
         $prior = DB::table('discussionbridge_publications')->where('resource_id', $publication['resource_id'])->first();
         $site = Site::default()->handle();
-        $entry = $prior ? Entry::find($prior->entry_id) : Entry::findByUri($publication['path'], $site);
+        $entry = $prior ? Entry::find($prior->entry_id) : $this->entryByUri($publication['path'], $site);
 
         return [
             'row' => $prior ? (array) $prior : null,
@@ -509,7 +510,9 @@ class PublicationSynchronizer
     private function restorePublicationState(array $publication, array $snapshot): bool
     {
         $current = DB::table('discussionbridge_publications')->where('resource_id', $publication['resource_id'])->first();
-        $currentEntry = $current ? Entry::find($current->entry_id) : null;
+        $currentEntry = $current
+            ? Entry::find($current->entry_id)
+            : $this->entryByUri($publication['path'], Site::default()->handle());
         if ($snapshot['entry'] === null) {
             if ($currentEntry
                 && $currentEntry->get('discussionbridge_resource_id') === $publication['resource_id']) {
@@ -542,5 +545,12 @@ class PublicationSynchronizer
             && $entry !== null
             && $entry->data()->all() === $snapshot['entry']['data']
             && $entry->published() === $snapshot['entry']['published'];
+    }
+
+    private function entryByUri(string $uri, string $site): ?\Statamic\Contracts\Entries\Entry
+    {
+        $entry = Entry::findByUri($uri, $site);
+
+        return $entry instanceof Page ? $entry->entry() : $entry;
     }
 }

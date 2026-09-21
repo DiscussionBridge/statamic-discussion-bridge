@@ -26,6 +26,7 @@ class NativePublicationTest extends TestCase
         $this->assertSame('/the-bridge-publishes-everywhere', $publication['path']);
         $this->assertNull($publication['parent_uri']);
         $this->assertSame('post:149:version:1', $publication['source_revision']);
+        $this->assertSame(str_repeat('a', 64), $publication['publication_revision']);
         $this->assertSame('https://statamic.example/the-bridge-publishes-everywhere', $publication['canonical_url']);
 
         $record = $this->record();
@@ -35,6 +36,10 @@ class NativePublicationTest extends TestCase
         $this->assertSame('/from-the-bridge', $nested['parent_uri']);
 
         $record['bindings'][0]['native_materialization'] = false;
+        $this->assertNull($validator->fromRecord($record));
+
+        $record = $this->record();
+        $record['delivery']['acknowledged_publication_revision'] = null;
         $this->assertNull($validator->fromRecord($record));
 
         $record = $this->record();
@@ -126,6 +131,9 @@ class NativePublicationTest extends TestCase
             'title' => 'The Bridge publishes everywhere',
             'topic_id' => 53,
             'content_html' => '<h2>One source</h2><p>Native Statamic content.</p>',
+            'delivery' => [
+                'acknowledged_publication_revision' => str_repeat('a', 64),
+            ],
             'source' => [
                 'platform' => 'discourse',
                 'origin' => 'https://forum.example',

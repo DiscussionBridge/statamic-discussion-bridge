@@ -28,12 +28,22 @@ class NativePublication
         if (count($bindings) !== 1 || ($bindings[0]['native_materialization'] ?? null) !== true) {
             throw new RuntimeException('DiscussionBridge native publication authority is ambiguous.');
         }
+        $delivery = $record['delivery'] ?? null;
+        $publicationRevision = is_array($delivery) ? ($delivery['acknowledged_publication_revision'] ?? null) : null;
+        if ($publicationRevision === null) {
+            // The incremental publication-work transaction owns pending native
+            // materialization. The compatibility feed must not publish or
+            // overwrite content that the receiver has not acknowledged yet.
+            return null;
+        }
         if (($record['direction'] ?? null) !== 'from_discourse'
             || ($record['state'] ?? null) !== 'healthy'
             || ! is_string($record['resource_id'] ?? null)
             || ! preg_match('/\A[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/i', $record['resource_id'])
             || ! is_int($record['topic_id'] ?? null)
             || $record['topic_id'] < 1
+            || ! is_string($publicationRevision)
+            || ! preg_match('/\A[a-f0-9]{64}\z/', $publicationRevision)
             || ! is_string($record['content_html'] ?? null)
             || trim($record['content_html']) === ''
             || strlen($record['content_html']) > 65536) {
@@ -97,6 +107,7 @@ class NativePublication
             'title' => trim($record['title']),
             'content_html' => $record['content_html'],
             'source_revision' => $source['revision'],
+            'publication_revision' => $publicationRevision,
             'source_author' => trim($author['name']),
             'topic_id' => $record['topic_id'],
             'topic_url' => $topicUrl,
