@@ -30,7 +30,7 @@ class NativePublication
         }
         $delivery = $record['delivery'] ?? null;
         $publicationRevision = is_array($delivery) ? ($delivery['acknowledged_publication_revision'] ?? null) : null;
-        if ($publicationRevision === null) {
+        if (! is_array($delivery) || ($delivery['state'] ?? null) !== 'current' || $publicationRevision === null) {
             // The incremental publication-work transaction owns pending native
             // materialization. The compatibility feed must not publish or
             // overwrite content that the receiver has not acknowledged yet.

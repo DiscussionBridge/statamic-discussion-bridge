@@ -43,6 +43,11 @@ class NativePublicationTest extends TestCase
         $this->assertNull($validator->fromRecord($record));
 
         $record = $this->record();
+        $record['delivery']['state'] = 'pending';
+        $record['delivery']['pending_publication_revision'] = str_repeat('b', 64);
+        $this->assertNull($validator->fromRecord($record));
+
+        $record = $this->record();
         $record['source']['origin'] = 'https://other.example';
         $this->expectException(RuntimeException::class);
         $validator->fromRecord($record);
@@ -132,6 +137,7 @@ class NativePublicationTest extends TestCase
             'topic_id' => 53,
             'content_html' => '<h2>One source</h2><p>Native Statamic content.</p>',
             'delivery' => [
+                'state' => 'current',
                 'acknowledged_publication_revision' => str_repeat('a', 64),
             ],
             'source' => [
