@@ -297,9 +297,11 @@ class PublicationSynchronizer
             if (! $existing || $existing->get('discussionbridge_resource_id') !== $publication['resource_id']) {
                 throw new RuntimeException('Statamic publication state is incomplete.');
             }
-            $this->freshness->refresh($existing, $publication['resource_id']);
-            $summary['unchanged']++;
-            return 'unchanged';
+            if ($existing->get('discussionbridge_publication_revision') === $publication['publication_revision']) {
+                $this->freshness->refresh($existing, $publication['resource_id']);
+                $summary['unchanged']++;
+                return 'unchanged';
+            }
         }
 
         $site = Site::default()->handle();
@@ -344,6 +346,7 @@ class PublicationSynchronizer
             'discussionbridge_topic_id' => $publication['topic_id'],
             'discussionbridge_topic_url' => $publication['topic_url'],
             'discussionbridge_source_revision' => $publication['source_revision'],
+            'discussionbridge_publication_revision' => $publication['publication_revision'],
             ...(isset($publication['source_created_at']) ? ['date' => $publication['source_created_at']] : []),
             ...(isset($publication['source_updated_at']) ? ['discussionbridge_source_updated_at' => $publication['source_updated_at']] : []),
             ...(isset($publication['destination_author_id']) ? ['author' => $publication['destination_author_id']] : []),

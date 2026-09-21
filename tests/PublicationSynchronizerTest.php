@@ -354,4 +354,94 @@ class PublicationSynchronizerTest extends TestCase
         Entry::find($entryId)?->delete();
         $collection->delete();
     }
+
+    public function test_same_source_revision_updates_when_publication_revision_changes(): void
+    {
+        $resourceId = '44444444-4444-4444-8444-444444444444';
+        $oldRevision = str_repeat('a', 64);
+        $newRevision = str_repeat('d', 64);
+        $mappingRevision = str_repeat('b', 64);
+        $lease = str_repeat('c', 64);
+        $suffix = bin2hex(random_bytes(4));
+        $collectionHandle = 'revision-pages-'.$suffix;
+        $entryId = 'revision-entry-'.$suffix;
+        $topicId = random_int(100000, 999999);
+        $slug = 'forum-topic-'.$topicId;
+        config()->set('discussionbridge.collections', [$collectionHandle]);
+        $collection = Collection::make($collectionHandle)->routes(['default' => '/{slug}']);
+        $collection->save();
+        $entry = Entry::make()
+            ->id($entryId)
+            ->collection($collectionHandle)
+            ->slug($slug)
+            ->published(true)
+            ->data([
+                'title' => 'Unchanged source',
+                'content' => '<p>Prior mapped publication.</p>',
+                'discussionbridge_resource_id' => $resourceId,
+                'discussionbridge_source_revision' => 'post:149:version:2',
+                'discussionbridge_publication_revision' => $oldRevision,
+            ]);
+        $entry->save();
+        DB::table('discussionbridge_publications')->insert([
+            'resource_id' => $resourceId,
+            'entry_id' => $entryId,
+            'canonical_url' => 'https://statamic.example/'.$slug.'/',
+            'canonical_url_digest' => hash('sha256', 'https://statamic.example/'.$slug.'/'),
+            'source_revision' => 'post:149:version:2',
+            'topic_id' => $topicId,
+            'topic_url' => 'https://forum.example/t/forum-scale-canary/'.$topicId,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $client = Mockery::mock(BridgeClient::class);
+        $client->shouldReceive('resumePublicationLease')->once()->with($lease);
+        $client->shouldReceive('sourceTopic')->once()->with($topicId)->andReturn([
+            'eligible' => true,
+            'source_topic' => [
+                'topic_id' => $topicId,
+                'topic_url' => 'https://forum.example/t/forum-scale-canary/'.$topicId,
+                'title' => 'Unchanged source',
+                'source_revision' => 'post:149:version:2',
+                'publication_revision' => $newRevision,
+                'source_created_at' => '2026-09-19T15:00:00.000000Z',
+                'source_updated_at' => '2026-09-20T16:00:00.000000Z',
+                'content_html' => '<h2>Same source, new mapping</h2>',
+                'author' => [
+                    'name' => 'DiscussionBridge',
+                    'profile_url' => 'https://forum.example/u/discussionbridge',
+                ],
+                'destination' => [
+                    'state' => 'ready',
+                    'destination_container_id' => $collectionHandle,
+                    'mapping_revision' => $mappingRevision,
+                    'slug_policy' => 'topic_id',
+                    'destination_author_id' => 'user:statamic-service-user',
+                    'destination_terms' => [],
+                ],
+            ],
+        ]);
+        $client->shouldReceive('resolveSourceTopic')->once()->andReturn([
+            'outcome' => 'resolved',
+            'resource_id' => $resourceId,
+            'external_id' => 'statamic:topic:'.$topicId,
+            'canonical_url' => 'https://statamic.example/'.$slug.'/',
+        ]);
+        $this->app->instance(BridgeClient::class, $client);
+
+        $prepared = app(PublicationSynchronizer::class)->prepareClaimedStatic([
+            'topic_id' => $topicId,
+            'source_revision' => 'post:149:version:2',
+            'publication_revision' => $newRevision,
+            'lease_token' => $lease,
+        ]);
+
+        $updated = Entry::find($entryId);
+        $this->assertSame('updated', $prepared['outcome']);
+        $this->assertSame($newRevision, $updated->get('discussionbridge_publication_revision'));
+        $this->assertStringContainsString('data-discussionbridge-publication-revision="'.$newRevision.'"', (string) $updated->get('content'));
+        DB::table('discussionbridge_publications')->where('resource_id', $resourceId)->delete();
+        $updated->delete();
+        $collection->delete();
+    }
 }
