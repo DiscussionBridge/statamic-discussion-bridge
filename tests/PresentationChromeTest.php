@@ -7,6 +7,17 @@ use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\PresentationChrome;
 
 class PresentationChromeTest extends TestCase
 {
+    public function test_bundled_rich_content_covers_discourse_tables_mermaid_and_math(): void
+    {
+        $asset = file_get_contents(__DIR__ . '/../resources/dist/discussionbridge-rich-content.js');
+
+        $this->assertIsString($asset);
+        $this->assertStringContainsString('discussionbridge-mermaid', $asset);
+        $this->assertStringContainsString('discussionbridge-math', $asset);
+        $this->assertStringContainsString('.md-table', $asset);
+        $this->assertStringContainsString('mathml', $asset);
+    }
+
     public function test_it_builds_native_navigation_and_interactive_discussion(): void
     {
         $content = (new PageNavigation())->render('<h2>First section</h2><p>One</p><h2>Second section</h2><p>Two</p>');

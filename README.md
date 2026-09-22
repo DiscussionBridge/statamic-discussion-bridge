@@ -5,7 +5,7 @@ existing Statamic 6 application:
 
 ```sh
 composer config repositories.discussionbridge vcs https://github.com/DiscussionBridge/statamic-discussion-bridge.git
-composer require codeworkslabs/statamic-discussion-bridge:0.2.0-alpha.40
+composer require codeworkslabs/statamic-discussion-bridge:0.2.0-alpha.41
 php please discussionbridge:install
 ```
 
@@ -22,6 +22,13 @@ origin, Content Connection, secret, operational table, worker, content and
 rollback package.
 
 ## Behavior
+
+- Imported forum content loads the addon's local
+  `/discussionbridge/rich-content.js` asset. It renders Discourse Mermaid
+  blocks in strict security mode, renders cooked math and supported `[math]`,
+  `$$...$$`, and inline `$...$` forms, and keeps `.md-table` wrappers usable on
+  narrow screens. It loads no third-party renderer or receiver credential and
+  leaves code examples literal.
 
 - `EntrySaved` performs only a local, idempotent enqueue into the addon-owned
   `discussionbridge_deliveries` table. It never calls Discourse during the
