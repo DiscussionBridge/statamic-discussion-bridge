@@ -7,13 +7,20 @@ use CodeWorksLabs\DiscussionBridgeStatamic\Publication\PlatformCatalog;
 use CodeWorksLabs\DiscussionBridgeStatamic\Support\Configuration;
 use RuntimeException;
 use Statamic\Facades\Collection;
+use Statamic\Facades\Taxonomy;
+use Statamic\Facades\Term;
 
 class NativePublicationTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        Collection::make('pages')->routes(['default' => '/{slug}'])->save();
+        Taxonomy::make('sections')->title('Sections')->save();
+        Term::make('pledge')->taxonomy('sections')->data(['title' => 'Pledge'])->save();
+        Collection::make('pages')
+            ->routes(['default' => '/{slug}'])
+            ->taxonomies(['sections'])
+            ->save();
     }
 
     public function test_it_requires_explicit_native_authority_and_exact_source_identity(): void
@@ -115,7 +122,10 @@ class NativePublicationTest extends TestCase
                 'mapping_revision' => str_repeat('b', 64),
                 'slug_policy' => 'topic_id',
                 'destination_author_id' => 'user:statamic-service-user',
-                'destination_terms' => [],
+                'destination_terms' => [[
+                    'destination_taxonomy_id' => 'sections',
+                    'destination_term_id' => 'sections::pledge',
+                ]],
             ],
         ]);
 
@@ -125,6 +135,7 @@ class NativePublicationTest extends TestCase
         $this->assertSame('2026-09-20T16:00:00.000000Z', $publication['source_updated_at']);
         $this->assertSame('pages', $publication['collection']);
         $this->assertSame('statamic-service-user', $publication['destination_author_id']);
+        $this->assertSame(['sections' => ['pledge']], $publication['destination_taxonomies']);
     }
 
     private function record(): array

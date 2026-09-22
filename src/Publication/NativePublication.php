@@ -181,7 +181,7 @@ class NativePublication
                 || ! $collection->taxonomies()->contains(fn ($taxonomy) => $taxonomy->handle() === $taxonomyId)) {
                 throw new RuntimeException('DiscussionBridge Statamic destination taxonomy term is invalid.');
             }
-            $taxonomyValues[$taxonomyId][] = $termId;
+            $taxonomyValues[$taxonomyId][] = $resolved->slug();
         }
         $path = $this->catalog->canonicalPath($collectionHandle, $slug);
 
