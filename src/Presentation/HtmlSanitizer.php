@@ -10,6 +10,8 @@ use DOMXPath;
 
 class HtmlSanitizer
 {
+    public const MAX_HTML_BYTES = 256 * 1024;
+
     private const ALLOWED_TAGS = [
         'p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre',
         'h2', 'h3', 'h4', 'a', 'img', 'figure', 'figcaption', 'table', 'thead',
@@ -18,7 +20,7 @@ class HtmlSanitizer
 
     public function sanitize(string $html): string
     {
-        if (strlen($html) > 65536) {
+        if (strlen($html) > self::MAX_HTML_BYTES) {
             return '';
         }
 
