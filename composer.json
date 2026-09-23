@@ -3,7 +3,7 @@
   "description": "Statamic publishing adapter for DiscussionBridge",
   "type": "statamic-addon",
   "license": "MIT",
-  "version": "0.2.0-alpha.44",
+  "version": "0.2.0-alpha.45",
   "autoload": {
     "psr-4": {
       "CodeWorksLabs\\DiscussionBridgeStatamic\\": "src/"

@@ -23,7 +23,13 @@ class HtmlSanitizerTest extends TestCase
 
     public function test_it_rejects_oversized_content(): void
     {
-        $this->assertSame('', (new HtmlSanitizer())->sanitize(str_repeat('x', 65537)));
+        $sanitizer = new HtmlSanitizer();
+
+        $this->assertSame(
+            str_repeat('x', HtmlSanitizer::MAX_HTML_BYTES),
+            $sanitizer->sanitize(str_repeat('x', HtmlSanitizer::MAX_HTML_BYTES)),
+        );
+        $this->assertSame('', $sanitizer->sanitize(str_repeat('x', HtmlSanitizer::MAX_HTML_BYTES + 1)));
     }
 
     public function test_it_preserves_portable_media_and_removes_discourse_controls(): void
