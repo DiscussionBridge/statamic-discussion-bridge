@@ -39,7 +39,7 @@ class BridgeClientTest extends TestCase
 
         $this->assertSame('created', $response['outcome']);
         $this->assertSame('statamic-discussion-bridge', $history[0]['request']->getHeaderLine('X-DiscussionBridge-Adapter'));
-        $this->assertSame('0.2.0-alpha.42', $history[0]['request']->getHeaderLine('X-DiscussionBridge-Adapter-Version'));
+        $this->assertSame('0.2.0-alpha.43', $history[0]['request']->getHeaderLine('X-DiscussionBridge-Adapter-Version'));
     }
 
     public function test_record_rejects_oversized_response(): void
@@ -106,6 +106,37 @@ class BridgeClientTest extends TestCase
 
         $this->expectException(RuntimeException::class);
         $client->publicTopicPosts(42, range(1, 21));
+    }
+
+    public function test_records_accepts_a_bounded_rich_publication_page_larger_than_the_default_response_limit(): void
+    {
+        $payload = [
+            'bridge_records' => [['content_html' => str_repeat('x', 70000)]],
+            'pagination' => ['page' => 1, 'pages' => 1, 'total' => 1, 'snapshot' => 'snapshot'],
+        ];
+        $mock = new MockHandler([new Response(
+            200,
+            ['Content-Type' => 'application/json'],
+            json_encode($payload, JSON_THROW_ON_ERROR),
+        )]);
+        $client = new BridgeClient(new Client(['handler' => HandlerStack::create($mock)]), app(Configuration::class));
+
+        $response = $client->records();
+
+        $this->assertSame(70000, strlen($response['bridge_records'][0]['content_html']));
+    }
+
+    public function test_records_rejects_a_publication_page_larger_than_one_mebibyte(): void
+    {
+        $mock = new MockHandler([new Response(
+            200,
+            ['Content-Type' => 'application/json'],
+            str_repeat('x', 1024 * 1024 + 1),
+        )]);
+        $client = new BridgeClient(new Client(['handler' => HandlerStack::create($mock)]), app(Configuration::class));
+
+        $this->expectException(RuntimeException::class);
+        $client->records();
     }
 
     public function test_publication_claim_lease_is_carried_on_the_exact_acknowledgement(): void

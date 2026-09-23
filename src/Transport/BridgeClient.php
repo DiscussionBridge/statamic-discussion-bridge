@@ -54,7 +54,13 @@ class BridgeClient
             $query['snapshot'] = $snapshot;
         }
 
-        return $this->request('GET', '/discussion-bridge/v1/bridge-records.json?'.http_build_query($query, '', '&', PHP_QUERY_RFC3986));
+        return $this->request(
+            'GET',
+            '/discussion-bridge/v1/bridge-records.json?'.http_build_query($query, '', '&', PHP_QUERY_RFC3986),
+            null,
+            true,
+            1024 * 1024,
+        );
     }
 
     public function platformCatalogStatus(): array

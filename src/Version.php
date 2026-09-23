@@ -4,5 +4,5 @@ namespace CodeWorksLabs\DiscussionBridgeStatamic;
 
 final class Version
 {
-    public const VALUE = '0.2.0-alpha.42';
+    public const VALUE = '0.2.0-alpha.43';
 }
