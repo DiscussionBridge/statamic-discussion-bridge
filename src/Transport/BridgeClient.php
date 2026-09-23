@@ -13,6 +13,8 @@ class BridgeClient
     /** @var array<string, array{expires: int, enabled: bool}> */
     private static array $brandingCache = [];
 
+    private ?string $publicationLeaseToken = null;
+
     public function __construct(
         private readonly Client $http,
         private readonly Configuration $configuration,
@@ -52,7 +54,138 @@ class BridgeClient
             $query['snapshot'] = $snapshot;
         }
 
-        return $this->request('GET', '/discussion-bridge/v1/bridge-records.json?'.http_build_query($query, '', '&', PHP_QUERY_RFC3986));
+        return $this->request(
+            'GET',
+            '/discussion-bridge/v1/bridge-records.json?'.http_build_query($query, '', '&', PHP_QUERY_RFC3986),
+            null,
+            true,
+            1024 * 1024,
+        );
+    }
+
+    public function platformCatalogStatus(): array
+    {
+        return $this->request('GET', '/discussion-bridge/v1/platform-catalog.json', null, true, 1024 * 1024);
+    }
+
+    public function updatePlatformCatalog(array $catalog, ?string $expectedRevision = null): array
+    {
+        $payload = ['catalog' => $catalog];
+        if ($expectedRevision !== null) {
+            if (! preg_match('/\A[a-f0-9]{64}\z/', $expectedRevision)) {
+                throw new RuntimeException('DiscussionBridge expected catalog revision is invalid.');
+            }
+            $payload['expected_catalog_revision'] = $expectedRevision;
+        }
+        $json = json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+        if (strlen($json) > 262144) {
+            throw new RuntimeException('DiscussionBridge platform catalog is too large.');
+        }
+
+        return $this->request('PUT', '/discussion-bridge/v1/platform-catalog.json', $json, true, 1024 * 1024);
+    }
+
+    public function sourceTopic(int $topicId): array
+    {
+        if ($topicId < 1) {
+            throw new RuntimeException('DiscussionBridge source topic ID is invalid.');
+        }
+
+        return $this->request(
+            'GET',
+            '/discussion-bridge/v1/source-topics/'.$topicId.'.json',
+            null,
+            true,
+            384 * 1024,
+        );
+    }
+
+    public function sourceRevocation(string $resourceId): array
+    {
+        $this->assertResourceId($resourceId);
+
+        return $this->request('GET', '/discussion-bridge/v1/source-revocations/'.rawurlencode(strtolower($resourceId)).'.json');
+    }
+
+    public function claimPublicationWork(int $leaseSeconds = 300): array
+    {
+        $this->publicationLeaseToken = null;
+        if ($leaseSeconds < 300 || $leaseSeconds > 3600) {
+            throw new RuntimeException('DiscussionBridge publication lease duration is invalid.');
+        }
+        $json = json_encode(['lease_seconds' => $leaseSeconds], JSON_THROW_ON_ERROR);
+        $response = $this->request('POST', '/discussion-bridge/v1/publication-work/claim.json', $json);
+        $work = $response['publication_work'] ?? null;
+        if ($work === null) {
+            return $response;
+        }
+        if (! is_array($work)
+            || ! is_int($work['topic_id'] ?? null)
+            || $work['topic_id'] < 1
+            || ! in_array($work['action'] ?? null, ['publish', 'unpublish'], true)
+            || ! is_string($work['lease_token'] ?? null)
+            || ! preg_match('/\A[a-f0-9]{64}\z/', $work['lease_token'])) {
+            throw new RuntimeException('DiscussionBridge publication work claim is invalid.');
+        }
+        $this->publicationLeaseToken = $work['lease_token'];
+
+        return $response;
+    }
+
+    public function resolveSourceTopic(int $topicId, array $publication): array
+    {
+        if ($topicId < 1) {
+            throw new RuntimeException('DiscussionBridge source topic ID is invalid.');
+        }
+        $json = json_encode(['publication' => $publication], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+
+        return $this->request('POST', '/discussion-bridge/v1/source-topics/'.$topicId.'/resolve.json', $json);
+    }
+
+    public function acknowledgePublication(string $resourceId, array $acknowledgement): array
+    {
+        $this->assertResourceId($resourceId);
+        if ($this->publicationLeaseToken !== null) {
+            $acknowledgement['lease_token'] = $this->publicationLeaseToken;
+        }
+        $json = json_encode(['acknowledgement' => $acknowledgement], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+
+        return $this->request('PUT', '/discussion-bridge/v1/bridge-records/'.rawurlencode(strtolower($resourceId)).'/acknowledgement.json', $json);
+    }
+
+    public function failPublicationWork(string $errorCode, string $errorDetail = ''): array
+    {
+        if (! is_string($this->publicationLeaseToken)
+            || ! preg_match('/\A[a-f0-9]{64}\z/', $this->publicationLeaseToken)
+            || ! preg_match('/\A[a-z0-9_-]{1,64}\z/', $errorCode)
+            || strlen($errorDetail) > 1000) {
+            throw new RuntimeException('DiscussionBridge publication failure is invalid.');
+        }
+        $json = json_encode(['publication_work_failure' => [
+            'lease_token' => $this->publicationLeaseToken,
+            'error_code' => $errorCode,
+            'error_detail' => $errorDetail,
+        ]], JSON_THROW_ON_ERROR);
+
+        return $this->request('PUT', '/discussion-bridge/v1/publication-work/failure.json', $json);
+    }
+
+    public function clearPublicationLease(): void
+    {
+        $this->publicationLeaseToken = null;
+    }
+
+    public function publicationLeaseToken(): ?string
+    {
+        return $this->publicationLeaseToken;
+    }
+
+    public function resumePublicationLease(string $token): void
+    {
+        if (! preg_match('/\A[a-f0-9]{64}\z/', $token)) {
+            throw new RuntimeException('DiscussionBridge publication lease token is invalid.');
+        }
+        $this->publicationLeaseToken = $token;
     }
 
     public function publicTopic(int $topicId): array
@@ -131,7 +264,13 @@ class BridgeClient
         return $enabled;
     }
 
-    private function request(string $method, string $path, ?string $json = null, bool $authenticate = true): array
+    private function request(
+        string $method,
+        string $path,
+        ?string $json = null,
+        bool $authenticate = true,
+        ?int $maximumResponseBytes = null,
+    ): array
     {
         $headers = ['Accept' => 'application/json'];
         if ($authenticate) {
@@ -158,8 +297,11 @@ class BridgeClient
             throw new RuntimeException('DiscussionBridge transport failed.');
         }
 
-        $data = $this->decode($response);
         $status = $response->getStatusCode();
+        if ($status === 429) {
+            throw new BridgeRequestException(429, 'rate_limited');
+        }
+        $data = $this->decode($response, $maximumResponseBytes);
         if ($status < 200 || $status >= 300) {
             $reason = is_string($data['reason'] ?? null) ? substr($data['reason'], 0, 100) : 'request_failed';
             throw new BridgeRequestException($status, $reason);
@@ -168,14 +310,17 @@ class BridgeClient
         return $data;
     }
 
-    private function decode(ResponseInterface $response): array
+    private function decode(ResponseInterface $response, ?int $maximumResponseBytes = null): array
     {
         $contentType = strtolower($response->getHeaderLine('Content-Type'));
         if (! str_starts_with($contentType, 'application/json')) {
             throw new RuntimeException('DiscussionBridge response content type is invalid.');
         }
 
-        $maximum = (int) config('discussionbridge.maximum_response_bytes', 65536);
+        $maximum = $maximumResponseBytes ?? (int) config('discussionbridge.maximum_response_bytes', 65536);
+        if ($maximum < 1 || $maximum > 1024 * 1024) {
+            throw new RuntimeException('DiscussionBridge response bound is invalid.');
+        }
         $declared = $response->getHeaderLine('Content-Length');
         if ($declared !== '' && (! ctype_digit($declared) || (int) $declared > $maximum)) {
             throw new RuntimeException('DiscussionBridge response is too large.');
@@ -200,5 +345,12 @@ class BridgeClient
         }
 
         return $decoded;
+    }
+
+    private function assertResourceId(string $resourceId): void
+    {
+        if (! preg_match('/\A[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/i', $resourceId)) {
+            throw new RuntimeException('DiscussionBridge resource ID is invalid.');
+        }
     }
 }

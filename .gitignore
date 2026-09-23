@@ -1,4 +1,5 @@
 /vendor/
 /node_modules/
 /.phpunit.cache/
+/tests/__fixtures__/
 composer.lock

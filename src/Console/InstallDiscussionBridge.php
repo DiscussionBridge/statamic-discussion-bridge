@@ -17,6 +17,7 @@ class InstallDiscussionBridge extends Command
         {--secret-file= : Absolute protected secret-file path}
         {--lane= : Optional connection lane}
         {--collections=pages : Comma-separated Statamic collection handles}
+        {--native-author-id= : Statamic user ID used as the default native publication author}
         {--source-author-name= : Source author reported to DiscussionBridge}
         {--source-author-profile-url= : Optional same-site author profile URL}';
 
@@ -47,6 +48,10 @@ class InstallDiscussionBridge extends Command
                 throw new RuntimeException('Connection lane is invalid.');
             }
             $collections = $this->collections($this->value('collections', 'Published collections', 'pages'));
+            $nativeAuthorId = $this->value('native-author-id', 'Native publication service author ID');
+            if (strlen($nativeAuthorId) > 255 || preg_match('/[\x00-\x1f\x7f]/', $nativeAuthorId)) {
+                throw new RuntimeException('Native publication service author ID is invalid.');
+            }
             $authorName = trim(strip_tags($this->value('source-author-name', 'Source author name', (string) config('app.name', 'Statamic'))));
             if ($authorName === '' || strlen($authorName) > 200) {
                 throw new RuntimeException('Source author name is invalid.');
@@ -67,6 +72,7 @@ class InstallDiscussionBridge extends Command
                 'DISCUSSIONBRIDGE_SECRET_FILE' => $secretFile,
                 'DISCUSSIONBRIDGE_LANE' => $lane,
                 'DISCUSSIONBRIDGE_COLLECTIONS' => implode(',', $collections),
+                'DISCUSSIONBRIDGE_NATIVE_AUTHOR_ID' => $nativeAuthorId,
                 'DISCUSSIONBRIDGE_SOURCE_AUTHOR_NAME' => $authorName,
                 'DISCUSSIONBRIDGE_SOURCE_AUTHOR_PROFILE_URL' => $authorProfile,
             ];
@@ -85,12 +91,16 @@ class InstallDiscussionBridge extends Command
                 'discussionbridge.secret_file' => $secretFile,
                 'discussionbridge.lane' => $lane,
                 'discussionbridge.collections' => $collections,
+                'discussionbridge.native_author_id' => $nativeAuthorId,
                 'discussionbridge.source_author_name' => $authorName,
                 'discussionbridge.source_author_profile_url' => $authorProfile,
                 'discussionbridge.adapter_id' => 'statamic-discussion-bridge',
                 'discussionbridge.adapter_version' => Version::VALUE,
             ]);
 
+            if ($this->call('discussionbridge:refresh-platform-catalog') !== self::SUCCESS) {
+                throw new RuntimeException('The Statamic platform catalog could not be registered with The Bridge.');
+            }
             $response = $client->records();
             if (! is_array($response['bridge_records'] ?? null) || ! is_array($response['pagination'] ?? null)) {
                 throw new RuntimeException('The Bridge returned an invalid verification response.');

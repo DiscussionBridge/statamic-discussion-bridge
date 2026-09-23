@@ -93,6 +93,27 @@ class Configuration
         return in_array($handle, config('discussionbridge.collections', []), true);
     }
 
+    public function nativeAuthorId(): string
+    {
+        $id = config('discussionbridge.native_author_id');
+        if (! is_string($id) || $id === '' || strlen($id) > 255 || preg_match('/[\x00-\x1f\x7f]/', $id)) {
+            throw new RuntimeException('DiscussionBridge Statamic native author ID is invalid.');
+        }
+
+        return $id;
+    }
+
+    public function ssgTransactionFile(): string
+    {
+        $path = config('discussionbridge.ssg_transaction_file');
+        $absolute = is_string($path) && (str_starts_with($path, '/') || preg_match('/\A[A-Za-z]:[\\\\\/]/', $path) === 1);
+        if (! $absolute || str_contains($path, "\0") || strlen($path) > 4096) {
+            throw new RuntimeException('DiscussionBridge SSG transaction file path is invalid.');
+        }
+
+        return $path;
+    }
+
     /** @return array{source_authors: list<array{id: string, name: string, profile_url?: string}>, primary_source_author_id: string} */
     public function sourceAuthor(): array
     {
