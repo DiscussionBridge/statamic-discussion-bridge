@@ -63,7 +63,7 @@ class InstallDiscussionBridgeTest extends TestCase
             '--source-author-profile-url' => 'https://statamic.example/authors/editor',
         ])->expectsQuestion('Content Connection secret', str_repeat('x', 40))
             ->expectsOutputToContain('DiscussionBridge installation verified.')
-            ->expectsOutputToContain('Adapter version: 0.2.0-alpha.43')
+            ->expectsOutputToContain('Adapter version: 0.2.0-alpha.44')
             ->assertSuccessful();
 
         $secretPath = storage_path('app/discussionbridge/connection-secret');

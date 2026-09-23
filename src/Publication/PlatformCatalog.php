@@ -94,7 +94,7 @@ class PlatformCatalog
             'service_author_id' => 'user:'.$serviceAuthor,
             'presentation_modes' => ['simple', 'full', 'fullInteractive', 'native'],
             'capabilities' => ['updates' => true, 'unpublish' => true, 'drafts' => true],
-            'limits' => ['content_bytes' => 49152, 'title_bytes' => 1000, 'slug_bytes' => 180],
+            'limits' => ['content_bytes' => NativePublication::MAX_FORUM_PUBLICATION_HTML_BYTES, 'title_bytes' => 1000, 'slug_bytes' => 180],
             'inventory' => [
                 'authors_complete' => true,
                 'terms_complete' => true,

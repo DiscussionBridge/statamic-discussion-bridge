@@ -91,7 +91,13 @@ class BridgeClient
             throw new RuntimeException('DiscussionBridge source topic ID is invalid.');
         }
 
-        return $this->request('GET', '/discussion-bridge/v1/source-topics/'.$topicId.'.json');
+        return $this->request(
+            'GET',
+            '/discussion-bridge/v1/source-topics/'.$topicId.'.json',
+            null,
+            true,
+            384 * 1024,
+        );
     }
 
     public function sourceRevocation(string $resourceId): array

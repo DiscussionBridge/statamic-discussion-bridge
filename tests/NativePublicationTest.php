@@ -103,7 +103,41 @@ class NativePublicationTest extends TestCase
     public function test_it_builds_one_native_plan_from_an_exact_receiver_source_topic(): void
     {
         $validator = new NativePublication(app(Configuration::class), app(PlatformCatalog::class));
-        $publication = $validator->fromSourceTopic([
+        $publication = $validator->fromSourceTopic($this->sourceTopic());
+
+        $this->assertSame('/forum-topic-53', $publication['path']);
+        $this->assertSame('https://statamic.example/forum-topic-53/', $publication['canonical_url']);
+        $this->assertSame('2026-09-19T15:00:00.000000Z', $publication['source_created_at']);
+        $this->assertSame('2026-09-20T16:00:00.000000Z', $publication['source_updated_at']);
+        $this->assertSame('pages', $publication['collection']);
+        $this->assertSame('statamic-service-user', $publication['destination_author_id']);
+        $this->assertSame(['sections' => ['pledge']], $publication['destination_taxonomies']);
+    }
+
+    public function test_it_accepts_the_exact_forum_publication_boundary_and_rejects_one_more_byte(): void
+    {
+        $validator = new NativePublication(app(Configuration::class), app(PlatformCatalog::class));
+        $topic = $this->sourceTopic();
+        $topic['content_html'] = str_repeat('x', NativePublication::MAX_FORUM_PUBLICATION_HTML_BYTES);
+        $this->assertSame(
+            NativePublication::MAX_FORUM_PUBLICATION_HTML_BYTES,
+            strlen($validator->fromSourceTopic($topic)['content_html']),
+        );
+
+        $topic['content_html'] = str_repeat('é', NativePublication::MAX_FORUM_PUBLICATION_HTML_BYTES / 2);
+        $this->assertSame(
+            NativePublication::MAX_FORUM_PUBLICATION_HTML_BYTES,
+            strlen($validator->fromSourceTopic($topic)['content_html']),
+        );
+
+        $topic['content_html'] .= 'x';
+        $this->expectException(RuntimeException::class);
+        $validator->fromSourceTopic($topic);
+    }
+
+    private function sourceTopic(): array
+    {
+        return [
             'topic_id' => 53,
             'topic_url' => 'https://forum.example/t/forum-scale-canary/53',
             'title' => 'Forum Scale Canary',
@@ -127,15 +161,7 @@ class NativePublicationTest extends TestCase
                     'destination_term_id' => 'sections::pledge',
                 ]],
             ],
-        ]);
-
-        $this->assertSame('/forum-topic-53', $publication['path']);
-        $this->assertSame('https://statamic.example/forum-topic-53/', $publication['canonical_url']);
-        $this->assertSame('2026-09-19T15:00:00.000000Z', $publication['source_created_at']);
-        $this->assertSame('2026-09-20T16:00:00.000000Z', $publication['source_updated_at']);
-        $this->assertSame('pages', $publication['collection']);
-        $this->assertSame('statamic-service-user', $publication['destination_author_id']);
-        $this->assertSame(['sections' => ['pledge']], $publication['destination_taxonomies']);
+        ];
     }
 
     private function record(): array

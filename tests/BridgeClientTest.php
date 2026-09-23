@@ -39,7 +39,7 @@ class BridgeClientTest extends TestCase
 
         $this->assertSame('created', $response['outcome']);
         $this->assertSame('statamic-discussion-bridge', $history[0]['request']->getHeaderLine('X-DiscussionBridge-Adapter'));
-        $this->assertSame('0.2.0-alpha.43', $history[0]['request']->getHeaderLine('X-DiscussionBridge-Adapter-Version'));
+        $this->assertSame('0.2.0-alpha.44', $history[0]['request']->getHeaderLine('X-DiscussionBridge-Adapter-Version'));
     }
 
     public function test_record_rejects_oversized_response(): void
@@ -137,6 +137,24 @@ class BridgeClientTest extends TestCase
 
         $this->expectException(RuntimeException::class);
         $client->records();
+    }
+
+    public function test_source_topic_accepts_a_forum_publication_larger_than_the_default_response_limit(): void
+    {
+        $payload = [
+            'topic_id' => 42,
+            'content_html' => str_repeat('x', 256 * 1024),
+        ];
+        $mock = new MockHandler([new Response(
+            200,
+            ['Content-Type' => 'application/json'],
+            json_encode($payload, JSON_THROW_ON_ERROR),
+        )]);
+        $client = new BridgeClient(new Client(['handler' => HandlerStack::create($mock)]), app(Configuration::class));
+
+        $response = $client->sourceTopic(42);
+
+        $this->assertSame(256 * 1024, strlen($response['content_html']));
     }
 
     public function test_publication_claim_lease_is_carried_on_the_exact_acknowledgement(): void

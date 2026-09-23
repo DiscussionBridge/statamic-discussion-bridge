@@ -9,6 +9,8 @@ use Statamic\Facades\Term;
 
 class NativePublication
 {
+    public const MAX_FORUM_PUBLICATION_HTML_BYTES = 256 * 1024;
+
     public function __construct(
         private readonly Configuration $configuration,
         private readonly PlatformCatalog $catalog,
@@ -46,7 +48,7 @@ class NativePublication
             || ! preg_match('/\A[a-f0-9]{64}\z/', $publicationRevision)
             || ! is_string($record['content_html'] ?? null)
             || trim($record['content_html']) === ''
-            || strlen($record['content_html']) > 65536) {
+            || strlen($record['content_html']) > self::MAX_FORUM_PUBLICATION_HTML_BYTES) {
             throw new RuntimeException('DiscussionBridge native publication record is invalid.');
         }
 
@@ -131,7 +133,7 @@ class NativePublication
             || ! preg_match('/\A[a-f0-9]{64}\z/', $topic['publication_revision'])
             || ! is_string($topic['content_html'] ?? null)
             || trim($topic['content_html']) === ''
-            || strlen($topic['content_html']) > 65536) {
+            || strlen($topic['content_html']) > self::MAX_FORUM_PUBLICATION_HTML_BYTES) {
             throw new RuntimeException('DiscussionBridge Statamic source topic is invalid.');
         }
         $title = $topic['title'] ?? null;
