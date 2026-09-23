@@ -5,7 +5,7 @@ existing Statamic 6 application:
 
 ```sh
 composer config repositories.discussionbridge vcs https://github.com/DiscussionBridge/statamic-discussion-bridge.git
-composer require codeworkslabs/statamic-discussion-bridge:0.2.0-alpha.41
+composer require codeworkslabs/statamic-discussion-bridge:0.2.0-alpha.42
 php please discussionbridge:install
 ```
 
@@ -68,7 +68,7 @@ rollback package.
   destination or resource collisions fail closed. Updated entries explicitly
   invalidate Statamic's affected public-page cache and the addon's bounded
   record cache before synchronization reports success.
-- `discussionbridge:sync-publication-work --limit=20` is the steady-state
+- `discussionbridge:sync-publication-work --limit=8` is the steady-state
   incremental worker for Statamic Flat and DB after the initial synchronization.
   It claims receiver-owned work with an exact five-minute lease, processes only
   the identified topic or withdrawal, acknowledges against that lease, and
@@ -188,7 +188,7 @@ The release build order is strict:
 
 ```shell
 php please discussionbridge:refresh-platform-catalog
-php please discussionbridge:ssg-prepare-publication-work --limit=20
+php please discussionbridge:ssg-prepare-publication-work --limit=8
 php please discussionbridge:ssg-prepare
 php please ssg:generate
 # deploy the exact generated estate

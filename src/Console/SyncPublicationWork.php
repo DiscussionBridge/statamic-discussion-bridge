@@ -7,17 +7,17 @@ use Illuminate\Console\Command;
 
 class SyncPublicationWork extends Command
 {
-    protected $signature = 'discussionbridge:sync-publication-work {--limit=20 : Maximum receiver-owned work items to process}';
+    protected $signature = 'discussionbridge:sync-publication-work {--limit=8 : Maximum receiver-owned work items to process}';
 
     protected $description = 'Process bounded incremental From Discourse publication work';
 
     public function handle(PublicationSynchronizer $synchronizer): int
     {
         $limit = filter_var($this->option('limit'), FILTER_VALIDATE_INT, [
-            'options' => ['min_range' => 1, 'max_range' => 20],
+            'options' => ['min_range' => 1, 'max_range' => 8],
         ]);
         if (! is_int($limit)) {
-            $this->error('Limit must be 1 through 20.');
+            $this->error('Limit must be 1 through 8.');
 
             return self::INVALID;
         }

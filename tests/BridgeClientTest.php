@@ -4,6 +4,7 @@ namespace CodeWorksLabs\DiscussionBridgeStatamic\Tests;
 
 use CodeWorksLabs\DiscussionBridgeStatamic\Support\Configuration;
 use CodeWorksLabs\DiscussionBridgeStatamic\Transport\BridgeClient;
+use CodeWorksLabs\DiscussionBridgeStatamic\Transport\BridgeRequestException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
@@ -38,7 +39,7 @@ class BridgeClientTest extends TestCase
 
         $this->assertSame('created', $response['outcome']);
         $this->assertSame('statamic-discussion-bridge', $history[0]['request']->getHeaderLine('X-DiscussionBridge-Adapter'));
-        $this->assertSame('0.2.0-alpha.41', $history[0]['request']->getHeaderLine('X-DiscussionBridge-Adapter-Version'));
+        $this->assertSame('0.2.0-alpha.42', $history[0]['request']->getHeaderLine('X-DiscussionBridge-Adapter-Version'));
     }
 
     public function test_record_rejects_oversized_response(): void
@@ -133,6 +134,21 @@ class BridgeClientTest extends TestCase
 
         $this->assertSame(['lease_seconds' => 300], json_decode((string) $history[0]['request']->getBody(), true));
         $this->assertSame($leaseToken, json_decode((string) $history[1]['request']->getBody(), true)['acknowledgement']['lease_token']);
+    }
+
+    public function test_plain_text_rate_limit_is_reported_before_json_validation(): void
+    {
+        $mock = new MockHandler([new Response(429, ['Content-Type' => 'text/plain'], 'rate limited')]);
+        $client = new BridgeClient(new Client(['handler' => HandlerStack::create($mock)]), app(Configuration::class));
+
+        try {
+            $client->claimPublicationWork(300);
+            $this->fail('Expected the rate limit to be reported.');
+        } catch (BridgeRequestException $error) {
+            $this->assertSame(429, $error->status);
+            $this->assertSame('rate_limited', $error->reason);
+            $this->assertNull($client->publicationLeaseToken());
+        }
     }
 
     public function test_publication_lease_can_be_resumed_only_with_an_exact_token(): void

@@ -8,17 +8,17 @@ use Throwable;
 
 class PrepareStaticPublicationWork extends Command
 {
-    protected $signature = 'discussionbridge:ssg-prepare-publication-work {--limit=20 : Maximum receiver-owned work items to prepare}';
+    protected $signature = 'discussionbridge:ssg-prepare-publication-work {--limit=8 : Maximum receiver-owned work items to prepare}';
 
     protected $description = 'Prepare bounded From Discourse work without acknowledging it before static deployment';
 
     public function handle(StaticPublicationTransaction $transaction): int
     {
         $limit = filter_var($this->option('limit'), FILTER_VALIDATE_INT, [
-            'options' => ['min_range' => 1, 'max_range' => 20],
+            'options' => ['min_range' => 1, 'max_range' => 8],
         ]);
         if (! is_int($limit)) {
-            $this->error('Limit must be 1 through 20.');
+            $this->error('Limit must be 1 through 8.');
 
             return self::INVALID;
         }

@@ -285,8 +285,11 @@ class BridgeClient
             throw new RuntimeException('DiscussionBridge transport failed.');
         }
 
-        $data = $this->decode($response, $maximumResponseBytes);
         $status = $response->getStatusCode();
+        if ($status === 429) {
+            throw new BridgeRequestException(429, 'rate_limited');
+        }
+        $data = $this->decode($response, $maximumResponseBytes);
         if ($status < 200 || $status >= 300) {
             $reason = is_string($data['reason'] ?? null) ? substr($data['reason'], 0, 100) : 'request_failed';
             throw new BridgeRequestException($status, $reason);

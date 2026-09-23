@@ -5,6 +5,7 @@ namespace CodeWorksLabs\DiscussionBridgeStatamic\Tests;
 use CodeWorksLabs\DiscussionBridgeStatamic\Publication\PublicationSynchronizer;
 use CodeWorksLabs\DiscussionBridgeStatamic\Publication\NativePublication;
 use CodeWorksLabs\DiscussionBridgeStatamic\Transport\BridgeClient;
+use CodeWorksLabs\DiscussionBridgeStatamic\Transport\BridgeRequestException;
 use Illuminate\Support\Facades\DB;
 use Mockery;
 use RuntimeException;
@@ -169,6 +170,22 @@ class PublicationSynchronizerTest extends TestCase
 
         $this->assertSame(1, $summary['failed']);
         $this->assertStringContainsString('source revision changed', $summary['errors'][0]);
+    }
+
+    public function test_incremental_queue_stops_cleanly_on_an_unleased_rate_limit(): void
+    {
+        $client = Mockery::mock(BridgeClient::class);
+        $client->shouldReceive('claimPublicationWork')->once()->with(300)->andThrow(
+            new BridgeRequestException(429, 'rate_limited'),
+        );
+        $client->shouldReceive('publicationLeaseToken')->once()->andReturnNull();
+        $client->shouldNotReceive('failPublicationWork');
+        $this->app->instance(BridgeClient::class, $client);
+
+        $summary = app(PublicationSynchronizer::class)->synchronizeQueued(8, 300);
+
+        $this->assertSame(0, $summary['failed']);
+        $this->assertSame([], $summary['errors']);
     }
 
     public function test_incremental_queue_restores_the_exact_prior_entry_when_acknowledgement_fails(): void

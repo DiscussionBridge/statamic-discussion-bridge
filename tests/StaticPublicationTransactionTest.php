@@ -6,6 +6,7 @@ use CodeWorksLabs\DiscussionBridgeStatamic\Publication\PublicationSynchronizer;
 use CodeWorksLabs\DiscussionBridgeStatamic\Publication\StaticPublicationTransaction;
 use CodeWorksLabs\DiscussionBridgeStatamic\Support\Configuration;
 use CodeWorksLabs\DiscussionBridgeStatamic\Transport\BridgeClient;
+use CodeWorksLabs\DiscussionBridgeStatamic\Transport\BridgeRequestException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
@@ -145,6 +146,22 @@ class StaticPublicationTransactionTest extends TestCase
             $this->assertSame('receiver unavailable', $error->getMessage());
         }
 
+        $this->assertFileDoesNotExist(config('discussionbridge.ssg_transaction_file'));
+    }
+
+    public function test_unleased_rate_limit_finishes_as_an_empty_transaction(): void
+    {
+        $client = Mockery::mock(BridgeClient::class);
+        $client->shouldReceive('claimPublicationWork')->once()->with(3600)->andThrow(
+            new BridgeRequestException(429, 'rate_limited'),
+        );
+        $client->shouldReceive('publicationLeaseToken')->once()->andReturnNull();
+        $synchronizer = Mockery::mock(PublicationSynchronizer::class);
+        $transaction = $this->transaction($synchronizer, $client, []);
+
+        $result = $transaction->prepare(8);
+
+        $this->assertSame(['prepared' => 0, 'transaction_id' => null], $result);
         $this->assertFileDoesNotExist(config('discussionbridge.ssg_transaction_file'));
     }
 

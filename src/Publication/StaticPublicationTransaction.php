@@ -4,6 +4,7 @@ namespace CodeWorksLabs\DiscussionBridgeStatamic\Publication;
 
 use CodeWorksLabs\DiscussionBridgeStatamic\Support\Configuration;
 use CodeWorksLabs\DiscussionBridgeStatamic\Transport\BridgeClient;
+use CodeWorksLabs\DiscussionBridgeStatamic\Transport\BridgeRequestException;
 use GuzzleHttp\Client;
 use RuntimeException;
 use Throwable;
@@ -23,9 +24,9 @@ class StaticPublicationTransaction
     }
 
     /** @return array{prepared:int,transaction_id:?string} */
-    public function prepare(int $maximum = 20): array
+    public function prepare(int $maximum = 8): array
     {
-        if ($maximum < 1 || $maximum > 20) {
+        if ($maximum < 1 || $maximum > 8) {
             throw new RuntimeException('DiscussionBridge SSG publication-work limit is invalid.');
         }
 
@@ -45,7 +46,14 @@ class StaticPublicationTransaction
 
             try {
                 for ($index = 0; $index < $maximum; $index++) {
-                    $response = $this->client->claimPublicationWork(3600);
+                    try {
+                        $response = $this->client->claimPublicationWork(3600);
+                    } catch (BridgeRequestException $error) {
+                        if ($error->status === 429 && $this->client->publicationLeaseToken() === null) {
+                            break;
+                        }
+                        throw $error;
+                    }
                     $work = $response['publication_work'] ?? null;
                     if ($work === null) {
                         break;
@@ -235,7 +243,7 @@ class StaticPublicationTransaction
             || ! preg_match('/\A[a-f0-9]{32}\z/', $journal['transaction_id'])
             || ! is_string($journal['phase'] ?? null)
             || ! is_array($journal['items'] ?? null)
-            || count($journal['items']) > 20) {
+            || count($journal['items']) > 8) {
             throw new RuntimeException('DiscussionBridge SSG publication journal is invalid.');
         }
 

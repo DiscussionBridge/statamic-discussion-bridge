@@ -5,6 +5,7 @@ namespace CodeWorksLabs\DiscussionBridgeStatamic\Publication;
 use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\HtmlSanitizer;
 use CodeWorksLabs\DiscussionBridgeStatamic\Support\Configuration;
 use CodeWorksLabs\DiscussionBridgeStatamic\Transport\BridgeClient;
+use CodeWorksLabs\DiscussionBridgeStatamic\Transport\BridgeRequestException;
 use CodeWorksLabs\DiscussionBridgeStatamic\Version;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -81,14 +82,21 @@ class PublicationSynchronizer
     }
 
     /** @return array{created:int,updated:int,unchanged:int,held:int,unpublished:int,failed:int,errors:list<string>} */
-    public function synchronizeQueued(int $maximum = 20, int $leaseSeconds = 300): array
+    public function synchronizeQueued(int $maximum = 8, int $leaseSeconds = 300): array
     {
-        if ($maximum < 1 || $maximum > 20 || $leaseSeconds < 300 || $leaseSeconds > 3600) {
+        if ($maximum < 1 || $maximum > 8 || $leaseSeconds < 300 || $leaseSeconds > 3600) {
             throw new RuntimeException('DiscussionBridge publication work bounds are invalid.');
         }
         $summary = ['created' => 0, 'updated' => 0, 'unchanged' => 0, 'held' => 0, 'unpublished' => 0, 'failed' => 0, 'errors' => []];
         for ($index = 0; $index < $maximum; $index++) {
-            $response = $this->client->claimPublicationWork($leaseSeconds);
+            try {
+                $response = $this->client->claimPublicationWork($leaseSeconds);
+            } catch (BridgeRequestException $error) {
+                if ($error->status === 429 && $this->client->publicationLeaseToken() === null) {
+                    break;
+                }
+                throw $error;
+            }
             $work = $response['publication_work'] ?? null;
             if ($work === null) {
                 break;
