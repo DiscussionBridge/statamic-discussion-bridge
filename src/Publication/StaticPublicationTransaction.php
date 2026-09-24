@@ -101,6 +101,21 @@ class StaticPublicationTransaction
         });
     }
 
+    public function preparedForStaticBuild(): bool
+    {
+        return $this->withLock(function (): bool {
+            if (! is_file($this->path())) {
+                return false;
+            }
+            $journal = $this->readJournal();
+            if (($journal['phase'] ?? null) !== 'prepared' || $journal['items'] === []) {
+                throw new RuntimeException('DiscussionBridge SSG publication transaction is not ready for static generation.');
+            }
+
+            return true;
+        });
+    }
+
     /** @return array{acknowledged:int,transaction_id:string} */
     public function finalize(): array
     {

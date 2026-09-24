@@ -3,15 +3,17 @@
 namespace CodeWorksLabs\DiscussionBridgeStatamic\Console;
 
 use CodeWorksLabs\DiscussionBridgeStatamic\Delivery\DeliveryWorker;
+use CodeWorksLabs\DiscussionBridgeStatamic\Publication\StaticPublicationTransaction;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class PrepareStaticBuild extends Command
 {
     protected $signature = 'discussionbridge:ssg-prepare {--limit=100 : Maximum deliveries to process per pass} {--passes=10 : Maximum delivery passes}';
     protected $description = 'Reconcile and deliver DiscussionBridge records before generating a static Statamic site';
 
-    public function handle(DeliveryWorker $worker): int
+    public function handle(DeliveryWorker $worker, StaticPublicationTransaction $transaction): int
     {
         $limit = $this->boundedInteger('limit', 1, 100);
         $passes = $this->boundedInteger('passes', 1, 25);
@@ -62,6 +64,22 @@ class PrepareStaticBuild extends Command
             $this->error('Unresolved DiscussionBridge delivery state blocks static generation.');
 
             return self::FAILURE;
+        }
+
+        try {
+            $preparedTransaction = $transaction->preparedForStaticBuild();
+        } catch (Throwable $error) {
+            $this->error(substr($error->getMessage(), 0, 300));
+
+            return self::FAILURE;
+        }
+
+        if ($preparedTransaction) {
+            $this->line(json_encode([
+                'publication_sync' => 'bounded_transaction',
+            ], JSON_THROW_ON_ERROR));
+
+            return self::SUCCESS;
         }
 
         if ($this->call('discussionbridge:sync-publications') !== self::SUCCESS) {

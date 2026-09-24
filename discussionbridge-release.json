@@ -1,11 +1,11 @@
 {
   "family": {
     "name": "DiscussionBridge",
-    "version": "0.2.0-alpha.45"
+    "version": "0.2.0-alpha.46"
   },
   "component": {
     "name": "DiscussionBridge for Statamic",
-    "version": "0.2.0-alpha.45"
+    "version": "0.2.0-alpha.46"
   },
   "bridgeCompatibility": "0.2",
   "repository": "https://github.com/DiscussionBridge/statamic-discussion-bridge"
