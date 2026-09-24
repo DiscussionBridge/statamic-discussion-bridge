@@ -5,7 +5,7 @@ existing Statamic 6 application:
 
 ```sh
 composer config repositories.discussionbridge vcs https://github.com/DiscussionBridge/statamic-discussion-bridge.git
-composer require codeworkslabs/statamic-discussion-bridge:0.2.0-alpha.45
+composer require codeworkslabs/statamic-discussion-bridge:0.2.0-alpha.46
 php please discussionbridge:install
 ```
 
@@ -80,6 +80,10 @@ rollback package.
   `discussionbridge:ssg-prepare-publication-work`, then the existing
   `discussionbridge:ssg-prepare` delivery gate and `ssg:generate`; deploy the
   generated estate; and run `discussionbridge:ssg-finalize-publication-work`.
+  While the protected transaction is prepared, the static-build gate drains
+  To Discourse delivery work but deliberately does not repeat the complete
+  From Discourse publication feed. The journaled, receiver-owned items are the
+  only native publication mutations admitted to that build.
   Finalize performs a bounded public HTTPS check for the exact resource and
   publication-revision markers before acknowledging the receiver lease.
   `discussionbridge:ssg-abort-publication-work` restores every unacknowledged
@@ -205,6 +209,12 @@ build or abandoned candidate must be returned with
 prior native state and reports each item to the shared operator attention queue.
 An interrupted finalize is safely resumable from its journal. Never delete or
 edit that journal by hand, and never run prepare while one exists.
+
+When that journal is in the exact `prepared` phase,
+`discussionbridge:ssg-prepare` recognizes the bounded transaction and skips
+the legacy complete publication-feed sweep. A journal in any other phase fails
+the build closed. Without a journal, the command retains its ordinary full-sync
+behavior for standalone and legacy static builds.
 
 Regenerate Statamic-authored pages through the native Statamic SSG workflow.
 The Control Panel synchronization utility remains appropriate for Flat and DB;
