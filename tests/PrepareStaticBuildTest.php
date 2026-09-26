@@ -63,6 +63,17 @@ class PrepareStaticBuildTest extends TestCase
             ->assertSuccessful();
     }
 
+    public function test_bounded_publication_work_mode_accepts_an_empty_queue_without_full_feed_sweep(): void
+    {
+        $client = Mockery::mock(BridgeClient::class);
+        $client->shouldNotReceive('records');
+        $this->app->instance(BridgeClient::class, $client);
+
+        $this->artisan('discussionbridge:ssg-prepare', ['--bounded-publication-work' => true])
+            ->expectsOutputToContain('"publication_sync":"bounded_queue_empty"')
+            ->assertSuccessful();
+    }
+
     public function test_static_build_gate_fails_closed_for_incomplete_transaction(): void
     {
         $this->writeTransaction('finalizing', [[

@@ -10,7 +10,10 @@ use Throwable;
 
 class PrepareStaticBuild extends Command
 {
-    protected $signature = 'discussionbridge:ssg-prepare {--limit=100 : Maximum deliveries to process per pass} {--passes=10 : Maximum delivery passes}';
+    protected $signature = 'discussionbridge:ssg-prepare
+        {--limit=100 : Maximum deliveries to process per pass}
+        {--passes=10 : Maximum delivery passes}
+        {--bounded-publication-work : Treat an absent prepared transaction as an empty bounded publication queue}';
     protected $description = 'Reconcile and deliver DiscussionBridge records before generating a static Statamic site';
 
     public function handle(DeliveryWorker $worker, StaticPublicationTransaction $transaction): int
@@ -77,6 +80,14 @@ class PrepareStaticBuild extends Command
         if ($preparedTransaction) {
             $this->line(json_encode([
                 'publication_sync' => 'bounded_transaction',
+            ], JSON_THROW_ON_ERROR));
+
+            return self::SUCCESS;
+        }
+
+        if ((bool) $this->option('bounded-publication-work')) {
+            $this->line(json_encode([
+                'publication_sync' => 'bounded_queue_empty',
             ], JSON_THROW_ON_ERROR));
 
             return self::SUCCESS;
