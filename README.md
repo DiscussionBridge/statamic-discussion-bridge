@@ -78,8 +78,15 @@ rollback package.
   the same entry without changing that publication date.
 - Statamic SSG uses a protected two-phase lifecycle. Run
   `discussionbridge:ssg-prepare-publication-work`, then the existing
-  `discussionbridge:ssg-prepare` delivery gate and `ssg:generate`; deploy the
+  `discussionbridge:ssg-prepare --bounded-publication-work` delivery gate and
+  `ssg:generate`; deploy the
   generated estate; and run `discussionbridge:ssg-finalize-publication-work`.
+  The bounded option is for the scheduled two-phase sequence only, after the
+  publication-work prepare command has succeeded. When that prepare finds no
+  receiver-owned work, the build gate reports `bounded_queue_empty` without
+  repeating the complete Bridge Record census. Omit the option when an initial
+  or operator-requested full
+  reconciliation is required.
   While the protected transaction is prepared, the static-build gate drains
   To Discourse delivery work but deliberately does not repeat the complete
   From Discourse publication feed. The journaled, receiver-owned items are the
