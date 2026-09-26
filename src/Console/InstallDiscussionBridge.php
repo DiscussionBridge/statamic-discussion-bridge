@@ -95,7 +95,7 @@ class InstallDiscussionBridge extends Command
                 'discussionbridge.source_author_name' => $authorName,
                 'discussionbridge.source_author_profile_url' => $authorProfile,
                 'discussionbridge.adapter_id' => 'statamic-discussion-bridge',
-                'discussionbridge.adapter_version' => Version::VALUE,
+                'discussionbridge.adapter_version' => Version::PROTOCOL,
             ]);
 
             if ($this->call('discussionbridge:refresh-platform-catalog') !== self::SUCCESS) {
