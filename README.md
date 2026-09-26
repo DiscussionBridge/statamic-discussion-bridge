@@ -87,6 +87,10 @@ rollback package.
   repeating the complete Bridge Record census. Omit the option when an initial
   or operator-requested full
   reconciliation is required.
+  Package-only maintenance releases retain the latest compatible receiver
+  protocol identity until the wire contract or native publication semantics
+  change. This lets an operator install a scheduler or presentation correction
+  without rematerializing every already-current publication.
   While the protected transaction is prepared, the static-build gate drains
   To Discourse delivery work but deliberately does not repeat the complete
   From Discourse publication feed. The journaled, receiver-owned items are the

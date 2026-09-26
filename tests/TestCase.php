@@ -32,7 +32,7 @@ abstract class TestCase extends AddonTestCase
             'source_author_name' => 'Statamic Author',
             'source_author_profile_url' => 'https://statamic.example/authors/statamic-author',
             'adapter_id' => 'statamic-discussion-bridge',
-            'adapter_version' => Version::VALUE,
+            'adapter_version' => Version::PROTOCOL,
             'connect_timeout_seconds' => 2,
             'response_timeout_seconds' => 5,
             'maximum_response_bytes' => 65536,

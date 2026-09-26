@@ -13,7 +13,7 @@ return [
     'source_author_name' => env('DISCUSSIONBRIDGE_SOURCE_AUTHOR_NAME', 'Statamic'),
     'source_author_profile_url' => env('DISCUSSIONBRIDGE_SOURCE_AUTHOR_PROFILE_URL'),
     'adapter_id' => 'statamic-discussion-bridge',
-    'adapter_version' => \CodeWorksLabs\DiscussionBridgeStatamic\Version::VALUE,
+    'adapter_version' => \CodeWorksLabs\DiscussionBridgeStatamic\Version::PROTOCOL,
     'connect_timeout_seconds' => 2,
     'response_timeout_seconds' => 5,
     'maximum_response_bytes' => 65536,
