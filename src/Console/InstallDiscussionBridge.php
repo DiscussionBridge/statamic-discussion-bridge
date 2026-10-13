@@ -4,6 +4,8 @@ namespace CodeWorksLabs\DiscussionBridgeStatamic\Console;
 
 use CodeWorksLabs\DiscussionBridgeStatamic\Transport\BridgeClient;
 use CodeWorksLabs\DiscussionBridgeStatamic\Version;
+use CodeWorksLabs\DiscussionBridgeStatamic\Support\PresentationAssets;
+use CodeWorksLabs\DiscussionBridgeStatamic\Support\TemplateIntegration;
 use Illuminate\Console\Command;
 use RuntimeException;
 use Throwable;
@@ -18,11 +20,13 @@ class InstallDiscussionBridge extends Command
         {--lane= : Optional connection lane}
         {--collections=pages : Comma-separated Statamic collection handles}
         {--source-author-name= : Source author reported to DiscussionBridge}
-        {--source-author-profile-url= : Optional same-site author profile URL}';
+        {--source-author-profile-url= : Optional same-site author profile URL}
+        {--rich-content : Enable and publish the optional bundled Mermaid renderer}
+        {--templates : Publish additive entry template fragments without overwriting existing files}';
 
     protected $description = 'Configure, migrate, and verify DiscussionBridge for this Statamic installation';
 
-    public function handle(BridgeClient $client): int
+    public function handle(BridgeClient $client, TemplateIntegration $integration): int
     {
         try {
             $forumUrl = $this->origin($this->value('forum-url', 'DiscussionBridge forum URL'));
@@ -70,12 +74,28 @@ class InstallDiscussionBridge extends Command
                 'DISCUSSIONBRIDGE_SOURCE_AUTHOR_NAME' => $authorName,
                 'DISCUSSIONBRIDGE_SOURCE_AUTHOR_PROFILE_URL' => $authorProfile,
             ];
+            if ($this->option('rich-content')) {
+                $values['DISCUSSIONBRIDGE_RICH_CONTENT'] = 'true';
+            }
             $backup = $this->updateEnvironment(base_path('.env'), $values);
 
             if ($this->call('config:clear') !== self::SUCCESS
                 || $this->call('migrate', ['--force' => true]) !== self::SUCCESS
                 || $this->call('vendor:publish', ['--tag' => 'statamic-discussion-bridge', '--force' => true]) !== self::SUCCESS) {
                 throw new RuntimeException('Statamic configuration, migration, or Control Panel asset publication failed.');
+            }
+            if ($this->option('rich-content')) {
+                config(['discussionbridge.rich_content' => true]);
+            }
+            if (PresentationAssets::selected()) {
+                if ($this->call('vendor:publish', ['--tag' => PresentationAssets::RICH_TAG]) !== self::SUCCESS) {
+                    throw new RuntimeException('Selected DiscussionBridge rich-content asset publication failed.');
+                }
+                PresentationAssets::verifyRich();
+            }
+            if ($this->option('templates')
+                && $this->call('vendor:publish', ['--tag' => PresentationAssets::TEMPLATES_TAG]) !== self::SUCCESS) {
+                throw new RuntimeException('Optional DiscussionBridge template publication failed.');
             }
             config([
                 'discussionbridge.enabled' => true,
@@ -96,8 +116,23 @@ class InstallDiscussionBridge extends Command
                 throw new RuntimeException('The Bridge returned an invalid verification response.');
             }
 
+            $presentation = $integration->inspect($this->inventory($client, $response));
+            if ($presentation['incomplete'] !== []) {
+                $this->error('Connection configuration verified; selected native presentation integration is incomplete.');
+                foreach (array_slice($presentation['incomplete'], 0, 10) as $condition) {
+                    $this->line($condition);
+                }
+                return self::FAILURE;
+            }
+
             $this->newLine();
-            $this->info('DiscussionBridge installation verified.');
+            if ($presentation['checked'] === 0) {
+                $this->info('DiscussionBridge connection configuration verified.');
+                $this->line('No native article/discussion capability is selected yet; its template integration remains unverified.');
+            } else {
+                $this->info('DiscussionBridge selected native template wiring verified.');
+                $this->line('Native rendered/public output and Flat/DB/SSG qualification remain separate gates.');
+            }
             $this->line('Adapter: statamic-discussion-bridge');
             $this->line('Adapter version: '.Version::VALUE);
             $this->line('Connection: '.$connectionId);
@@ -121,14 +156,52 @@ class InstallDiscussionBridge extends Command
         return trim((string) $value);
     }
 
+    private function inventory(BridgeClient $client, array $response): iterable
+    {
+        $page = 1;
+        $snapshot = null;
+        $pages = null;
+        $total = null;
+        $seen = [];
+        do {
+            $pagination = $response['pagination'] ?? null;
+            $records = $response['bridge_records'] ?? null;
+            if (! is_array($pagination) || ! is_array($records) || ($pagination['page'] ?? null) !== $page
+                || ! is_int($pagination['pages'] ?? null) || $pagination['pages'] < $page || $pagination['pages'] > 10000
+                || ! is_int($pagination['total'] ?? null) || $pagination['total'] < 0
+                || ! is_string($pagination['snapshot'] ?? null) || $pagination['snapshot'] === '' || strlen($pagination['snapshot']) > 8192
+                || ($snapshot !== null && ($snapshot !== $pagination['snapshot'] || $pages !== $pagination['pages'] || $total !== $pagination['total']))) {
+                throw new RuntimeException('DiscussionBridge presentation verification inventory is incomplete.');
+            }
+            $snapshot ??= $pagination['snapshot'];
+            $pages ??= $pagination['pages'];
+            $total ??= $pagination['total'];
+            foreach ($records as $record) {
+                $resource = is_array($record) ? ($record['resource_id'] ?? null) : null;
+                if (! is_string($resource) || ! preg_match('/\A[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/i', $resource)
+                    || isset($seen[strtolower($resource)])) {
+                    throw new RuntimeException('DiscussionBridge presentation verification inventory identity is invalid.');
+                }
+                $seen[strtolower($resource)] = true;
+                yield $record;
+            }
+            if (++$page <= $pages) {
+                $response = $client->records($page, $snapshot);
+            }
+        } while ($page <= $pages);
+        if (count($seen) !== $total) {
+            throw new RuntimeException('DiscussionBridge presentation verification inventory census is incomplete.');
+        }
+    }
+
     private function origin(string $value): string
     {
-        if ($value === '' || strlen($value) > 2048) {
+        if ($value === '' || strlen($value) > 2048 || str_contains($value, '\\') || preg_match('/[\x00-\x1F\x7F]/', $value)) {
             throw new RuntimeException('DiscussionBridge origins are invalid.');
         }
         $parts = parse_url($value);
         if (! is_array($parts) || ($parts['scheme'] ?? null) !== 'https' || empty($parts['host'])
-            || isset($parts['user'], $parts['pass'], $parts['query'], $parts['fragment'])
+            || isset($parts['user']) || isset($parts['pass']) || isset($parts['query']) || isset($parts['fragment'])
             || ! in_array($parts['path'] ?? '', ['', '/'], true)) {
             throw new RuntimeException('DiscussionBridge origins must be HTTPS origins without paths.');
         }
@@ -154,12 +227,15 @@ class InstallDiscussionBridge extends Command
 
     private function sameSiteUrl(string $value, string $siteOrigin): void
     {
+        if (strlen($value) > 2048 || str_contains($value, '\\') || preg_match('/[\x00-\x1F\x7F]/', $value)) {
+            throw new RuntimeException('Source author profile URL is invalid.');
+        }
         $url = parse_url($value);
         $site = parse_url($siteOrigin);
         if (! is_array($url) || ! is_array($site) || ($url['scheme'] ?? null) !== 'https'
             || strtolower((string) ($url['host'] ?? '')) !== strtolower((string) ($site['host'] ?? ''))
             || ($url['port'] ?? null) !== ($site['port'] ?? null)
-            || isset($url['user'], $url['pass'], $url['query'], $url['fragment'])) {
+            || isset($url['user']) || isset($url['pass']) || isset($url['query']) || isset($url['fragment'])) {
             throw new RuntimeException('Source author profile URL must belong to this Statamic site.');
         }
     }

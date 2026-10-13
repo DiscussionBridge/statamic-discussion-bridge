@@ -1,12 +1,13 @@
 {
   "family": {
     "name": "DiscussionBridge",
-    "version": "0.2.0-alpha.29"
+    "version": "0.3.0-alpha.1"
   },
   "component": {
     "name": "DiscussionBridge for Statamic",
-    "version": "0.2.0-alpha.29"
+    "version": "0.3.0-alpha.1"
   },
-  "bridgeCompatibility": "0.2",
+  "bridgeCompatibility": "0.3",
+  "coreContract": "../adapter-contract/core-publication-extension.json",
   "repository": "https://github.com/DiscussionBridge/statamic-discussion-bridge"
 }

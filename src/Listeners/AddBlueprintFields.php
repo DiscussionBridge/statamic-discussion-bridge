@@ -31,8 +31,8 @@ class AddBlueprintFields
         $event->blueprint->ensureField('discussionbridge_mode', [
             'type' => 'select',
             'display' => 'DiscussionBridge presentation mode',
-            'instructions' => 'Optional plugin-free Simple or Full comments presentation for this entry.',
-            'options' => ['simple' => 'Simple', 'full' => 'Full'],
+            'instructions' => 'Optional Simple, Full or plugin-backed Interactive presentation for this entry.',
+            'options' => ['simple' => 'Simple', 'full' => 'Full', 'interactive' => 'Interactive'],
             'clearable' => true,
             'width' => 50,
         ], 'sidebar');

@@ -12,6 +12,16 @@ class PublishedContent
 
     public static function fromEntry(Entry $entry): string
     {
+        $html = self::portableFromEntry($entry);
+        if (strlen($html) > self::MAX_HTML_BYTES) {
+            throw new RuntimeException('Statamic published content is invalid.');
+        }
+
+        return $html;
+    }
+
+    public static function portableFromEntry(Entry $entry): string
+    {
         $source = $entry->get('content');
         if (! is_string($source) || trim($source) === '') {
             throw new RuntimeException('Statamic published content is invalid.');
@@ -19,7 +29,7 @@ class PublishedContent
 
         $html = Markdown::parse($source);
         if (trim(strip_tags($html)) === ''
-            || strlen($html) > self::MAX_HTML_BYTES
+            || ! mb_check_encoding($html, 'UTF-8')
             || preg_match('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', $html)) {
             throw new RuntimeException('Statamic published content is invalid.');
         }

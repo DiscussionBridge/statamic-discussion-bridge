@@ -5,6 +5,8 @@ namespace CodeWorksLabs\DiscussionBridgeStatamic\Console;
 use CodeWorksLabs\DiscussionBridgeStatamic\Delivery\DeliveryWorker;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use CodeWorksLabs\DiscussionBridgeStatamic\Support\PresentationAssets;
+use Throwable;
 
 class PrepareStaticBuild extends Command
 {
@@ -68,6 +70,19 @@ class PrepareStaticBuild extends Command
             $this->error('DiscussionBridge From Discourse publication sync failed. Static generation is blocked.');
 
             return self::FAILURE;
+        }
+
+        if (PresentationAssets::selected()) {
+            try {
+                if ($this->call('vendor:publish', ['--tag' => PresentationAssets::RICH_TAG]) !== self::SUCCESS) {
+                    throw new \RuntimeException('Selected DiscussionBridge rich-content asset publication failed.');
+                }
+                PresentationAssets::verifyRich();
+            } catch (Throwable $error) {
+                $this->error($error->getMessage());
+
+                return self::FAILURE;
+            }
         }
 
         return self::SUCCESS;

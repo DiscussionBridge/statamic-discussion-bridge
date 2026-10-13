@@ -5,12 +5,16 @@ namespace CodeWorksLabs\DiscussionBridgeStatamic\Tests;
 use CodeWorksLabs\DiscussionBridgeStatamic\Transport\BridgeClient;
 use Illuminate\Support\Facades\DB;
 use Mockery;
+use CodeWorksLabs\DiscussionBridgeStatamic\Tests\Concerns\ManagesPresentationFiles;
+use CodeWorksLabs\DiscussionBridgeStatamic\Support\PresentationAssets;
 
 class PrepareStaticBuildTest extends TestCase
 {
+    use ManagesPresentationFiles;
     protected function setUp(): void
     {
         parent::setUp();
+        $this->isolatePresentationFiles();
         $client = Mockery::mock(BridgeClient::class);
         $client->shouldReceive('records')->with(1, null)->andReturn([
             'bridge_records' => [],
@@ -19,9 +23,49 @@ class PrepareStaticBuildTest extends TestCase
         $this->app->instance(BridgeClient::class, $client);
     }
 
+    protected function tearDown(): void
+    {
+        $this->restorePresentationFiles();
+        parent::tearDown();
+    }
+
     public function test_static_build_gate_succeeds_with_no_unresolved_deliveries(): void
     {
         $this->artisan('discussionbridge:ssg-prepare')->assertSuccessful();
+        foreach ($this->optionalPresentationPaths() as $target) {
+            $this->assertFileDoesNotExist($target);
+        }
+    }
+
+    public function test_static_preparation_makes_only_selected_renderer_available_to_public_copy(): void
+    {
+        config(['discussionbridge.rich_content' => true]);
+        $this->artisan('discussionbridge:ssg-prepare')->assertSuccessful();
+        PresentationAssets::verifyRich();
+        $output = sys_get_temp_dir().'/discussionbridge-static-renderer-'.bin2hex(random_bytes(6)).'.js';
+        try {
+            $this->assertTrue(copy($this->richTarget(), $output));
+            $this->assertSame(hash_file('sha256', $this->richTarget()), hash_file('sha256', $output));
+        } finally {
+            @unlink($output);
+        }
+        foreach ($this->optionalPresentationPaths() as $target) {
+            if (! in_array($target, PresentationAssets::richPaths(), true)) {
+                $this->assertFileDoesNotExist($target);
+            }
+        }
+    }
+
+    public function test_static_preparation_preserves_custom_asset_and_requires_explicit_refresh(): void
+    {
+        config(['discussionbridge.rich_content' => true]);
+        $this->writePresentationFile($this->richTarget(), '// Operator-owned renderer');
+        $this->artisan('discussionbridge:ssg-prepare')
+            ->expectsOutputToContain('Preserve operator changes')->assertFailed();
+        $this->assertSame('// Operator-owned renderer', file_get_contents($this->richTarget()));
+        config(['discussionbridge.rich_content' => false]);
+        $this->artisan('discussionbridge:ssg-prepare')->assertSuccessful();
+        $this->assertSame('// Operator-owned renderer', file_get_contents($this->richTarget()));
     }
 
     public function test_static_build_gate_fails_closed_for_reconciliation_required_state(): void

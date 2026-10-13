@@ -3,7 +3,7 @@
   "description": "Statamic publishing adapter for DiscussionBridge",
   "type": "statamic-addon",
   "license": "MIT",
-  "version": "0.2.0-alpha.29",
+  "version": "0.3.0-alpha.1",
   "autoload": {
     "psr-4": {
       "CodeWorksLabs\\DiscussionBridgeStatamic\\": "src/"
@@ -41,6 +41,9 @@
   },
   "minimum-stability": "stable",
   "prefer-stable": true,
+  "archive": {
+    "exclude": ["/vendor", "/node_modules", "/.tmp", "/.git", "/.agents", "/.phpunit.cache", "/.artifacts", "/docs/STATAMIC_CORE_CLEANUP_20261012_CHECKPOINT.md"]
+  },
   "scripts": {
     "test": "phpunit"
   }

@@ -61,42 +61,43 @@ class DeliveryWorker
                 return $this->finish($id, $token, 'cancelled', ['last_error' => 'entry_not_eligible']);
             }
 
-            $title = $entry->get('title');
-            $contentHtml = PublishedContent::fromEntry($entry);
-            $canonicalUrl = $entry->absoluteUrl();
-            if (! is_string($title) || trim($title) === '' || strlen($title) > 1024) {
-                throw new RuntimeException('Statamic entry title is invalid.');
-            }
-            if (! is_string($canonicalUrl) || strlen($canonicalUrl) > 2048 || ! str_starts_with($canonicalUrl, $this->configuration->siteOrigin().'/')) {
-                throw new RuntimeException('Statamic canonical URL is invalid.');
+            $publication = SourcePublication::fromEntry($entry, $this->configuration, $row->source_revision);
+            $canonicalUrl = $publication['record']['canonical_url'];
+            if ($canonicalUrl !== $row->canonical_url) {
+                return $this->finish($id, $token, 'reconciliation_required', ['last_error' => 'canonical_url_changed', 'next_attempt_at' => null]);
             }
 
             $payload = [
                 'direction' => 'to_discourse',
                 'external_id' => $row->external_id,
-                'canonical_url' => $canonicalUrl,
-                'title' => $title,
-                'content_html' => $contentHtml,
+                ...$publication['record'],
                 'published' => true,
                 'visibility' => 'unlisted',
                 'adapter_id' => (string) config('discussionbridge.adapter_id'),
                 'adapter_version' => (string) config('discussionbridge.adapter_version'),
                 'correlation_id' => $row->correlation_id,
-                ...$this->configuration->sourceAuthor(),
                 ...($this->configuration->lane() ? ['lane' => $this->configuration->lane()] : []),
             ];
+            $payload = SourcePublication::fitEnvelope($payload, $publication['full_html']);
 
             $response = $this->client->resolve($payload);
-            $this->validateResolveResponse($response);
+            $this->validateResolveResponse($response, $payload['source_publication']['revision']);
             if ($row->resource_id !== null && ($response['resource_id'] !== $row->resource_id
-                || $response['topic_id'] !== (int) $row->topic_id
-                || $response['topic_url'] !== $row->topic_url)) {
+                || $response['topic_id'] !== (int) $row->topic_id)) {
                 return $this->finish($id, $token, 'reconciliation_required', [
                     'attempts' => ((int) $row->attempts) + 1,
                     'last_error' => 'returned_identity_mismatch',
                     'next_attempt_at' => null,
                 ]);
             }
+            $current = DB::table('discussionbridge_deliveries')->where('id', $id)->where('lock_token', $token)->first();
+            if (! $current) {
+                throw new RuntimeException('Statamic delivery claim was lost after receiver acceptance.');
+            }
+            if ($current->last_error === 'canonical_url_changed') {
+                return $this->finish($id, $token, 'reconciliation_required', ['source_revision' => $response['source_revision'], 'last_error' => 'canonical_url_changed', 'next_attempt_at' => null]);
+            }
+            $newerSourcePending = $current->desired_revision !== null && $current->desired_revision !== $response['source_revision'];
 
             return $this->finish($id, $token, 'delivered', [
                 'canonical_url' => $canonicalUrl,
@@ -104,9 +105,11 @@ class DeliveryWorker
                 'topic_id' => $response['topic_id'],
                 'topic_url' => $response['topic_url'],
                 'outcome' => $response['outcome'],
+                'source_revision' => $response['source_revision'],
+                ...($newerSourcePending ? ['status' => 'pending'] : ['desired_revision' => $response['source_revision']]),
                 'attempts' => ((int) $row->attempts) + 1,
                 'last_error' => null,
-                'next_attempt_at' => null,
+                'next_attempt_at' => $newerSourcePending ? now() : null,
             ]);
         } catch (BridgeRequestException $error) {
             if ($error->status === 409) {
@@ -128,7 +131,7 @@ class DeliveryWorker
         }
     }
 
-    private function validateResolveResponse(array $response): void
+    private function validateResolveResponse(array $response, string $requestedRevision): void
     {
         if (! in_array($response['outcome'] ?? null, ['created', 'resolved'], true)
             || ($response['direction'] ?? null) !== 'to_discourse'
@@ -138,9 +141,11 @@ class DeliveryWorker
             || ! is_int($response['topic_id'] ?? null)
             || $response['topic_id'] < 1
             || ! is_string($response['topic_url'] ?? null)
-            || ! str_starts_with($response['topic_url'], $this->configuration->forumOrigin().'/')) {
+            || ! str_starts_with($response['topic_url'], $this->configuration->forumOrigin().'/')
+            || ($response['source_revision'] ?? null) !== $requestedRevision) {
             throw new RuntimeException('DiscussionBridge resolve response is invalid.');
         }
+        app(\CodeWorksLabs\DiscussionBridgeStatamic\Publication\NativePublication::class)->sourceTopicUrl($response['topic_url'], $response['topic_id']);
     }
 
     private function fail(int $id, string $token, string $reason): string
@@ -158,10 +163,13 @@ class DeliveryWorker
 
     private function finish(int $id, string $token, string $status, array $values): string
     {
-        DB::table('discussionbridge_deliveries')
+        $changed = DB::table('discussionbridge_deliveries')
             ->where('id', $id)
             ->where('lock_token', $token)
-            ->update([...$values, 'status' => $status, 'lock_token' => null, 'locked_at' => null, 'updated_at' => now()]);
+            ->update(['status' => $status, ...$values, 'lock_token' => null, 'locked_at' => null, 'updated_at' => now()]);
+        if ($changed !== 1) {
+            throw new RuntimeException('Statamic delivery claim was lost before state persistence.');
+        }
 
         return $status;
     }

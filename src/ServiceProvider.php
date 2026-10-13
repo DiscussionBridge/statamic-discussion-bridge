@@ -20,6 +20,7 @@ use Statamic\Events\EntrySaved;
 use Statamic\Events\EntryBlueprintFound;
 use Statamic\Providers\AddonServiceProvider;
 use Statamic\Facades\Utility;
+use CodeWorksLabs\DiscussionBridgeStatamic\Support\PresentationAssets;
 
 class ServiceProvider extends AddonServiceProvider
 {
@@ -50,6 +51,8 @@ class ServiceProvider extends AddonServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../config/discussionbridge.php', 'discussionbridge');
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'discussionbridge');
+        $this->publishes(PresentationAssets::richPaths(), PresentationAssets::RICH_TAG);
+        $this->publishes(PresentationAssets::templatePaths(), PresentationAssets::TEMPLATES_TAG);
 
         Utility::extend(function ($utilities): void {
             $utilities->register('discussionbridge')

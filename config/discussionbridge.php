@@ -10,6 +10,9 @@ return [
     'collections' => array_values(array_filter(array_map('trim', explode(',', (string) env('DISCUSSIONBRIDGE_COLLECTIONS', 'pages'))))),
     'source_author_name' => env('DISCUSSIONBRIDGE_SOURCE_AUTHOR_NAME', 'Statamic'),
     'source_author_profile_url' => env('DISCUSSIONBRIDGE_SOURCE_AUTHOR_PROFILE_URL'),
+    // An absent choice preserves previously installed native publications only.
+    // Fresh installations remain opt-in; explicit false disables the bundled renderer.
+    'rich_content' => env('DISCUSSIONBRIDGE_RICH_CONTENT'),
     'adapter_id' => 'statamic-discussion-bridge',
     'adapter_version' => \CodeWorksLabs\DiscussionBridgeStatamic\Version::VALUE,
     'connect_timeout_seconds' => 2,

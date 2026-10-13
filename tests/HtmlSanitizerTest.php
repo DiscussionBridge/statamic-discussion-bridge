@@ -26,6 +26,18 @@ class HtmlSanitizerTest extends TestCase
         $this->assertSame('', (new HtmlSanitizer())->sanitize(str_repeat('x', 65537)));
     }
 
+    public function test_unwrapped_descendants_are_sanitized_at_every_depth(): void
+    {
+        $result = (new HtmlSanitizer())->sanitize('<section><article><script>alert(1)</script><p onclick="bad()">Safe <strong>text</strong><a href="javascript:bad()">link</a><img src="https://user@safe.example/image.png"></p></article></section>');
+
+        $this->assertStringContainsString('Safe <strong>text</strong>', $result);
+        $this->assertStringNotContainsString('<script', $result);
+        $this->assertStringNotContainsString('onclick', $result);
+        $this->assertStringNotContainsString('javascript:', $result);
+        $this->assertStringNotContainsString('<img', $result);
+        $this->assertStringNotContainsString('<section', $result);
+    }
+
     public function test_it_preserves_portable_media_and_removes_discourse_controls(): void
     {
         $html = '<p>[discotoc]</p><div data-theme-toc="true"></div>'

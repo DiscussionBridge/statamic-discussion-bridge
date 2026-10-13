@@ -11,6 +11,9 @@ use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\PublicationPresenter;
 use Statamic\Facades\Entry;
 use Statamic\Tags\Tags;
 use Throwable;
+use CodeWorksLabs\DiscussionBridgeStatamic\Support\PresentationAssets;
+use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\HtmlSanitizer;
+use RuntimeException;
 
 class DiscussionBridge extends Tags
 {
@@ -73,10 +76,31 @@ class DiscussionBridge extends Tags
 
         try {
             $entry = Entry::find($entryId);
+            if (! $entry) {
+                return '';
+            }
+            if ($entry->get('discussionbridge_native_publication') === true) {
+                if ($entry->get('discussionbridge_source_status') === 'withdrawn') {
+                    return '';
+                }
+                $source = $entry->get('content');
+                if (! is_string($source)) {
+                    throw new RuntimeException('Statamic native article content is invalid.');
+                }
+                // From content is native source HTML, with a bounded generated footer.
+                // The smaller To delivery ceiling does not apply to this rendering path.
+                $maximum = $entry->get('discussionbridge_complete_content') === true ? null : 65536 + 16384;
+                $content = app(HtmlSanitizer::class)->sanitize(PresentationAssets::withoutLegacyMarkup($source), $maximum);
+                if (trim($content) === '') {
+                    throw new RuntimeException('Statamic native article content is invalid.');
+                }
+                $assets = PresentationAssets::nativeMarkup($source);
+            } else {
+                $content = PublishedContent::fromEntry($entry);
+                $assets = PresentationAssets::markup();
+            }
 
-            return $entry
-                ? '<article class="discussionbridge-article">'.app(PageNavigation::class)->render(PublishedContent::fromEntry($entry)).'</article>'
-                : '';
+            return '<article class="discussionbridge-article">'.app(PageNavigation::class)->render($content).'</article>'.$assets;
         } catch (Throwable $error) {
             report($error);
 

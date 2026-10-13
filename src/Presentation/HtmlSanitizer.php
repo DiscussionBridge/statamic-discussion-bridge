@@ -12,13 +12,13 @@ class HtmlSanitizer
 {
     private const ALLOWED_TAGS = [
         'p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre',
-        'h2', 'h3', 'h4', 'a', 'img', 'figure', 'figcaption', 'table', 'thead',
-        'tbody', 'tr', 'th', 'td', 'div', 'span',
+        'h1', 'h2', 'h3', 'h4', 'a', 'img', 'figure', 'figcaption', 'table', 'thead',
+        'tbody', 'tr', 'th', 'td', 'div', 'span', 'hr', 'aside', 'time',
     ];
 
-    public function sanitize(string $html): string
+    public function sanitize(string $html, ?int $maximumBytes = 65536): string
     {
-        if (strlen($html) > 65536) {
+        if (($maximumBytes !== null && strlen($html) > $maximumBytes) || preg_match('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', $html)) {
             return '';
         }
 
@@ -72,6 +72,8 @@ class HtmlSanitizer
                     $parent->removeChild($child);
                     continue;
                 }
+                // Descendants remain untrusted even when their wrapper is unwrapped.
+                $this->clean($child);
                 while ($child->firstChild) {
                     $parent->insertBefore($child->firstChild, $child);
                 }
@@ -82,7 +84,8 @@ class HtmlSanitizer
             $allowedAttributes = match ($tag) {
                 'a' => ['href', 'title'],
                 'img' => ['src', 'alt', 'title', 'width', 'height'],
-                'code', 'pre', 'div', 'span' => ['class'],
+                'code', 'pre', 'div', 'span', 'aside' => ['class'],
+                'time' => ['datetime'],
                 default => [],
             };
             foreach (iterator_to_array($child->attributes) as $attribute) {
@@ -126,11 +129,11 @@ class HtmlSanitizer
 
     private function safeHref(string $href): bool
     {
-        if ($href === '' || strlen($href) > 2048) {
+        if ($href === '' || trim($href) !== $href || strlen($href) > 2048 || str_contains($href, '\\') || preg_match('/[\x00-\x1F\x7F]/', $href)) {
             return false;
         }
         $parts = parse_url($href);
 
-        return is_array($parts) && ($parts['scheme'] ?? null) === 'https' && ! empty($parts['host']) && ! isset($parts['user'], $parts['pass']);
+        return is_array($parts) && ($parts['scheme'] ?? null) === 'https' && ! empty($parts['host']) && ! isset($parts['user']) && ! isset($parts['pass']);
     }
 }

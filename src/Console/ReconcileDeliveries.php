@@ -16,8 +16,10 @@ class ReconcileDeliveries extends Command
     {
         $created = 0;
         $errors = 0;
-        $entries = Entry::query()->whereIn('collection', config('discussionbridge.collections', []))->get();
+        $scanned = 0;
+        $entries = Entry::query()->whereIn('collection', config('discussionbridge.collections', []))->orderBy('id')->lazy(32);
         foreach ($entries as $entry) {
+            $scanned++;
             try {
                 $created += $enqueuer->enqueue($entry) ? 1 : 0;
             } catch (Throwable $error) {
@@ -26,7 +28,7 @@ class ReconcileDeliveries extends Command
             }
         }
 
-        $this->line(json_encode(['scanned' => $entries->count(), 'enqueued' => $created, 'errors' => $errors], JSON_THROW_ON_ERROR));
+        $this->line(json_encode(['scanned' => $scanned, 'enqueued' => $created, 'errors' => $errors], JSON_THROW_ON_ERROR));
 
         return $errors === 0 ? self::SUCCESS : self::FAILURE;
     }

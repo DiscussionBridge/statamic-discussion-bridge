@@ -2,3 +2,4 @@
 /node_modules/
 /.phpunit.cache/
 composer.lock
+/.tmp/

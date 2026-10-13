@@ -10,6 +10,7 @@ use Throwable;
 
 class BridgeClient
 {
+    public const PUBLICATION_CONTRACT = '0.3.0-alpha.1';
     /** @var array<string, array{expires: int, enabled: bool}> */
     private static array $brandingCache = [];
 
@@ -21,7 +22,7 @@ class BridgeClient
 
     public function resolve(array $record): array
     {
-        $json = json_encode(['bridge_record' => $record], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+        $json = json_encode(['bridge_record' => $record], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         if (strlen($json) > 65536) {
             throw new RuntimeException('DiscussionBridge request is too large.');
         }
@@ -35,7 +36,7 @@ class BridgeClient
             throw new RuntimeException('DiscussionBridge resource ID is invalid.');
         }
 
-        return $this->request('GET', '/discussion-bridge/v1/bridge-records/'.rawurlencode(strtolower($resourceId)).'.json');
+        return $this->request('GET', '/discussion-bridge/v1/bridge-records/'.rawurlencode(strtolower($resourceId)).'.json?publication_contract='.self::PUBLICATION_CONTRACT, maximum: 2097152);
     }
 
     public function records(int $page = 1, ?string $snapshot = null): array
@@ -47,12 +48,52 @@ class BridgeClient
         if ($snapshot !== null && ($snapshot === '' || strlen($snapshot) > 8192)) {
             throw new RuntimeException('DiscussionBridge records snapshot is invalid.');
         }
-        $query = ['page' => $page];
+        $query = ['page' => $page, 'publication_contract' => self::PUBLICATION_CONTRACT];
         if ($snapshot !== null) {
             $query['snapshot'] = $snapshot;
         }
 
-        return $this->request('GET', '/discussion-bridge/v1/bridge-records.json?'.http_build_query($query, '', '&', PHP_QUERY_RFC3986));
+        return $this->request('GET', '/discussion-bridge/v1/bridge-records.json?'.http_build_query($query, '', '&', PHP_QUERY_RFC3986), maximum: 2097152);
+    }
+
+    public function publicationContent(array $record): string
+    {
+        $resource = strtolower((string) ($record['resource_id'] ?? ''));
+        $source = $record['source'] ?? null;
+        $descriptor = is_array($source) ? ($source['content'] ?? null) : null;
+        if ($descriptor === null && is_string($record['content_html'] ?? null)) {
+            return $record['content_html'];
+        }
+        if (! preg_match('/\A[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/', $resource) || ! is_array($source) || ! is_string($source['edition'] ?? null) || ! preg_match('/\A[0-9a-f]{64}\z/', $source['edition']) || ! is_array($descriptor)
+            || ! is_int($descriptor['bytes'] ?? null) || $descriptor['bytes'] < 1 || $descriptor['bytes'] > 9007199254740991
+            || ! is_string($descriptor['sha256'] ?? null) || ! preg_match('/\A[0-9a-f]{64}\z/', $descriptor['sha256'])
+            || ($descriptor['chunk_bytes'] ?? null) !== 32768 || ($descriptor['path'] ?? null) !== '/discussion-bridge/v1/bridge-records/'.$resource.'/content.json') {
+            throw new RuntimeException('DiscussionBridge source content descriptor is invalid.');
+        }
+        $content = '';
+        $digest = hash_init('sha256');
+        for ($offset = 0; $offset < $descriptor['bytes'];) {
+            $query = http_build_query(['edition' => $source['edition'], 'offset' => $offset], '', '&', PHP_QUERY_RFC3986);
+            $chunk = $this->request('GET', $descriptor['path'].'?'.$query, maximum: 65536);
+            if (($chunk['resource_id'] ?? null) !== $resource || ($chunk['edition'] ?? null) !== $source['edition'] || ($chunk['offset'] ?? null) !== $offset || ($chunk['total_bytes'] ?? null) !== $descriptor['bytes'] || ($chunk['content_sha256'] ?? null) !== $descriptor['sha256'] || ! is_string($chunk['chunk_base64'] ?? null)) {
+                throw new RuntimeException('DiscussionBridge source content chunk identity is invalid.');
+            }
+            $bytes = base64_decode($chunk['chunk_base64'], true);
+            if (! is_string($bytes) || base64_encode($bytes) !== $chunk['chunk_base64'] || strlen($bytes) !== min(32768, $descriptor['bytes'] - $offset)) {
+                throw new RuntimeException('DiscussionBridge source content chunk length is invalid.');
+            }
+            $offset += strlen($bytes);
+            if (! array_key_exists('next_offset', $chunk) || $chunk['next_offset'] !== ($offset === $descriptor['bytes'] ? null : $offset)) {
+                throw new RuntimeException('DiscussionBridge source content continuation is invalid.');
+            }
+            hash_update($digest, $bytes);
+            $content .= $bytes;
+        }
+        if (hash_final($digest) !== $descriptor['sha256'] || ! mb_check_encoding($content, 'UTF-8')) {
+            throw new RuntimeException('DiscussionBridge source complete content identity is invalid.');
+        }
+
+        return $content;
     }
 
     public function publicTopic(int $topicId): array
@@ -92,6 +133,7 @@ class BridgeClient
                 'allow_redirects' => false,
                 'connect_timeout' => (float) config('discussionbridge.connect_timeout_seconds', 2),
                 'timeout' => (float) config('discussionbridge.response_timeout_seconds', 5),
+                'read_timeout' => (float) config('discussionbridge.response_timeout_seconds', 5),
                 'http_errors' => false,
                 'stream' => true,
                 'headers' => [
@@ -131,7 +173,7 @@ class BridgeClient
         return $enabled;
     }
 
-    private function request(string $method, string $path, ?string $json = null, bool $authenticate = true): array
+    private function request(string $method, string $path, ?string $json = null, bool $authenticate = true, ?int $maximum = null): array
     {
         $headers = ['Accept' => 'application/json'];
         if ($authenticate) {
@@ -149,6 +191,7 @@ class BridgeClient
                 'allow_redirects' => false,
                 'connect_timeout' => (float) config('discussionbridge.connect_timeout_seconds', 2),
                 'timeout' => (float) config('discussionbridge.response_timeout_seconds', 5),
+                'read_timeout' => (float) config('discussionbridge.response_timeout_seconds', 5),
                 'http_errors' => false,
                 'stream' => true,
                 'headers' => $headers,
@@ -158,7 +201,7 @@ class BridgeClient
             throw new RuntimeException('DiscussionBridge transport failed.');
         }
 
-        $data = $this->decode($response);
+        $data = $this->decode($response, $maximum);
         $status = $response->getStatusCode();
         if ($status < 200 || $status >= 300) {
             $reason = is_string($data['reason'] ?? null) ? substr($data['reason'], 0, 100) : 'request_failed';
@@ -168,26 +211,36 @@ class BridgeClient
         return $data;
     }
 
-    private function decode(ResponseInterface $response): array
+    private function decode(ResponseInterface $response, ?int $maximum = null): array
     {
         $contentType = strtolower($response->getHeaderLine('Content-Type'));
         if (! str_starts_with($contentType, 'application/json')) {
+            $response->getBody()->close();
             throw new RuntimeException('DiscussionBridge response content type is invalid.');
         }
 
-        $maximum = (int) config('discussionbridge.maximum_response_bytes', 65536);
+        $maximum ??= (int) config('discussionbridge.maximum_response_bytes', 65536);
         $declared = $response->getHeaderLine('Content-Length');
         if ($declared !== '' && (! ctype_digit($declared) || (int) $declared > $maximum)) {
+            $response->getBody()->close();
             throw new RuntimeException('DiscussionBridge response is too large.');
         }
 
         $body = $response->getBody();
         $bytes = '';
-        while (! $body->eof()) {
-            $bytes .= $body->read(min(8192, $maximum + 1 - strlen($bytes)));
-            if (strlen($bytes) > $maximum) {
-                throw new RuntimeException('DiscussionBridge response is too large.');
+        try {
+            while (! $body->eof()) {
+                $chunk = $body->read(min(8192, $maximum + 1 - strlen($bytes)));
+                if ($chunk === '' && ! $body->eof()) {
+                    throw new RuntimeException('DiscussionBridge response stalled.');
+                }
+                $bytes .= $chunk;
+                if (strlen($bytes) > $maximum) {
+                    throw new RuntimeException('DiscussionBridge response is too large.');
+                }
             }
+        } finally {
+            $body->close();
         }
 
         try {

@@ -38,12 +38,12 @@ class BridgeClientTest extends TestCase
 
         $this->assertSame('created', $response['outcome']);
         $this->assertSame('statamic-discussion-bridge', $history[0]['request']->getHeaderLine('X-DiscussionBridge-Adapter'));
-        $this->assertSame('0.2.0-alpha.29', $history[0]['request']->getHeaderLine('X-DiscussionBridge-Adapter-Version'));
+        $this->assertSame('0.3.0-alpha.1', $history[0]['request']->getHeaderLine('X-DiscussionBridge-Adapter-Version'));
     }
 
     public function test_record_rejects_oversized_response(): void
     {
-        $mock = new MockHandler([new Response(200, ['Content-Type' => 'application/json'], str_repeat('x', 65537))]);
+        $mock = new MockHandler([new Response(200, ['Content-Type' => 'application/json'], str_repeat('x', 2097153))]);
         $client = new BridgeClient(new Client(['handler' => HandlerStack::create($mock)]), app(Configuration::class));
 
         $this->expectException(RuntimeException::class);
@@ -105,5 +105,70 @@ class BridgeClientTest extends TestCase
 
         $this->expectException(RuntimeException::class);
         $client->publicTopicPosts(42, range(1, 21));
+    }
+
+    public function test_complete_source_chunks_keep_utf8_digest_and_exact_authenticated_origin(): void
+    {
+        $body = '<p>'.str_repeat('é', 50000).'Complete ending</p>';
+        $record = $this->chunkRecord($body);
+        $responses = [];
+        for ($offset = 0; $offset < strlen($body); $offset += 32768) {
+            $responses[] = new Response(200, ['Content-Type' => 'application/json'], json_encode($this->chunk($record, $body, $offset), JSON_THROW_ON_ERROR));
+        }
+        $history = [];
+        $stack = HandlerStack::create(new MockHandler($responses));
+        $stack->push(Middleware::history($history));
+        $client = new BridgeClient(new Client(['handler' => $stack]), app(Configuration::class));
+        $this->assertSame($body, $client->publicationContent($record));
+        $this->assertCount(4, $history);
+        foreach ($history as $index => $request) {
+            $this->assertStringStartsWith('https://forum.example/discussion-bridge/v1/bridge-records/'.$record['resource_id'].'/content.json?', (string) $request['request']->getUri());
+            $this->assertStringContainsString('offset='.($index * 32768), (string) $request['request']->getUri());
+            $this->assertTrue($request['request']->hasHeader('X-DiscussionBridge-Connection'));
+            $this->assertTrue($request['request']->hasHeader('X-DiscussionBridge-Secret'));
+        }
+    }
+
+    public function test_chunk_identity_base64_continuation_digest_and_utf8_fail_closed(): void
+    {
+        $body = '<p>Source</p>';
+        $record = $this->chunkRecord($body);
+        foreach ([['resource_id' => 'wrong'], ['edition' => str_repeat('b', 64)], ['offset' => 1], ['next_offset' => 1], ['chunk_base64' => '!!!!'], ['chunk_base64' => base64_encode(str_repeat('x', strlen($body)))]] as $change) {
+            $chunk = array_replace($this->chunk($record, $body, 0), $change);
+            $client = new BridgeClient(new Client(['handler' => HandlerStack::create(new MockHandler([new Response(200, ['Content-Type' => 'application/json'], json_encode($chunk, JSON_THROW_ON_ERROR))]))]), app(Configuration::class));
+            try {
+                $client->publicationContent($record);
+                $this->fail('Expected invalid content chunk rejection.');
+            } catch (RuntimeException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+        $invalid = "\xFF";
+        $record = $this->chunkRecord($invalid);
+        $client = new BridgeClient(new Client(['handler' => HandlerStack::create(new MockHandler([new Response(200, ['Content-Type' => 'application/json'], json_encode($this->chunk($record, $invalid, 0), JSON_THROW_ON_ERROR))]))]), app(Configuration::class));
+        $this->expectException(RuntimeException::class);
+        $client->publicationContent($record);
+    }
+
+    public function test_descriptor_cannot_select_a_different_path_or_origin_before_request(): void
+    {
+        $record = $this->chunkRecord('<p>Source</p>');
+        $record['source']['content']['path'] = 'https://other.example/private';
+        $client = new BridgeClient(new Client(['handler' => HandlerStack::create(new MockHandler())]), app(Configuration::class));
+        $this->expectException(RuntimeException::class);
+        $client->publicationContent($record);
+    }
+
+    private function chunkRecord(string $body): array
+    {
+        $resource = '11111111-1111-4111-8111-111111111111';
+        return ['resource_id' => $resource, 'content_html' => null, 'source' => ['edition' => str_repeat('a', 64), 'content' => ['bytes' => strlen($body), 'sha256' => hash('sha256', $body), 'path' => '/discussion-bridge/v1/bridge-records/'.$resource.'/content.json', 'chunk_bytes' => 32768]]];
+    }
+
+    private function chunk(array $record, string $body, int $offset): array
+    {
+        $bytes = substr($body, $offset, 32768);
+        $next = $offset + strlen($bytes);
+        return ['resource_id' => $record['resource_id'], 'edition' => $record['source']['edition'], 'offset' => $offset, 'total_bytes' => strlen($body), 'content_sha256' => hash('sha256', $body), 'chunk_base64' => base64_encode($bytes), 'next_offset' => $next === strlen($body) ? null : $next];
     }
 }
