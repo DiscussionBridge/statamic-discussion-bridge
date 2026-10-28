@@ -1,0 +1,872 @@
+{
+  "source_root": "C:\\CodeProjects\\Products\\DiscussionBridge\\codex crap\\statamic",
+  "new_root": "C:\\CodeProjects\\Products\\DiscussionBridge\\codex crap\\v4\\statamic",
+  "status": "selected_reusable_native_material_not_v4_protocol_proof",
+  "files": [
+    {
+      "path": "LICENSE",
+      "source_bytes": 1092,
+      "source_sha256": "9c75aeb32358e414de9beee40652823341ec00590fa803d97bf25cac2c418adc"
+    },
+    {
+      "path": "src/Cms/CmsException.php",
+      "source_bytes": 404,
+      "source_sha256": "bde53e286d3f656431a0a56127085660fa83ff03b1f4b7ce8933da428666256d"
+    },
+    {
+      "path": "src/Cms/PrivateState.php",
+      "source_bytes": 7338,
+      "source_sha256": "e4f971de99e9bacd164e7999dee1b953550922592e4fc94288a86d3af533989c"
+    },
+    {
+      "path": "src/Cms/NativeRepositories.php",
+      "source_bytes": 1028,
+      "source_sha256": "9ba143a13debef820768f0037229421fd8e5e09607b1de5779e99f31c7b705ab"
+    },
+    {
+      "path": "src/Cms/NativeWriteGuard.php",
+      "source_bytes": 6336,
+      "source_sha256": "042f983e121c2d71da0ae2c19f6e01bb83d236e817a2b9701ee67493b692d82d"
+    },
+    {
+      "path": "src/Cms/FencedRepository.php",
+      "source_bytes": 173,
+      "source_sha256": "80d1cacea1f4c90ba59c7b43ea730ca44aee51970eb01b62e15523246ddd6781"
+    },
+    {
+      "path": "src/Cms/FlatEntryRepository.php",
+      "source_bytes": 1382,
+      "source_sha256": "204896cf2c3fab1ca4fe3944522629a8daf2fcc950bcdd04b8d2510621039b67"
+    },
+    {
+      "path": "src/Cms/DatabaseEntryRepository.php",
+      "source_bytes": 1055,
+      "source_sha256": "3aa8791a38ae9c1d5e3f4f21c6e575f59422e3995f694ecd778f3536d9200b96"
+    },
+    {
+      "path": "src/Cms/NativeSnapshot.php",
+      "source_bytes": 1119,
+      "source_sha256": "d8596408e118b360032c91a22b0c82adce4e202671983d3f947c6796874a993b"
+    },
+    {
+      "path": "src/Cms/NativeWriter.php",
+      "source_bytes": 24082,
+      "source_sha256": "b7af6a4089bad621f8ba12a7286e6dd11d368d28f65c6a6fe80adcce08725eb1"
+    },
+    {
+      "path": "src/Cms/NativePolicy.php",
+      "source_bytes": 9001,
+      "source_sha256": "7529931c062c909fe5c49cdd10bd002f4872223433c5a9606eb1fd20f0906f5a"
+    },
+    {
+      "path": "src/Cms/NativeStaticBuild.php",
+      "source_bytes": 5643,
+      "source_sha256": "dc4a13e9300585e76c2df9b07059cc05af5fa99afd9e41a8b9c1869b6d3027eb"
+    },
+    {
+      "path": "src/Cms/NativeProgressOutput.php",
+      "source_bytes": 504,
+      "source_sha256": "6157d0808298ac13a912583ea51bd1347b3f81b4f328643938cb05e683786fe2"
+    },
+    {
+      "path": "src/Cms/StaticArtifact.php",
+      "source_bytes": 5297,
+      "source_sha256": "398139976e7576972aec92fb2e7bed5c1fe0e0f2f246fa5fb7fdcc4cd47108ad"
+    },
+    {
+      "path": "src/Cms/LocalStaticHooks.php",
+      "source_bytes": 9259,
+      "source_sha256": "6df0331fea54ccc6a44b7bd38d3c761bef2264765037e395ec06061f7409cfce"
+    },
+    {
+      "path": "src/Cms/PublicVerifier.php",
+      "source_bytes": 6567,
+      "source_sha256": "c51e0693f62945543f6359f03ce63855208e6c88b031afc52ffbc286038db238"
+    },
+    {
+      "path": "src/Cms/OwnedFragments.php",
+      "source_bytes": 2978,
+      "source_sha256": "ed747a768d362a51ae3ee63191e6d034be85598641566c09c33691792bb29cf7"
+    },
+    {
+      "path": "src/Cms/ToSourcePreparation.php",
+      "source_bytes": 4028,
+      "source_sha256": "beb466022841a473edf5668c9f40685055152990e9079d153fd359cf5ce68e95"
+    },
+    {
+      "path": "src/Cms/ToSourceTimestamp.php",
+      "source_bytes": 913,
+      "source_sha256": "07e5fa32da3277ca89228a705559066a66d9bca1061694ad46fe2dcfad93f02a"
+    },
+    {
+      "path": "src/Delivery/PublishedContent.php",
+      "source_bytes": 1158,
+      "source_sha256": "b8efb7ef38825bb3a551f5bde71f218c64f412c5028a1e4e758a68b11ef0e070"
+    },
+    {
+      "path": "src/Delivery/SourcePublication.php",
+      "source_bytes": 6230,
+      "source_sha256": "fa9192ae008241e576c5856c3483a64b0063e9cb3a841f6b6f1fe27a1e7b86dc"
+    },
+    {
+      "path": "src/Delivery/DeliveryEnqueuer.php",
+      "source_bytes": 3946,
+      "source_sha256": "e1baa5a12ecf906d3334b1a792ede779c765444895355a4f9ed5574729cccd42"
+    },
+    {
+      "path": "src/Support/Configuration.php",
+      "source_bytes": 6863,
+      "source_sha256": "16310c2b6ea017cab92814cc060a08e34a9fefa1c27a08d67207405fb78e978d"
+    },
+    {
+      "path": "src/Support/SourceTimestamp.php",
+      "source_bytes": 1510,
+      "source_sha256": "3f4a700dd6c72db8915d39f3aad9462c71b65a4ff7aaeddd8035926cbecaf910"
+    },
+    {
+      "path": "src/Support/ForumName.php",
+      "source_bytes": 567,
+      "source_sha256": "1b6e6412c02dc3e7e3141f42f1a1f138d6e6259a6221bf6e7b4c724b2d7ea7be"
+    },
+    {
+      "path": "src/Support/EntryIdentity.php",
+      "source_bytes": 818,
+      "source_sha256": "e65d0995ba582ccb6eefd8283110c997f354a83006ff04235d9a46967d49138e"
+    },
+    {
+      "path": "src/Support/PresentationAssets.php",
+      "source_bytes": 3297,
+      "source_sha256": "44345ff8d6070a308c62c449c08d2f8c48d46312f7802612cb6e5858b935950e"
+    },
+    {
+      "path": "src/Support/TemplateIntegration.php",
+      "source_bytes": 9422,
+      "source_sha256": "4225225bcf99b1b4ebb512ed5158df17e03e3b74eb21ab5e8f827514a1008c14"
+    },
+    {
+      "path": "src/Publication/PublicationFreshness.php",
+      "source_bytes": 886,
+      "source_sha256": "4905b02bda341e485d49d91bb1828d8a97c204deb5cb80e14e55ce97d688c366"
+    },
+    {
+      "path": "src/Presentation/HtmlSanitizer.php",
+      "source_bytes": 5303,
+      "source_sha256": "c13ee43c2e1b75590017fa4685cd8b804b1ad26cade37334d884a3d7bce1f6d8"
+    },
+    {
+      "path": "src/Presentation/PageNavigation.php",
+      "source_bytes": 2653,
+      "source_sha256": "6e4f152bbe25d10143be9ee0a2f15c7a927e889b4c598a6d0df7971615ffe8de"
+    },
+    {
+      "path": "src/Listeners/GuardCmsNativeSave.php",
+      "source_bytes": 322,
+      "source_sha256": "87c36486cc8b10f96447a9d83a2d3e4f59b3ac48d0119040d5523e4a4afe52ab"
+    },
+    {
+      "path": "src/Listeners/ReleaseCmsNativeSave.php",
+      "source_bytes": 321,
+      "source_sha256": "ba2046587c25c0705839c6ea4516741ded40b09baaba97510f230a02a862dae0"
+    },
+    {
+      "path": "src/Listeners/AddCmsRevisionField.php",
+      "source_bytes": 673,
+      "source_sha256": "567079be76b8f3191b57c292388aaf4a7195635a7904f1558e592d3902ae0c62"
+    },
+    {
+      "path": "src/Listeners/AddBlueprintFields.php",
+      "source_bytes": 2257,
+      "source_sha256": "4f9a911235c497252af8e664e2a321d808fa9aae2c89a93646fc60658840b1cc"
+    },
+    {
+      "path": "src/Listeners/PublishEntry.php",
+      "source_bytes": 528,
+      "source_sha256": "45a3b5623ac16d6a8b93a7b71a8d9bd23994f79512fa5f19a4775b605405e66b"
+    },
+    {
+      "path": "tests/CmsNativeFlatFenceTest.php",
+      "source_bytes": 780,
+      "source_sha256": "bad06d7a908c4df990e129f31380451347980dd8a05c262c149525a8dfaca392"
+    },
+    {
+      "path": "tests/CmsNativeDatabaseFenceTest.php",
+      "source_bytes": 694,
+      "source_sha256": "a9c60019e220416d972f5c0d1622b1dbdf7c1369ec0021c70fdc3161a165b05f"
+    },
+    {
+      "path": "tests/CmsNativeMetadataFlatTest.php",
+      "source_bytes": 225,
+      "source_sha256": "f059f258b1fe708261e0b6b4f359810f8eb4d88cccbe2a7008e46853ede0618c"
+    },
+    {
+      "path": "tests/CmsNativeMetadataDatabaseTest.php",
+      "source_bytes": 233,
+      "source_sha256": "a9a9545b73891f11580d5bb3c03513c5f0e05105b768d3ec25e99520b15d239c"
+    },
+    {
+      "path": "tests/CmsToSourceTimestampTest.php",
+      "source_bytes": 1320,
+      "source_sha256": "ccacb7072846ba18312358f435f070f3b6910ea9c45f5a5de291f002a5f24020"
+    },
+    {
+      "path": "tests/NativeToSourceFlatTest.php",
+      "source_bytes": 225,
+      "source_sha256": "2b7b4539dd3cfda676ea45569cd06febcab538020c3d2de033bdfb15150c4f38"
+    },
+    {
+      "path": "tests/NativeToSourceDatabaseTest.php",
+      "source_bytes": 233,
+      "source_sha256": "e406ff8f6812a848bc3212468fefdc63ee5c50d4964932564475a9d158a801f7"
+    },
+    {
+      "path": "tests/NativeToSourceStaticTest.php",
+      "source_bytes": 239,
+      "source_sha256": "874c643e3435aad47f0caf2ec29651bcc46eda81f0caf1e1808d3e6c41f39538"
+    },
+    {
+      "path": "tests/EntryIdentityTest.php",
+      "source_bytes": 984,
+      "source_sha256": "af488702308e41d06fa24369ca5955d6846042b0c5760ab8807a807468c13f83"
+    },
+    {
+      "path": "tests/CmsPublicVerifierTest.php",
+      "source_bytes": 5515,
+      "source_sha256": "048eab3f841e334f4738d07119209eda2f589037eed332f49074135aa69da70d"
+    },
+    {
+      "path": "tests/Concerns/ExercisesCmsNativeFence.php",
+      "source_bytes": 9630,
+      "source_sha256": "89ac2cbf9d0288186faddf38bf32112b5401c749776f29a23507856bee184333"
+    },
+    {
+      "path": "tests/Concerns/ExercisesCmsNativeMetadata.php",
+      "source_bytes": 7898,
+      "source_sha256": "dc1cf631bddfa8a0269d214f3f18c45be0b225897e86ec5013c9acb2b2c5daed"
+    },
+    {
+      "path": "tests/Concerns/ExercisesNativeToSourceFields.php",
+      "source_bytes": 4755,
+      "source_sha256": "6e54f559015db06f3be0280452abb3421a300f03efd4d3d95942a25a202bf38e"
+    },
+    {
+      "path": "tests/Concerns/ManagesPresentationFiles.php",
+      "source_bytes": 2449,
+      "source_sha256": "995a97e0d464293b69ceb43979f0c26c5082b9a1cf5ff2b9aa78eb878627fcf8"
+    },
+    {
+      "path": "tests/fixtures/KnownSafeToSourcePreparation.php",
+      "source_bytes": 809,
+      "source_sha256": "15edc946cd139f2d077f598ddffbca1ba54eae5c2d0dda7f6d572d9ec81426e1"
+    },
+    {
+      "path": "tests/fixtures/cms-static-hook.php",
+      "source_bytes": 3442,
+      "source_sha256": "7f21ae9d688dcc252fa1728e0b47c6e8f6f5b4e90533e17438071c77c56bdf11"
+    },
+    {
+      "path": "resources/css\\control-panel.css",
+      "source_bytes": 4584,
+      "source_sha256": "637c00fcde937355909a1bf72c45d04b5e756ef15a47c33b99d2db7dbd2d6076"
+    },
+    {
+      "path": "resources/js\\browser-simple.mjs",
+      "source_bytes": 10820,
+      "source_sha256": "47e2efd57cc408e309dc38c84667865482b5f2ffdbdc012783b662f933c28d76"
+    },
+    {
+      "path": "resources/js\\browser-rich-content.mjs",
+      "source_bytes": 1968,
+      "source_sha256": "fca7d2412c1de7a1d86ac417b20b1f2baf09f93a2bce343f9ff6c37777c87902"
+    },
+    {
+      "path": "resources/assets\\DISCOURSE_WORDMARK_SOURCE.md",
+      "source_bytes": 471,
+      "source_sha256": "7aad18cf63db4c1f29f67310b2f0cb7ead21edc272ab72484c6decefb41eb00d"
+    },
+    {
+      "path": "resources/assets\\discourse-wordmark.svg",
+      "source_bytes": 7925,
+      "source_sha256": "2839418a4b6ca067d8a5c1db8d33c971ed24e64097c980fa479665c32f0d7e4c"
+    },
+    {
+      "path": "starter-kit\\README.md",
+      "source_bytes": 2035,
+      "source_sha256": "cd1f6f2e9648d330f8fe2ba64a50263d42d61773f57e518b8792acb4c91abde1"
+    },
+    {
+      "path": "starter-kit\\entry.antlers.html",
+      "source_bytes": 832,
+      "source_sha256": "bc9f8727e8ca07752fcfded3ce13409d4a7fd061c9fd05ec7c51cb0b7890a8d7"
+    },
+    {
+      "path": "starter-kit\\entry-ssg.antlers.html",
+      "source_bytes": 867,
+      "source_sha256": "f8c4a0c04d95016e64437ba64162478fbfa2f1435bf8fd774ec480b8321f837a"
+    },
+    {
+      "path": "scripts\\build-browser-assets.mjs",
+      "source_bytes": 3600,
+      "source_sha256": "22a03cafbaef67f9067f5466ad21129b6ceb73b4bbe997486948a27a58fd4699"
+    },
+    {
+      "path": "resources/dist\\browser-assets-provenance.json",
+      "source_bytes": 18522,
+      "source_sha256": "4156782410c8e82671fbeb84cdbaa1e2800a79cfd0358deb2a51071cfd545a2a"
+    },
+    {
+      "path": "resources/dist\\discussionbridge-rich-content.js",
+      "source_bytes": 3453373,
+      "source_sha256": "df6acb69bfbc98dc484dc9da3b2e9d17b516284a3c72a6f399228937c5418cd3"
+    },
+    {
+      "path": "resources/dist\\discussionbridge-simple.js",
+      "source_bytes": 35749,
+      "source_sha256": "1db20649de0586d0067d76f742b2ff723e19d7b1e6299ef5fa973ddcb871dd4d"
+    },
+    {
+      "path": "resources/dist\\discussionbridge-rich-content.css",
+      "source_bytes": 1458788,
+      "source_sha256": "0c8f9821dd018e43999afef4caab18e4da6c7889e181040d18df1ca6909bd901"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-path_3.1.0.txt",
+      "source_bytes": 731,
+      "source_sha256": "a09b0d6d76e768fca2085fad05743ee81ddd11946bcda160a3cf5e1081a479aa"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-path_1.0.9.txt",
+      "source_bytes": 1475,
+      "source_sha256": "b8265327ab678f554800e71188b1cc6b1ff57522e292d2b1c0be66f27cf328b6"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-interpolate_3.0.1.txt",
+      "source_bytes": 731,
+      "source_sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-hierarchy_3.1.2.txt",
+      "source_bytes": 731,
+      "source_sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-geo_3.1.1.txt",
+      "source_bytes": 1857,
+      "source_sha256": "3e3edc1224eec9c39cd26491a21304a62883c1e5b6a65c5283ccc7a6cc94baee"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-format_3.1.2.txt",
+      "source_bytes": 731,
+      "source_sha256": "2a6d2d5f32ba0b755ddbc1c833f766e30cdbe6ebe9a6d4e3e24427721f0b63d3"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-force_3.0.0.txt",
+      "source_bytes": 731,
+      "source_sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-fetch_3.0.1.txt",
+      "source_bytes": 731,
+      "source_sha256": "ffdc17dc9040006bddeb891c95bfbb492e86d6bc64a4a4233666febab1be35e0"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-ease_3.0.1.txt",
+      "source_bytes": 1504,
+      "source_sha256": "b989d9085148d21ff64a75e14462aefa06b2589a55553b07b1460c70081c7d08"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-dsv_3.0.1.txt",
+      "source_bytes": 731,
+      "source_sha256": "7842a82012622e5a37bfe4f6c1b67cd3bae6350716b5bf87f36cea0bdc1319dc"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-drag_3.0.0.txt",
+      "source_bytes": 731,
+      "source_sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-dispatch_3.0.1.txt",
+      "source_bytes": 731,
+      "source_sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-delaunay_6.0.4.txt",
+      "source_bytes": 757,
+      "source_sha256": "582c3022bd01942336095f92b58a90b1be624dc547d987555c6c956512dd24c1"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-contour_4.0.2.txt",
+      "source_bytes": 731,
+      "source_sha256": "e51cba0e4fa1d8c078e15319868f2b90188f413f9ce9dac1043b62db32901e93"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-color_3.1.0.txt",
+      "source_bytes": 731,
+      "source_sha256": "faa682e3e430941f958d26180458f5934a62f58dac4d70ccdd15608c15d0f884"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-chord_3.0.1.txt",
+      "source_bytes": 731,
+      "source_sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-brush_3.0.0.txt",
+      "source_bytes": 731,
+      "source_sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-axis_3.0.0.txt",
+      "source_bytes": 731,
+      "source_sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-array_3.2.4.txt",
+      "source_bytes": 731,
+      "source_sha256": "3e6849627f74ff73c257a3ae1efb574015d94fc1035c05ec3c15805165efcbc4"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-array_2.12.1.txt",
+      "source_bytes": 1475,
+      "source_sha256": "0747bebeb06b10954913149be9b9a8bdf6fad3e6fdcbd9f9524e7a94c13d2cea"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\cytoscape_3.34.3.txt",
+      "source_bytes": 1082,
+      "source_sha256": "eb319c6e6f233607f71e8e2f450391751883cfc0eeb3ca7ef574c13d1d9c2203"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\cytoscape-fcose_2.2.0.txt",
+      "source_bytes": 1079,
+      "source_sha256": "2837634f403949215760fcdd2fa1ed0c64875d02099ecc8318c704b852f1421d"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\cytoscape-cose-bilkent_4.1.0.txt",
+      "source_bytes": 1084,
+      "source_sha256": "440fc58a56a12814e417d2b341da89b050da052dc75bdb235607d37ec5fe74ef"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\cose-base_2.2.0.txt",
+      "source_bytes": 1081,
+      "source_sha256": "5fb3cf4a14c3c5af6e473a192df8bca10c77754e3a0c6492c79fb92a76a5478a"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\cose-base_1.0.3.txt",
+      "source_bytes": 1081,
+      "source_sha256": "5fb3cf4a14c3c5af6e473a192df8bca10c77754e3a0c6492c79fb92a76a5478a"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-time_3.1.0.txt",
+      "source_bytes": 731,
+      "source_sha256": "faa682e3e430941f958d26180458f5934a62f58dac4d70ccdd15608c15d0f884"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-timer_3.0.1.txt",
+      "source_bytes": 731,
+      "source_sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-time-format_4.1.0.txt",
+      "source_bytes": 731,
+      "source_sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-shape_3.2.0.txt",
+      "source_bytes": 731,
+      "source_sha256": "faa682e3e430941f958d26180458f5934a62f58dac4d70ccdd15608c15d0f884"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-shape_1.3.7.txt",
+      "source_bytes": 1475,
+      "source_sha256": "7eea8533ea92bd8c32a901e89ecb0305890905bb12711449565ddff96891146d"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-selection_3.0.0.txt",
+      "source_bytes": 731,
+      "source_sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-scale_4.0.2.txt",
+      "source_bytes": 731,
+      "source_sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-scale-chromatic_3.1.0.txt",
+      "source_bytes": 1423,
+      "source_sha256": "0986d93944902cca9af86824b6a641b4b7c2d10602fc510c433a8bcd443919fe"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-sankey_0.12.3.txt",
+      "source_bytes": 1471,
+      "source_sha256": "2bf785e778d67a4f5266cffcd4f2cc5bb98cde73791666e7efeb8002ba32dfa5"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-random_3.0.1.txt",
+      "source_bytes": 731,
+      "source_sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-quadtree_3.0.1.txt",
+      "source_bytes": 731,
+      "source_sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-polygon_3.0.1.txt",
+      "source_bytes": 731,
+      "source_sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\delaunator_5.1.0.txt",
+      "source_bytes": 738,
+      "source_sha256": "0b348fff56384b43dbb37593906904e56d0f9deb51eae590d4dc6d427fbf1808"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\dayjs_1.11.23.txt",
+      "source_bytes": 1072,
+      "source_sha256": "5faab7526d055651be3aab769d58897be6bd91f3d39d137f25f12dba1b31d5dc"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\dagre-d3-es_7.0.14.txt",
+      "source_bytes": 1328,
+      "source_sha256": "d01eb84ccce437dbf5fd40853bceea0f287930920acea066597a4a25ead63858"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3_7.9.0.txt",
+      "source_bytes": 731,
+      "source_sha256": "3e6849627f74ff73c257a3ae1efb574015d94fc1035c05ec3c15805165efcbc4"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-zoom_3.0.0.txt",
+      "source_bytes": 731,
+      "source_sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\d3-transition_3.0.1.txt",
+      "source_bytes": 731,
+      "source_sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\fastdom_1.0.12.txt",
+      "source_bytes": 106,
+      "source_sha256": "12dcf376c6a71519c36ddd8dbbf03ad8057c8da796a333c34b6b0b2f6c0f65be"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\es-toolkit_1.52.0.txt",
+      "source_bytes": 1077,
+      "source_sha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\dompurify_3.4.14.txt",
+      "source_bytes": 11358,
+      "source_sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\internmap_2.0.3.txt",
+      "source_bytes": 726,
+      "source_sha256": "9ea8903938dab5f12c4572d60725069bec2d1b0dc3bcc210b09bae946a5ebb1f"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\internmap_1.0.1.txt",
+      "source_bytes": 726,
+      "source_sha256": "9ea8903938dab5f12c4572d60725069bec2d1b0dc3bcc210b09bae946a5ebb1f"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\katex_0.16.47.txt",
+      "source_bytes": 1107,
+      "source_sha256": "766ccc1f306c885aa45542a9846bbd0a505b27a0374f146778171c2254ce18e3"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\khroma_2.1.0.txt",
+      "source_bytes": 1105,
+      "source_sha256": "66b333b0f66759a0b710459e03f7029abe17f4358114a128d2c972e642961b49"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\_upsetjs_venn.js_2.0.0.txt",
+      "source_bytes": 1106,
+      "source_sha256": "6a3508febf2cfccfee96597394543a6154a4bb0b1f91f28404be42c09e9fcb54"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\_mermaid-js_parser_1.2.1.txt",
+      "source_bytes": 1077,
+      "source_sha256": "d374061c40bfb6f99c5033290caefda97a9b3e7e477e5ee02f487143ef2177e8"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\_iconify_utils_3.1.7.txt",
+      "source_bytes": 1083,
+      "source_sha256": "a86793ac023162ce98b91899601c15f6712f44943163c4f92a0a4bf89152b3bf"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\_braintree_sanitize-url_7.1.2.txt",
+      "source_bytes": 1066,
+      "source_sha256": "0984740e0c3d725c8044dec7edcefe1dbce180ef5a7bc710c251e19607000158"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\uuid_14.0.3.txt",
+      "source_bytes": 1109,
+      "source_sha256": "beaa6b04fb82e41dd2ad679e19e27953afb5999b1abbb455b6564e78ebfeb332"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\stylis_4.4.0.txt",
+      "source_bytes": 1078,
+      "source_sha256": "88c579c6ee44b41137a21321190d177982e5b17d4fa1b83a4a2e3ea325a8fc9a"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\roughjs_4.6.6.txt",
+      "source_bytes": 1068,
+      "source_sha256": "dca9a392272606ac748ac0976a2a1133f14eef841c27beaa51a844d53c56a09d"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\robust-predicates_3.0.3.txt",
+      "source_bytes": 1210,
+      "source_sha256": "88d9b4eb60579c191ec391ca04c16130572d7eedc4a86daa58bf28c6e14c9bcd"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\mermaid_11.17.2.txt",
+      "source_bytes": 1089,
+      "source_sha256": "ec9fb67dcb25eccc416ed56e1aab819222c805a2a4bfe4cb19e7556bf2ffde80"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\marked_16.4.2.txt",
+      "source_bytes": 2942,
+      "source_sha256": "8e3a3f82f59a60958f56ca08f445647c32a4733dc7ca6c2c46f6eb898471ab9c"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\lodash-es_4.18.1.txt",
+      "source_bytes": 1952,
+      "source_sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\layout-base_2.0.1.txt",
+      "source_bytes": 1069,
+      "source_sha256": "eabb762d8a95109a39c9be3247325529a5239a7aca327d909c3ccdc41f3a06bf"
+    },
+    {
+      "path": "resources/dist\\THIRD_PARTY_LICENSES\\layout-base_1.0.2.txt",
+      "source_bytes": 1069,
+      "source_sha256": "eabb762d8a95109a39c9be3247325529a5239a7aca327d909c3ccdc41f3a06bf"
+    },
+    {
+      "path": "package.json",
+      "source_bytes": 630,
+      "source_sha256": "56cf6419b3310070d54f7a3f1a2983edd0f581388046e91e221ea61dcd22dd0a"
+    },
+    {
+      "path": "package-lock.json",
+      "source_bytes": 60241,
+      "source_sha256": "78c48a4deefd942ab49ac6c785218744d74078726c0ac7193c95e8401d332c08"
+    },
+    {
+      "path": "src/Presentation/PresentationChrome.php",
+      "source_bytes": 10329,
+      "source_sha256": "05890c88b11b258cd5bbe2f3208c0b495f91d5b282461a032d2c8b95dc858817"
+    },
+    {
+      "path": "src/Presentation/StandalonePresenter.php",
+      "source_bytes": 10319,
+      "source_sha256": "0746162574ad8aa4b5aecd16750ec6940b45153e0832326fd5bfded3c4e40414"
+    },
+    {
+      "path": "tests/StandalonePresenterTest.php",
+      "source_bytes": 8642,
+      "source_sha256": "54070742500a274a80b6ca3cb4656c3590b806c01aaac66cbe29c172b6e81fed"
+    },
+    {
+      "path": "tests/PresentationChromeTest.php",
+      "source_bytes": 3849,
+      "source_sha256": "1013e9b1a868afb9cd5dbd54a4a85e879115203d5b19d9ebff36fca85ac8c833"
+    },
+    {
+      "path": "tests/HtmlSanitizerTest.php",
+      "source_bytes": 2979,
+      "source_sha256": "4c99ff163045b89460b8f440b76653f493ff0623f29ec6d99549deaaa2d945c5"
+    },
+    {
+      "path": "tests/ForumNameTest.php",
+      "source_bytes": 6490,
+      "source_sha256": "188761567f4300127bed47c6fb8fcc012cb18d8b994c3cd4330953b5e85f46f5"
+    },
+    {
+      "path": "tests/browser-simple-forum-name.test.mjs",
+      "source_bytes": 3450,
+      "source_sha256": "355d7870ba0c6f7a1244cf0a47521bb4c89ab84d75b9bb85a38703f2b2562f6e"
+    },
+    {
+      "path": "tests/browser-rich-content.test.mjs",
+      "source_bytes": 3244,
+      "source_sha256": "86fc58648ee8869c7976afc5c04ed04a3c9cc247d642bb3dfa69a66e58851cc4"
+    },
+    {
+      "path": "src/Cms/CmsClient.php",
+      "source_bytes": 4442,
+      "source_sha256": "897f70f139902cb1acc42aa978a7c7a4266f54c8a7084a6c2b87ee8d107e32e7"
+    },
+    {
+      "path": "src/Cms/ReplayJournal.php",
+      "source_bytes": 2027,
+      "source_sha256": "66c9e2d1668eede4561de32c7a0c929081000c4d492aab23c8cf0be963140b71"
+    },
+    {
+      "path": "src/Cms/UncertainMutation.php",
+      "source_bytes": 192,
+      "source_sha256": "e2ea7a1826d28c9cc43987142d89ee0d1e0b34438f2333021cbd4e0fa46c790b"
+    },
+    {
+      "path": "src/Cms/SourceContinuation.php",
+      "source_bytes": 9712,
+      "source_sha256": "5cf4b8d1b7728022127b36d9d05cc55ff383c4ac359ccc15e53f31f0f13dc2a1"
+    },
+    {
+      "path": "src/Cms/DynamicWorker.php",
+      "source_bytes": 16946,
+      "source_sha256": "4f3a214261a44448c7748b37ac687e2d74a10ee13ee9eee02091e3943930ae4a"
+    },
+    {
+      "path": "src/Cms/StaticCoordinator.php",
+      "source_bytes": 16050,
+      "source_sha256": "23bc9f4fbb6f6632e33b9b873986d3b0cab573e8abed46283a78608b21c86977"
+    },
+    {
+      "path": "src/Cms/CatalogProducer.php",
+      "source_bytes": 8443,
+      "source_sha256": "b869da6fd8ee248a830d9f96f04faa487b90b12728d5d98a5f49a2e86cb5e5c1"
+    },
+    {
+      "path": "src/Console/RefreshCmsCatalog.php",
+      "source_bytes": 1033,
+      "source_sha256": "5ab7595228443e30ace371a11f65c664c217608e35fa6e11e5c370669dd083a2"
+    },
+    {
+      "path": "src/Console/WorkDeliveries.php",
+      "source_bytes": 995,
+      "source_sha256": "f145b4aaf900c1c00781d75bc675a2531be50e539314fba3c10261ba3d93515c"
+    },
+    {
+      "path": "src/Console/ReconcileDeliveries.php",
+      "source_bytes": 1185,
+      "source_sha256": "972191b4d1e7e4b0122b7f10017c3e3e91f703658d21eaf5e434b04b9686f5f4"
+    },
+    {
+      "path": "tests/CmsStateTransportTest.php",
+      "source_bytes": 13344,
+      "source_sha256": "351962523c86d164e1bef4c5a3b2fc80a3d9ee8a826bee2c1e52d501ae9edd68"
+    },
+    {
+      "path": "tests/CmsDynamicFlatTest.php",
+      "source_bytes": 220,
+      "source_sha256": "d95688dfc6f95fb150c0c3eee3360f9d24c29337c769b5b3dcf76e6577c6516c"
+    },
+    {
+      "path": "tests/CmsDynamicDatabaseTest.php",
+      "source_bytes": 228,
+      "source_sha256": "711a8521e8d95ddc2fb47b5374cb3cd2bc24ae15bd7b6d6f66ca40202a48786c"
+    },
+    {
+      "path": "tests/CmsStaticGenerationTest.php",
+      "source_bytes": 1389,
+      "source_sha256": "984c18f97f7798df96f5665f675a299647b15b48fd366c42e924962450c96887"
+    },
+    {
+      "path": "tests/CmsCatalogFlatTest.php",
+      "source_bytes": 310,
+      "source_sha256": "ac03c5fad5c5d47af0a1b37215655f63065aa502abe79e00525276ab48ffb982"
+    },
+    {
+      "path": "tests/CmsCatalogDatabaseTest.php",
+      "source_bytes": 318,
+      "source_sha256": "2cac78fb131da207446652ccd47ee623d49efc22a1d212046d80c421518ed0c5"
+    },
+    {
+      "path": "tests/CmsCatalogStaticTest.php",
+      "source_bytes": 419,
+      "source_sha256": "a095a549fcd00e2e3663bfc6acc106963a8c5568fe187976f8a0529247ff9b7d"
+    },
+    {
+      "path": "tests/Concerns/ExercisesCmsDynamicLifecycle.php",
+      "source_bytes": 25032,
+      "source_sha256": "e9260b773ecc22df1abd46d058c9300bf97087c5b3a439ebf7e4a30936b35593"
+    },
+    {
+      "path": "tests/Concerns/ExercisesCmsCatalogProducer.php",
+      "source_bytes": 9932,
+      "source_sha256": "21ab1c6a69e65db9078b725e4d75e333ae29ab1b9cb7bd4e46ee1dc6664af92e"
+    },
+    {
+      "path": "src/Cms/ToPublication.php",
+      "source_bytes": 3987,
+      "source_sha256": "cc32bacf633f68468c5f90c0f2b3b706168add932bbd8865fbfe758fc7d690a1"
+    },
+    {
+      "path": "src/Cms/ToDelivery.php",
+      "source_bytes": 11556,
+      "source_sha256": "0f5a0f9cbdd6535262b11271a32269fb64c36d24e68e6803e5b2ce9c9689e59b"
+    },
+    {
+      "path": "src/Delivery/DeliveryWorker.php",
+      "source_bytes": 12178,
+      "source_sha256": "5bdb995b91cac3126acc84e09a86041d1abc076337f5999e16ee3f9dcab35b6d"
+    },
+    {
+      "path": "src/Presentation/DeliveryPresenter.php",
+      "source_bytes": 1102,
+      "source_sha256": "ae9365af40fa8685ee9f11c4c3699093c08dec38338ba2baf25c03fa070485cb"
+    },
+    {
+      "path": "src/Console/SyncPublications.php",
+      "source_bytes": 1736,
+      "source_sha256": "37d0cf089d843a6ba87767c61ac594d9677158320a764cd5f548698abd730dec"
+    },
+    {
+      "path": "src/Console/PrepareStaticBuild.php",
+      "source_bytes": 3592,
+      "source_sha256": "eddb43ed11bcf022d85d113d3df7ea65485336d8acdd3bb264484fe1051af048"
+    },
+    {
+      "path": "src/Console/InstallDiscussionBridge.php",
+      "source_bytes": 16275,
+      "source_sha256": "47f1239b507c8f7bdeaa1961a95d072a86197aee6910f23bcef62dd277ba7269"
+    },
+    {
+      "path": "src/Http/Controllers/PublicationSyncController.php",
+      "source_bytes": 3110,
+      "source_sha256": "4bf8ef25259c872092bd560cb67d8e96e483634c393a83c55834ef61e5b1422b"
+    },
+    {
+      "path": "resources/views/utility.blade.php",
+      "source_bytes": 3851,
+      "source_sha256": "0d39840d1ef098c689d16ff9320f7e3d229fa3edc859d2fd19fbb6fe1105a881"
+    },
+    {
+      "path": "tests/Concerns/ExercisesCmsToDelivery.php",
+      "source_bytes": 27992,
+      "source_sha256": "2f82a91874dccc5f907de809942790089ea3111ff6b0a5f93284ee485ea3ec5d"
+    },
+    {
+      "path": "tests/CmsToFlatTest.php",
+      "source_bytes": 209,
+      "source_sha256": "e0f3622b7bdbf5069f4f4cb49b3442fa6b631b2e181932367d7380ab6231a037"
+    },
+    {
+      "path": "tests/CmsToDatabaseTest.php",
+      "source_bytes": 217,
+      "source_sha256": "7dde73fb8935cb3df7a049e85d207d706e57bb7bc31e044d1f0531074f4a3c00"
+    },
+    {
+      "path": "tests/CmsToStaticTest.php",
+      "source_bytes": 310,
+      "source_sha256": "3714dd4bc3772981f08b4db38365368859f7902fb9d095a53aedf1993d0d07bb"
+    },
+    {
+      "path": "tests/InstallDiscussionBridgeTest.php",
+      "source_bytes": 9142,
+      "source_sha256": "3ce5c2a88752f6ed788d5d63a5f0a1e2dffc84e7f1771ac9910077d4215eb3d1"
+    },
+    {
+      "path": "tests/ControlPanelUtilityTest.php",
+      "source_bytes": 4031,
+      "source_sha256": "10ae6819776d5b489785b914916edb34497cb395e0ceb849c9a3512d401b7999"
+    },
+    {
+      "path": "tests/TemplateIntegrationTest.php",
+      "source_bytes": 8453,
+      "source_sha256": "7acc76330eb5e998c967e924d9834f748d20470ac43268bee0be9b0fee0be014"
+    }
+  ]
+}

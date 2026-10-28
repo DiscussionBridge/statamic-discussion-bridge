@@ -10,6 +10,7 @@ async function refresh(root) {
   const origin = exactOrigin(root.dataset.discourseOrigin);
   const topicId = positiveInteger(root.dataset.topicId);
   const topicUrl = exactTopicUrl(root.dataset.topicUrl, origin, topicId);
+  const forumName = validForumName(root.dataset.forumName);
   const [topic, poweredBy] = await Promise.all([
     publicJson(new URL(`/t/${topicId}.json`, `${origin}/`), origin),
     poweredByDiscourse(origin).catch(() => undefined),
@@ -33,7 +34,7 @@ async function refresh(root) {
   const replies = ids.map((id) => posts.get(id));
   if (replies.some((post) => !post)) throw new Error("Incomplete public reply set.");
   if (typeof poweredBy === "boolean") root.querySelector("[data-discussionbridge-powered-by]")?.toggleAttribute("hidden", !poweredBy);
-  render(root, replies, topicUrl, origin, stream.length - 1 > MAX_REPLIES);
+  render(root, replies, topicUrl, origin, stream.length - 1 > MAX_REPLIES, forumName);
   root.dataset.discussionbridgeSimpleState = "live";
 }
 
@@ -51,14 +52,14 @@ async function publicJson(url, expectedOrigin) {
   return value;
 }
 
-function render(root, replies, topicUrl, origin, truncated) {
+function render(root, replies, topicUrl, origin, truncated, forumName) {
   const attributions = root.querySelector("[data-discussionbridge-attributions]");
   const fragment = document.createDocumentFragment();
   const header = element("div", "discussionbridge-simple__header");
-  header.append(element("h2", "", "Comments"), link(topicUrl, "Open discussion")); fragment.append(header);
+  header.append(element("h2", "", "Comments"), link(topicUrl, `Open discussion on ${forumName}`)); fragment.append(header);
   if (!replies.length) {
     const empty = element("p", "discussionbridge-simple__empty", "No comments yet. ");
-    empty.append(link(topicUrl, "Start the conversation on The Bridge.")); fragment.append(empty);
+    empty.append(link(topicUrl, `Start the conversation on ${forumName}.`)); fragment.append(empty);
   } else {
     for (const post of replies.slice(0, INITIAL_REPLIES)) fragment.append(reply(post, topicUrl, origin));
     const remaining = replies.slice(INITIAL_REPLIES);
@@ -70,7 +71,7 @@ function render(root, replies, topicUrl, origin, truncated) {
   }
   if (truncated) {
     const limit = element("p", "discussionbridge-simple__limit", `Showing the first ${MAX_REPLIES} comments. `);
-    limit.append(link(topicUrl, "View the complete discussion on The Bridge"), "."); fragment.append(limit);
+    limit.append(link(topicUrl, `View the complete discussion on ${forumName}`), "."); fragment.append(limit);
   }
   root.replaceChildren(fragment, ...(attributions ? [attributions] : []));
 }
@@ -115,6 +116,7 @@ function sanitizedBody(cooked, origin) {
 }
 
 function validPost(post, topicId) { return post && typeof post === "object" && Number.isSafeInteger(post.id) && post.id > 0 && Number.isSafeInteger(post.post_number) && post.post_number > 1 && post.topic_id === topicId && typeof post.username === "string" && post.username.trim() && post.username.length <= 100 && typeof post.cooked === "string" && typeof post.created_at === "string" && Number.isFinite(Date.parse(post.created_at)); }
+function validForumName(value) { if (typeof value !== "string" || !value.trim() || new TextEncoder().encode(value).byteLength > 200 || /\p{Cc}|[\uD800-\uDFFF]/u.test(value)) throw new Error("Invalid forum name."); return value; }
 function positiveInteger(value) { const text = typeof value === "number" ? String(value) : value; if (typeof text !== "string" || !/^[1-9]\d*$/.test(text) || !Number.isSafeInteger(Number(text))) throw new Error("Invalid positive integer."); return Number(text); }
 function exactOrigin(value) { const url = new URL(value); if (url.protocol !== "https:" || url.username || url.password || url.pathname !== "/" || url.search || url.hash) throw new Error("Invalid forum origin."); return url.origin; }
 function exactTopicUrl(value, origin, topicId) { const url = new URL(value); if (url.protocol !== "https:" || url.origin !== origin || !new RegExp(`/t/(?:[^/]+/)?${topicId}(?:/|$)`).test(url.pathname)) throw new Error("Invalid topic URL."); return url.href.replace(/\/$/, ""); }

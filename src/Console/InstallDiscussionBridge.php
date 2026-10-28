@@ -2,8 +2,10 @@
 
 namespace CodeWorksLabs\DiscussionBridgeStatamic\Console;
 
-use CodeWorksLabs\DiscussionBridgeStatamic\Transport\BridgeClient;
+use CodeWorksLabs\DiscussionBridgeStatamic\Cms\CmsClient;
 use CodeWorksLabs\DiscussionBridgeStatamic\Version;
+use CodeWorksLabs\DiscussionBridgeStatamic\Support\PresentationAssets;
+use CodeWorksLabs\DiscussionBridgeStatamic\Support\TemplateIntegration;
 use Illuminate\Console\Command;
 use RuntimeException;
 use Throwable;
@@ -16,14 +18,16 @@ class InstallDiscussionBridge extends Command
         {--connection-id= : Content Connection ID}
         {--secret-file= : Absolute protected secret-file path}
         {--lane= : Optional connection lane}
+        {--profile= : statamic_flat, statamic_db or statamic_ssg native profile}
         {--collections=pages : Comma-separated Statamic collection handles}
-        {--native-author-id= : Statamic user ID used as the default native publication author}
         {--source-author-name= : Source author reported to DiscussionBridge}
-        {--source-author-profile-url= : Optional same-site author profile URL}';
+        {--source-author-profile-url= : Optional same-site author profile URL}
+        {--rich-content : Enable and publish the optional bundled Mermaid renderer}
+        {--templates : Publish additive entry template fragments without overwriting existing files}';
 
     protected $description = 'Configure, migrate, and verify DiscussionBridge for this Statamic installation';
 
-    public function handle(BridgeClient $client): int
+    public function handle(CmsClient $client, TemplateIntegration $integration): int
     {
         try {
             $forumUrl = $this->origin($this->value('forum-url', 'DiscussionBridge forum URL'));
@@ -47,11 +51,11 @@ class InstallDiscussionBridge extends Command
             if ($lane !== '' && preg_match('/\A[a-z0-9][a-z0-9_-]{0,63}\z/', $lane) !== 1) {
                 throw new RuntimeException('Connection lane is invalid.');
             }
-            $collections = $this->collections($this->value('collections', 'Published collections', 'pages'));
-            $nativeAuthorId = $this->value('native-author-id', 'Native publication service author ID');
-            if (strlen($nativeAuthorId) > 255 || preg_match('/[\x00-\x1f\x7f]/', $nativeAuthorId)) {
-                throw new RuntimeException('Native publication service author ID is invalid.');
+            $profile = $this->value('profile', 'Native profile: statamic_flat, statamic_db or statamic_ssg', config('discussionbridge.cms_profile'));
+            if (! in_array($profile, ['statamic_flat', 'statamic_db', 'statamic_ssg'], true)) {
+                throw new RuntimeException('Native Statamic profile is invalid.');
             }
+            $collections = $this->collections($this->value('collections', 'Published collections', 'pages'));
             $authorName = trim(strip_tags($this->value('source-author-name', 'Source author name', (string) config('app.name', 'Statamic'))));
             if ($authorName === '' || strlen($authorName) > 200) {
                 throw new RuntimeException('Source author name is invalid.');
@@ -71,17 +75,33 @@ class InstallDiscussionBridge extends Command
                 'DISCUSSIONBRIDGE_CONNECTION_ID' => $connectionId,
                 'DISCUSSIONBRIDGE_SECRET_FILE' => $secretFile,
                 'DISCUSSIONBRIDGE_LANE' => $lane,
+                'DISCUSSIONBRIDGE_CMS_PROFILE' => $profile,
                 'DISCUSSIONBRIDGE_COLLECTIONS' => implode(',', $collections),
-                'DISCUSSIONBRIDGE_NATIVE_AUTHOR_ID' => $nativeAuthorId,
                 'DISCUSSIONBRIDGE_SOURCE_AUTHOR_NAME' => $authorName,
                 'DISCUSSIONBRIDGE_SOURCE_AUTHOR_PROFILE_URL' => $authorProfile,
             ];
+            if ($this->option('rich-content')) {
+                $values['DISCUSSIONBRIDGE_RICH_CONTENT'] = 'true';
+            }
             $backup = $this->updateEnvironment(base_path('.env'), $values);
 
             if ($this->call('config:clear') !== self::SUCCESS
                 || $this->call('migrate', ['--force' => true]) !== self::SUCCESS
                 || $this->call('vendor:publish', ['--tag' => 'statamic-discussion-bridge', '--force' => true]) !== self::SUCCESS) {
                 throw new RuntimeException('Statamic configuration, migration, or Control Panel asset publication failed.');
+            }
+            if ($this->option('rich-content')) {
+                config(['discussionbridge.rich_content' => true]);
+            }
+            if (PresentationAssets::selected()) {
+                if ($this->call('vendor:publish', ['--tag' => PresentationAssets::RICH_TAG]) !== self::SUCCESS) {
+                    throw new RuntimeException('Selected DiscussionBridge rich-content asset publication failed.');
+                }
+                PresentationAssets::verifyRich();
+            }
+            if ($this->option('templates')
+                && $this->call('vendor:publish', ['--tag' => PresentationAssets::TEMPLATES_TAG]) !== self::SUCCESS) {
+                throw new RuntimeException('Optional DiscussionBridge template publication failed.');
             }
             config([
                 'discussionbridge.enabled' => true,
@@ -90,24 +110,45 @@ class InstallDiscussionBridge extends Command
                 'discussionbridge.connection_id' => $connectionId,
                 'discussionbridge.secret_file' => $secretFile,
                 'discussionbridge.lane' => $lane,
+                'discussionbridge.cms_profile' => $profile,
                 'discussionbridge.collections' => $collections,
-                'discussionbridge.native_author_id' => $nativeAuthorId,
                 'discussionbridge.source_author_name' => $authorName,
                 'discussionbridge.source_author_profile_url' => $authorProfile,
                 'discussionbridge.adapter_id' => 'statamic-discussion-bridge',
-                'discussionbridge.adapter_version' => Version::PROTOCOL,
+                'discussionbridge.adapter_version' => Version::VALUE,
             ]);
 
-            if ($this->call('discussionbridge:refresh-platform-catalog') !== self::SUCCESS) {
-                throw new RuntimeException('The Statamic platform catalog could not be registered with The Bridge.');
+            $connection = $client->request('V4-01');
+            if ($connection->connection_id !== $connectionId || $connection->destination_origin !== $siteOrigin
+                || $connection->profile !== app(\CodeWorksLabs\DiscussionBridgeStatamic\Cms\NativePolicy::class)->profile()
+                || $lane !== '' && $connection->publication_lane !== $lane) {
+                throw new RuntimeException('The current V4 connection does not match this native configuration.');
             }
-            $response = $client->records();
-            if (! is_array($response['bridge_records'] ?? null) || ! is_array($response['pagination'] ?? null)) {
-                throw new RuntimeException('The Bridge returned an invalid verification response.');
+            $presentation = $integration->inspect(in_array('from_discourse', $connection->directions, true)
+                ? $this->inventory($client) : []);
+            if (in_array('from_discourse', $connection->directions, true) && $connection->policy->enabled) {
+                $collection = \Statamic\Facades\Collection::findByHandle('discussionbridge');
+                if (! $collection || $collection->orderable() || $collection->propagate() || $collection->autoGeneratesTitles()) {
+                    throw new RuntimeException('The supported nonpropagating native destination collection is unavailable.');
+                }
+                $integration->verify($collection->template(), 'from_discourse', $connection->policy->presentation_mode);
+                $presentation['checked']++;
+            }            if ($presentation['incomplete'] !== []) {
+                $this->error('Connection configuration verified; selected native presentation integration is incomplete.');
+                foreach (array_slice($presentation['incomplete'], 0, 10) as $condition) {
+                    $this->line($condition);
+                }
+                return self::FAILURE;
             }
 
             $this->newLine();
-            $this->info('DiscussionBridge installation verified.');
+            if ($presentation['checked'] === 0) {
+                $this->info('DiscussionBridge connection configuration verified.');
+                $this->line('No native article/discussion capability is selected yet; its template integration remains unverified.');
+            } else {
+                $this->info('DiscussionBridge selected native template wiring verified.');
+                $this->line('Native rendered/public output and Flat/DB/SSG qualification remain separate gates.');
+            }
             $this->line('Adapter: statamic-discussion-bridge');
             $this->line('Adapter version: '.Version::VALUE);
             $this->line('Connection: '.$connectionId);
@@ -131,14 +172,38 @@ class InstallDiscussionBridge extends Command
         return trim((string) $value);
     }
 
+    private function inventory(CmsClient $client): iterable
+    {
+        $cursor = null;
+        $seen = [];
+        $cursors = [];
+        for ($page = 0; $page < 10000; $page++) {
+            $response = $client->request('V4-10', [], $cursor === null ? new \stdClass : (object) ['cursor' => $cursor]);
+            foreach ($response->items as $mapping) {
+                if (isset($seen[$mapping->mapping_id])) {
+                    throw new RuntimeException('The native presentation mapping inventory is incomplete.');
+                }
+                $seen[$mapping->mapping_id] = true;
+                yield $mapping;
+            }
+            if ($response->next_cursor === null) {
+                return;
+            }
+            if (isset($cursors[$response->next_cursor])) {
+                throw new RuntimeException('The native presentation mapping cursor repeated.');
+            }
+            $cursors[$cursor = $response->next_cursor] = true;
+        }
+        throw new RuntimeException('The native presentation mapping inventory exceeds the bounded traversal.');
+    }
     private function origin(string $value): string
     {
-        if ($value === '' || strlen($value) > 2048) {
+        if ($value === '' || strlen($value) > 2048 || str_contains($value, '\\') || preg_match('/[\x00-\x1F\x7F]/', $value)) {
             throw new RuntimeException('DiscussionBridge origins are invalid.');
         }
         $parts = parse_url($value);
         if (! is_array($parts) || ($parts['scheme'] ?? null) !== 'https' || empty($parts['host'])
-            || isset($parts['user'], $parts['pass'], $parts['query'], $parts['fragment'])
+            || isset($parts['user']) || isset($parts['pass']) || isset($parts['query']) || isset($parts['fragment'])
             || ! in_array($parts['path'] ?? '', ['', '/'], true)) {
             throw new RuntimeException('DiscussionBridge origins must be HTTPS origins without paths.');
         }
@@ -164,12 +229,15 @@ class InstallDiscussionBridge extends Command
 
     private function sameSiteUrl(string $value, string $siteOrigin): void
     {
+        if (strlen($value) > 2048 || str_contains($value, '\\') || preg_match('/[\x00-\x1F\x7F]/', $value)) {
+            throw new RuntimeException('Source author profile URL is invalid.');
+        }
         $url = parse_url($value);
         $site = parse_url($siteOrigin);
         if (! is_array($url) || ! is_array($site) || ($url['scheme'] ?? null) !== 'https'
             || strtolower((string) ($url['host'] ?? '')) !== strtolower((string) ($site['host'] ?? ''))
             || ($url['port'] ?? null) !== ($site['port'] ?? null)
-            || isset($url['user'], $url['pass'], $url['query'], $url['fragment'])) {
+            || isset($url['user']) || isset($url['pass']) || isset($url['query']) || isset($url['fragment'])) {
             throw new RuntimeException('Source author profile URL must belong to this Statamic site.');
         }
     }

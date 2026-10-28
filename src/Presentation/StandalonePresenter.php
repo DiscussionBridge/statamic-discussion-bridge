@@ -3,7 +3,8 @@
 namespace CodeWorksLabs\DiscussionBridgeStatamic\Presentation;
 
 use CodeWorksLabs\DiscussionBridgeStatamic\Support\Configuration;
-use CodeWorksLabs\DiscussionBridgeStatamic\Transport\BridgeClient;
+use CodeWorksLabs\DiscussionBridgeStatamic\Support\ForumName;
+use CodeWorksLabs\DiscussionBridgeStatamic\Transport\NativeForumClient;
 use DateTimeImmutable;
 use RuntimeException;
 use Throwable;
@@ -15,14 +16,14 @@ class StandalonePresenter
     private const MAX_REPLIES = 50;
 
     public function __construct(
-        private readonly BridgeClient $client,
+        private readonly NativeForumClient $client,
         private readonly Configuration $configuration,
         private readonly HtmlSanitizer $sanitizer,
         private readonly PresentationChrome $chrome,
     ) {
     }
 
-    public function simple(int $topicId): string
+    public function simple(int $topicId, ?string $forumName = null): string
     {
         $topic = $this->client->publicTopic($topicId);
         $postStream = $topic['post_stream'] ?? null;
@@ -99,8 +100,10 @@ class StandalonePresenter
                 .'</article>';
         }
 
+        $forumName = ForumName::validate($forumName ?? $this->client->forumName());
+        $escapedForumName = htmlspecialchars($forumName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         if ($renderedReplies === []) {
-            $replies = '<p class="discussionbridge-simple__empty">No comments yet.</p>';
+            $replies = '<p class="discussionbridge-simple__empty">No comments yet. <a href="'.htmlspecialchars($topicUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" rel="nofollow noopener noreferrer">Start the conversation on '.$escapedForumName.'.</a></p>';
         } else {
             $replies = implode('', array_slice($renderedReplies, 0, self::INITIAL_REPLIES));
             $remaining = array_slice($renderedReplies, self::INITIAL_REPLIES);
@@ -109,7 +112,7 @@ class StandalonePresenter
                 $replies .= '<details class="discussionbridge-simple__more"><summary><span class="discussionbridge-simple__more-closed">Show '.$count.' more '.($count === 1 ? 'comment' : 'comments').'</span><span class="discussionbridge-simple__more-open">Show fewer comments</span></summary>'.implode('', $remaining).'</details>';
             }
             if (count($stream) - 1 > self::MAX_REPLIES) {
-                $replies .= '<p class="discussionbridge-simple__limit">Showing the first '.self::MAX_REPLIES.' comments. <a href="'.htmlspecialchars($topicUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" rel="nofollow noopener noreferrer">View the complete discussion on The Bridge</a>.</p>';
+                $replies .= '<p class="discussionbridge-simple__limit">Showing the first '.self::MAX_REPLIES.' comments. <a href="'.htmlspecialchars($topicUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" rel="nofollow noopener noreferrer">View the complete discussion on '.$escapedForumName.'</a>.</p>';
             }
         }
 
@@ -122,8 +125,8 @@ class StandalonePresenter
 
         return $this->chrome->styles()
             .'<section class="discussionbridge-simple">'
-            .'<div data-discussionbridge-simple-live data-discussionbridge-simple-state="snapshot" data-discourse-origin="'.htmlspecialchars($forumOrigin, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" data-topic-id="'.$topicId.'" data-topic-url="'.htmlspecialchars($topicUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'">'
-            .'<div class="discussionbridge-simple__header"><h2>Comments</h2><a href="'.htmlspecialchars($topicUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" rel="nofollow noopener noreferrer">Open discussion</a></div>'
+            .'<div data-discussionbridge-simple-live data-discussionbridge-simple-state="snapshot" data-discourse-origin="'.htmlspecialchars($forumOrigin, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" data-topic-id="'.$topicId.'" data-topic-url="'.htmlspecialchars($topicUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" data-forum-name="'.$escapedForumName.'">'
+            .'<div class="discussionbridge-simple__header"><h2>Comments</h2><a href="'.htmlspecialchars($topicUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" rel="nofollow noopener noreferrer">Open discussion on '.$escapedForumName.'</a></div>'
             .$replies
             .'<p data-discussionbridge-simple-status hidden>Showing the saved comment snapshot. Open the discussion for current replies.</p>'
             .$this->chrome->discourseCredit($poweredBy)
@@ -131,24 +134,25 @@ class StandalonePresenter
             .'<script>'.$this->simpleLoader().'</script>';
     }
 
-    public function full(string $canonicalUrl): string
+    public function full(string $canonicalUrl, ?string $forumName = null): string
     {
         return $this->chrome->standardEmbed(
             $this->configuration->canonicalPageUrl($canonicalUrl),
             $this->configuration->forumOrigin(),
+            ForumName::validate($forumName ?? $this->client->forumName()),
         );
     }
 
-    public function fullTopic(int $topicId): string
+    public function fullTopic(int $topicId, ?string $forumName = null): string
     {
         if ($topicId <= 0) {
             throw new RuntimeException('The Discourse topic identity is invalid.');
         }
 
-        return $this->chrome->standardTopicEmbed($topicId, $this->configuration->forumOrigin());
+        return $this->chrome->standardTopicEmbed($topicId, $this->configuration->forumOrigin(), ForumName::validate($forumName ?? $this->client->forumName()));
     }
 
-    public function interactiveTopic(int $topicId): string
+    public function interactiveTopic(int $topicId, ?string $forumName = null): string
     {
         if ($topicId <= 0) {
             throw new RuntimeException('The Discourse topic identity is invalid.');
@@ -156,7 +160,7 @@ class StandalonePresenter
 
         $forumOrigin = $this->configuration->forumOrigin();
 
-        return $this->chrome->discussion($topicId, $forumOrigin.'/t/'.$topicId, $forumOrigin, false);
+        return $this->chrome->discussion($topicId, $forumOrigin.'/t/'.$topicId, $forumOrigin, false, ForumName::validate($forumName ?? $this->client->forumName()));
     }
 
     /** @param array<string, mixed> $post */

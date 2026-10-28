@@ -7,17 +7,6 @@ use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\PresentationChrome;
 
 class PresentationChromeTest extends TestCase
 {
-    public function test_bundled_rich_content_covers_discourse_tables_mermaid_and_math(): void
-    {
-        $asset = file_get_contents(__DIR__ . '/../resources/dist/discussionbridge-rich-content.js');
-
-        $this->assertIsString($asset);
-        $this->assertStringContainsString('discussionbridge-mermaid', $asset);
-        $this->assertStringContainsString('discussionbridge-math', $asset);
-        $this->assertStringContainsString('.md-table', $asset);
-        $this->assertStringContainsString('mathml', $asset);
-    }
-
     public function test_it_builds_native_navigation_and_interactive_discussion(): void
     {
         $content = (new PageNavigation())->render('<h2>First section</h2><p>One</p><h2>Second section</h2><p>Two</p>');
@@ -41,6 +30,7 @@ class PresentationChromeTest extends TestCase
         $discussion = (new PresentationChrome())->standardEmbed(
             'https://statamic.example/discussionbridge/full',
             'https://forum.example',
+            'Native forum',
         );
 
         $this->assertStringContainsString('"discourseEmbedUrl":"https://statamic.example/discussionbridge/full"', $discussion);
@@ -54,7 +44,7 @@ class PresentationChromeTest extends TestCase
     {
         $chrome = new PresentationChrome();
         $discussion = $chrome->discussion(42, 'https://forum.example/t/topic/42', 'https://forum.example', false);
-        $full = $chrome->standardEmbed('https://statamic.example/discussionbridge/full', 'https://forum.example');
+        $full = $chrome->standardEmbed('https://statamic.example/discussionbridge/full', 'https://forum.example', 'Native forum');
 
         $this->assertSame(1, substr_count($discussion, 'data-discussionbridge-presentation'));
         $this->assertSame(1, substr_count($full, 'data-discussionbridge-presentation'));
@@ -64,7 +54,7 @@ class PresentationChromeTest extends TestCase
 
     public function test_standard_topic_embed_reuses_one_discussion_without_enabling_full_app(): void
     {
-        $discussion = (new PresentationChrome())->standardTopicEmbed(56, 'https://forum.example');
+        $discussion = (new PresentationChrome())->standardTopicEmbed(56, 'https://forum.example', 'Native forum');
 
         $this->assertStringContainsString('"topicId":56', $discussion);
         $this->assertStringContainsString('https://forum.example/t/56', $discussion);

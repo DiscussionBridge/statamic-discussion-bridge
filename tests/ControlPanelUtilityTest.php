@@ -3,7 +3,8 @@
 namespace CodeWorksLabs\DiscussionBridgeStatamic\Tests;
 
 use CodeWorksLabs\DiscussionBridgeStatamic\Http\Controllers\PublicationSyncController;
-use CodeWorksLabs\DiscussionBridgeStatamic\Publication\PublicationSynchronizer;
+use CodeWorksLabs\DiscussionBridgeStatamic\Cms\DynamicWorker;
+use Composer\InstalledVersions;
 use Illuminate\Support\Facades\Cache;
 use Mockery;
 use Statamic\Statamic;
@@ -22,19 +23,27 @@ class ControlPanelUtilityTest extends TestCase
         $this->assertSame('discussionbridge::utility', $utility->view());
         $this->assertNotNull($utility->routes());
         $data = $utility->viewData(request());
-        $this->assertSame('0.2.0-alpha.48', $data['adapterVersion']);
+        $this->assertSame('0.4.0-alpha.1', $data['adapterVersion']);
         $this->assertSame('dbc_0123456789abcdef01234567', $data['connectionId']);
         $this->assertSame(0, $data['publicationCount']);
         $this->assertArrayHasKey('lastResult', $data);
+        $staticGenerationAvailable = InstalledVersions::isInstalled('statamic/ssg');
+        $this->assertSame($staticGenerationAvailable, $data['staticGenerationAvailable']);
 
         $html = view($utility->view(), $data)->render();
         $this->assertStringContainsString('DiscussionBridge for Statamic', $html);
         $this->assertStringContainsString('Connection ready', $html);
-        $this->assertStringContainsString('Statamic entries from The Bridge', $html);
         $this->assertStringContainsString('Publish from Discourse', $html);
         $this->assertStringContainsString('Synchronize now', $html);
         $this->assertStringContainsString('no duplicate pages are created', $html);
-        $this->assertStringNotContainsString('Static site generation', $html);
+        $this->assertStringContainsString('Static site generation', $html);
+        if ($staticGenerationAvailable) {
+            $this->assertStringContainsString('Managed by Statamic SSG', $html);
+            $this->assertStringContainsString('protected generation, configured deployment and restoration hooks', $html);
+        } else {
+            $this->assertStringContainsString('Not active for this profile', $html);
+            $this->assertStringContainsString('This Statamic profile renders dynamically', $html);
+        }
         $this->assertStringContainsString('class="db-utility__metrics"', $html);
         $this->assertStringNotContainsString('<style', $html);
         $this->assertStringNotContainsString((string) config('discussionbridge.secret_file'), $html);
@@ -48,23 +57,18 @@ class ControlPanelUtilityTest extends TestCase
 
     public function test_control_panel_synchronization_persists_a_safe_last_run_summary(): void
     {
-        $synchronizer = Mockery::mock(PublicationSynchronizer::class);
-        $synchronizer->shouldReceive('synchronize')->once()->andReturn([
-            'created' => 0,
-            'updated' => 1,
-            'unchanged' => 0,
-            'skipped' => 1,
-            'failed' => 0,
-            'errors' => [],
+        $synchronizer = Mockery::mock(DynamicWorker::class);
+        $synchronizer->shouldReceive('run')->once()->andReturn([
+            'processed' => 2, 'verified' => 1, 'attention' => 0, 'local_issues' => 1,
         ]);
 
         request()->headers->set('referer', 'https://statamic.example/cp/utilities/discussionbridge');
         app(PublicationSyncController::class)($synchronizer);
 
         $lastResult = Cache::get(PublicationSyncController::LAST_RESULT_CACHE_KEY);
-        $this->assertTrue($lastResult['succeeded']);
-        $this->assertSame(1, $lastResult['updated']);
-        $this->assertSame(1, $lastResult['skipped']);
+        $this->assertFalse($lastResult['succeeded']);
+        $this->assertSame(1, $lastResult['verified']);
+        $this->assertSame(1, $lastResult['local_issues']);
         $this->assertNotEmpty($lastResult['completed_at']);
         $this->assertArrayNotHasKey('secret', $lastResult);
     }

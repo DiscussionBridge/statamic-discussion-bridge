@@ -3,20 +3,17 @@
 namespace CodeWorksLabs\DiscussionBridgeStatamic\Console;
 
 use CodeWorksLabs\DiscussionBridgeStatamic\Delivery\DeliveryWorker;
-use CodeWorksLabs\DiscussionBridgeStatamic\Publication\StaticPublicationTransaction;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use CodeWorksLabs\DiscussionBridgeStatamic\Support\PresentationAssets;
 use Throwable;
 
 class PrepareStaticBuild extends Command
 {
-    protected $signature = 'discussionbridge:ssg-prepare
-        {--limit=100 : Maximum deliveries to process per pass}
-        {--passes=10 : Maximum delivery passes}
-        {--bounded-publication-work : Treat an absent prepared transaction as an empty bounded publication queue}';
-    protected $description = 'Reconcile and deliver DiscussionBridge records before generating a static Statamic site';
+    protected $signature = 'discussionbridge:ssg-prepare {--limit=100 : Maximum deliveries to process per pass} {--passes=10 : Maximum delivery passes}';
+    protected $description = 'Reconcile native To deliveries and perform protected From static publication';
 
-    public function handle(DeliveryWorker $worker, StaticPublicationTransaction $transaction): int
+    public function handle(DeliveryWorker $worker): int
     {
         $limit = $this->boundedInteger('limit', 1, 100);
         $passes = $this->boundedInteger('passes', 1, 25);
@@ -29,6 +26,11 @@ class PrepareStaticBuild extends Command
         if ($this->call('discussionbridge:reconcile') !== self::SUCCESS) {
             $this->error('DiscussionBridge reconciliation failed. Static generation is blocked.');
 
+            return self::FAILURE;
+        }
+
+        if (config('discussionbridge.cms_profile') !== 'statamic_ssg') {
+            $this->error('The configured native profile must be statamic_ssg.');
             return self::FAILURE;
         }
 
@@ -69,34 +71,23 @@ class PrepareStaticBuild extends Command
             return self::FAILURE;
         }
 
-        try {
-            $preparedTransaction = $transaction->preparedForStaticBuild();
-        } catch (Throwable $error) {
-            $this->error(substr($error->getMessage(), 0, 300));
-
-            return self::FAILURE;
-        }
-
-        if ($preparedTransaction) {
-            $this->line(json_encode([
-                'publication_sync' => 'bounded_transaction',
-            ], JSON_THROW_ON_ERROR));
-
-            return self::SUCCESS;
-        }
-
-        if ((bool) $this->option('bounded-publication-work')) {
-            $this->line(json_encode([
-                'publication_sync' => 'bounded_queue_empty',
-            ], JSON_THROW_ON_ERROR));
-
-            return self::SUCCESS;
-        }
-
         if ($this->call('discussionbridge:sync-publications') !== self::SUCCESS) {
             $this->error('DiscussionBridge From Discourse publication sync failed. Static generation is blocked.');
 
             return self::FAILURE;
+        }
+
+        if (PresentationAssets::selected()) {
+            try {
+                if ($this->call('vendor:publish', ['--tag' => PresentationAssets::RICH_TAG]) !== self::SUCCESS) {
+                    throw new \RuntimeException('Selected DiscussionBridge rich-content asset publication failed.');
+                }
+                PresentationAssets::verifyRich();
+            } catch (Throwable $error) {
+                $this->error($error->getMessage());
+
+                return self::FAILURE;
+            }
         }
 
         return self::SUCCESS;

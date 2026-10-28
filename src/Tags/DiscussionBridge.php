@@ -4,13 +4,16 @@ namespace CodeWorksLabs\DiscussionBridgeStatamic\Tags;
 
 use CodeWorksLabs\DiscussionBridgeStatamic\Delivery\PublishedContent;
 use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\PageNavigation;
-use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\RecordPresenter;
 use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\DeliveryPresenter;
 use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\StandalonePresenter;
 use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\PublicationPresenter;
 use Statamic\Facades\Entry;
 use Statamic\Tags\Tags;
 use Throwable;
+use CodeWorksLabs\DiscussionBridgeStatamic\Support\PresentationAssets;
+use CodeWorksLabs\DiscussionBridgeStatamic\Support\ForumName;
+use CodeWorksLabs\DiscussionBridgeStatamic\Transport\NativeForumClient;
+use RuntimeException;
 
 class DiscussionBridge extends Tags
 {
@@ -18,16 +21,21 @@ class DiscussionBridge extends Tags
 
     public function record(): string
     {
-        $resourceId = $this->params->get('resource');
-        if (! is_string($resourceId) || ! preg_match('/\A[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/i', $resourceId)) {
+        $resource = $this->params->get('resource');
+        if (! is_string($resource)) {
             return '';
         }
-
         try {
-            return app(RecordPresenter::class)->render(strtolower($resourceId));
+            $entries = Entry::query()->where('discussionbridge_resource_id', $resource)->limit(2)->get();
+            if ($entries->count() !== 1 || $entries->first()->get('discussionbridge_cms_owned') !== true) {
+                throw new RuntimeException('Current native resource binding is unavailable or ambiguous.');
+            }
+            $entry = $entries->first();
+            return $entry->published() && $entry->get('discussionbridge_source_status') !== 'withdrawn'
+                ? app(\CodeWorksLabs\DiscussionBridgeStatamic\Cms\OwnedFragments::class)->article($entry)
+                    .app(\CodeWorksLabs\DiscussionBridgeStatamic\Cms\OwnedFragments::class)->discussion($entry) : '';
         } catch (Throwable $error) {
             report($error);
-
             return '<p class="discussionbridge-unavailable">Discussion unavailable.</p>';
         }
     }
@@ -73,10 +81,20 @@ class DiscussionBridge extends Tags
 
         try {
             $entry = Entry::find($entryId);
-
-            return $entry
-                ? '<article class="discussionbridge-article">'.app(PageNavigation::class)->render(PublishedContent::fromEntry($entry)).'</article>'
-                : '';
+            if (! $entry) {
+                return '';
+            }
+            if ($entry->get('discussionbridge_cms_owned') === true) {
+                return $entry->published() && $entry->get('discussionbridge_source_status') !== 'withdrawn'
+                    ? app(\CodeWorksLabs\DiscussionBridgeStatamic\Cms\OwnedFragments::class)->article($entry) : '';
+            }
+            $sourceFrame = $entry->get('discussionbridge_publish') === true
+                ? app(\CodeWorksLabs\DiscussionBridgeStatamic\Cms\ToSourceArticleProfile::class)->renderIfCurrent($entry) : null;
+            if ($sourceFrame !== null) {
+                return $sourceFrame;
+            }
+            $content = PublishedContent::portableFromEntry($entry);
+            return \CodeWorksLabs\DiscussionBridgeStatamic\Cms\ToSourceArticleProfile::plainArticle($content);
         } catch (Throwable $error) {
             report($error);
 
@@ -86,6 +104,9 @@ class DiscussionBridge extends Tags
 
     public function simple(): string
     {
+        if (($cms = $this->ownedDiscussion('simple')) !== null) {
+            return $cms;
+        }
         $topic = $this->params->get('topic');
         if (! is_string($topic) && ! is_int($topic)) {
             return '';
@@ -96,7 +117,7 @@ class DiscussionBridge extends Tags
         }
 
         try {
-            return app(StandalonePresenter::class)->simple($topic);
+            return app(StandalonePresenter::class)->simple($topic, $this->nativeForumName($topic));
         } catch (Throwable $error) {
             report($error);
 
@@ -106,12 +127,15 @@ class DiscussionBridge extends Tags
 
     public function full(): string
     {
+        if (($cms = $this->ownedDiscussion('full')) !== null) {
+            return $cms;
+        }
         $topic = $this->params->get('topic');
         if (is_string($topic) || is_int($topic)) {
             $topic = filter_var($topic, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
             if (is_int($topic)) {
                 try {
-                    return app(StandalonePresenter::class)->fullTopic($topic);
+                    return app(StandalonePresenter::class)->fullTopic($topic, $this->nativeForumName($topic));
                 } catch (Throwable $error) {
                     report($error);
 
@@ -136,6 +160,9 @@ class DiscussionBridge extends Tags
 
     public function interactive(): string
     {
+        if (($cms = $this->ownedDiscussion('interactive')) !== null) {
+            return $cms;
+        }
         $topic = $this->params->get('topic');
         if (! is_string($topic) && ! is_int($topic)) {
             return '';
@@ -146,12 +173,39 @@ class DiscussionBridge extends Tags
         }
 
         try {
-            return app(StandalonePresenter::class)->interactiveTopic($topic);
+            return app(StandalonePresenter::class)->interactiveTopic($topic, $this->nativeForumName($topic));
         } catch (Throwable $error) {
             report($error);
 
             return '<p class="discussionbridge-unavailable">Discussion unavailable.</p>';
         }
+    }
+
+    private function ownedDiscussion(string $mode): ?string
+    {
+        $entryId = $this->entryId();
+        $entry = $entryId === null ? null : Entry::find($entryId);
+        if (! $entry || $entry->get('discussionbridge_cms_owned') !== true) {
+            return null;
+        }
+        if ($entry->get('discussionbridge_mode') !== $mode
+            || (string) $this->params->get('topic') !== $entry->get('discussionbridge_topic_id')) {
+            return '<p class="discussionbridge-unavailable">Selected discussion integration requires attention.</p>';
+        }
+        return $entry->published() && $entry->get('discussionbridge_source_status') !== 'withdrawn'
+            ? app(\CodeWorksLabs\DiscussionBridgeStatamic\Cms\OwnedFragments::class)->discussion($entry) : '';
+    }
+
+    private function nativeForumName(int $topicId): ?string
+    {
+        $entryId = $this->entryId();
+        $entry = $entryId === null ? null : Entry::find($entryId);
+        if (! $entry || $entry->get('discussionbridge_native_publication') !== true
+            || (int) $entry->get('discussionbridge_topic_id') !== $topicId) {
+            return null;
+        }
+
+        return ForumName::validate($entry->get('discussionbridge_forum_name') ?? app(NativeForumClient::class)->publicForumTitle());
     }
 
     private function entryId(): ?string

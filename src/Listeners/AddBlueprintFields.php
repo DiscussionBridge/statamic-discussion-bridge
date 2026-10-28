@@ -8,6 +8,11 @@ class AddBlueprintFields
 {
     public function handle(EntryBlueprintFound $event): void
     {
+        if ($event->entry?->get('discussionbridge_cms_owned') === true) {
+            // Imported CMS objects use server Policy and decimal-string topic
+            // identity; To opt-in/mode/integer fields do not govern this object.
+            return;
+        }
         if (! $event->entry || ! in_array($event->entry->collectionHandle(), config('discussionbridge.collections', []), true)) {
             return;
         }
@@ -31,8 +36,8 @@ class AddBlueprintFields
         $event->blueprint->ensureField('discussionbridge_mode', [
             'type' => 'select',
             'display' => 'DiscussionBridge presentation mode',
-            'instructions' => 'Optional plugin-free Simple or Full comments presentation for this entry.',
-            'options' => ['simple' => 'Simple', 'full' => 'Full'],
+            'instructions' => 'Optional Simple, Full or plugin-backed Interactive presentation for this entry.',
+            'options' => ['simple' => 'Simple', 'full' => 'Full', 'interactive' => 'Interactive'],
             'clearable' => true,
             'width' => 50,
         ], 'sidebar');

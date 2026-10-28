@@ -1,47 +1,19 @@
 {
   "name": "codeworkslabs/statamic-discussion-bridge",
-  "description": "Statamic publishing adapter for DiscussionBridge",
+  "description": "Statamic publishing adapter for DiscussionBridge V4",
   "type": "statamic-addon",
   "license": "MIT",
-  "version": "0.2.0-alpha.48",
-  "autoload": {
-    "psr-4": {
-      "CodeWorksLabs\\DiscussionBridgeStatamic\\": "src/"
-    }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "CodeWorksLabs\\DiscussionBridgeStatamic\\Tests\\": "tests/"
-    }
-  },
-  "require": {
-    "php": "^8.3",
-    "statamic/cms": "^6.0"
-  },
-  "require-dev": {
-    "orchestra/testbench": "^10.8",
-    "phpunit/phpunit": "^12.5"
-  },
+  "version": "0.4.0-alpha.1",
+  "autoload": {"psr-4": {"CodeWorksLabs\\DiscussionBridgeStatamic\\": "src/"}},
+  "autoload-dev": {"psr-4": {"CodeWorksLabs\\DiscussionBridgeStatamic\\Tests\\": "tests/"}},
+  "require": {"php": "^8.3", "statamic/cms": "^6.0"},
+  "require-dev": {"orchestra/testbench": "^10.8", "phpunit/phpunit": "^12.5"},
   "extra": {
-    "statamic": {
-      "name": "DiscussionBridge",
-      "description": "Connect published Statamic entries and Discourse Bridge Records"
-    },
-    "laravel": {
-      "providers": [
-        "CodeWorksLabs\\DiscussionBridgeStatamic\\ServiceProvider"
-      ]
-    }
-  },
-  "config": {
-    "allow-plugins": {
-      "pixelfear/composer-dist-plugin": true
-    },
-    "sort-packages": true
+    "statamic": {"name": "DiscussionBridge", "description": "Connect published Statamic entries and Discourse Bridge Records"},
+    "laravel": {"providers": ["CodeWorksLabs\\DiscussionBridgeStatamic\\ServiceProvider"]}
   },
   "minimum-stability": "stable",
   "prefer-stable": true,
-  "scripts": {
-    "test": "phpunit"
-  }
+  "archive": {"exclude": ["/vendor", "/node_modules", "/.tmp", "/.git", "/.agents", "/.phpunit.cache", "/.artifacts", "/STATAMIC_V4_CHECKPOINT.md"]},
+  "scripts": {"test": "phpunit"}
 }

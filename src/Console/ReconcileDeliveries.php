@@ -9,8 +9,6 @@ use Throwable;
 
 class ReconcileDeliveries extends Command
 {
-    private const ENTRY_BATCH_SIZE = 100;
-
     protected $signature = 'discussionbridge:reconcile';
     protected $description = 'Enqueue eligible published entries that have no DiscussionBridge delivery state';
 
@@ -19,7 +17,7 @@ class ReconcileDeliveries extends Command
         $created = 0;
         $errors = 0;
         $scanned = 0;
-        $entries = Entry::query()->whereIn('collection', config('discussionbridge.collections', []))->lazy(self::ENTRY_BATCH_SIZE);
+        $entries = Entry::query()->whereIn('collection', config('discussionbridge.collections', []))->orderBy('id')->lazy(32);
         foreach ($entries as $entry) {
             $scanned++;
             try {

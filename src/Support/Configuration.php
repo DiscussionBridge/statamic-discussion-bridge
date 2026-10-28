@@ -16,6 +16,13 @@ class Configuration
         return $this->origin('discussionbridge.forum_url');
     }
 
+    public function forumNameOverride(): ?string
+    {
+        $value = config('discussionbridge.forum_name');
+
+        return $value === null ? null : ForumName::validate($value);
+    }
+
     public function siteOrigin(): string
     {
         return $this->origin('discussionbridge.site_origin');
@@ -23,8 +30,11 @@ class Configuration
 
     public function canonicalPageUrl(string $value): string
     {
+        if (preg_match('/[\x00-\x1F\x7F]/', $value)) {
+            throw new RuntimeException('DiscussionBridge canonical page URL is invalid.');
+        }
         $value = trim($value);
-        if ($value === '' || strlen($value) > 2048 || preg_match('/[\x00-\x1F\x7F]/', $value)) {
+        if ($value === '' || strlen($value) > 2048 || str_contains($value, '\\') || preg_match('/[\x00-\x1F\x7F]/', $value)) {
             throw new RuntimeException('DiscussionBridge canonical page URL is invalid.');
         }
 
@@ -42,7 +52,7 @@ class Configuration
             || strtolower((string) ($parts['host'] ?? '')) !== strtolower((string) ($site['host'] ?? ''))
             || ($parts['port'] ?? null) !== ($site['port'] ?? null)
             || ! str_starts_with((string) ($parts['path'] ?? ''), '/')
-            || isset($parts['user'], $parts['pass'], $parts['query'], $parts['fragment'])) {
+            || isset($parts['user']) || isset($parts['pass']) || isset($parts['query']) || isset($parts['fragment'])) {
             throw new RuntimeException('DiscussionBridge canonical page URL must belong to this site.');
         }
 
@@ -93,27 +103,6 @@ class Configuration
         return in_array($handle, config('discussionbridge.collections', []), true);
     }
 
-    public function nativeAuthorId(): string
-    {
-        $id = config('discussionbridge.native_author_id');
-        if (! is_string($id) || $id === '' || strlen($id) > 255 || preg_match('/[\x00-\x1f\x7f]/', $id)) {
-            throw new RuntimeException('DiscussionBridge Statamic native author ID is invalid.');
-        }
-
-        return $id;
-    }
-
-    public function ssgTransactionFile(): string
-    {
-        $path = config('discussionbridge.ssg_transaction_file');
-        $absolute = is_string($path) && (str_starts_with($path, '/') || preg_match('/\A[A-Za-z]:[\\\\\/]/', $path) === 1);
-        if (! $absolute || str_contains($path, "\0") || strlen($path) > 4096) {
-            throw new RuntimeException('DiscussionBridge SSG transaction file path is invalid.');
-        }
-
-        return $path;
-    }
-
     /** @return array{source_authors: list<array{id: string, name: string, profile_url?: string}>, primary_source_author_id: string} */
     public function sourceAuthor(): array
     {
@@ -134,12 +123,12 @@ class Configuration
     private function origin(string $key): string
     {
         $value = config($key);
-        if (! is_string($value) || strlen($value) > 2048) {
+        if (! is_string($value) || trim($value) !== $value || strlen($value) > 2048 || str_contains($value, '\\') || preg_match('/[\x00-\x1F\x7F]/', $value)) {
             throw new RuntimeException("{$key} is invalid.");
         }
 
         $parts = parse_url($value);
-        if (! is_array($parts) || ($parts['scheme'] ?? null) !== 'https' || empty($parts['host']) || isset($parts['user'], $parts['pass'], $parts['query'], $parts['fragment'])) {
+        if (! is_array($parts) || ($parts['scheme'] ?? null) !== 'https' || empty($parts['host']) || isset($parts['user']) || isset($parts['pass']) || isset($parts['query']) || isset($parts['fragment'])) {
             throw new RuntimeException("{$key} must be an HTTPS origin.");
         }
         if (($parts['path'] ?? '') !== '' && ($parts['path'] ?? '') !== '/') {
@@ -153,7 +142,7 @@ class Configuration
 
     private function sameSiteUrl(string $value): string
     {
-        if (strlen($value) > 2048) {
+        if (trim($value) !== $value || strlen($value) > 2048 || str_contains($value, '\\') || preg_match('/[\x00-\x1F\x7F]/', $value)) {
             throw new RuntimeException('DiscussionBridge source author profile URL is invalid.');
         }
         $parts = parse_url($value);
@@ -161,7 +150,8 @@ class Configuration
         if (! is_array($parts) || ! is_array($origin)
             || ($parts['scheme'] ?? null) !== 'https'
             || strtolower((string) ($parts['host'] ?? '')) !== strtolower((string) ($origin['host'] ?? ''))
-            || isset($parts['user'], $parts['pass'], $parts['query'], $parts['fragment'])) {
+            || ($parts['port'] ?? null) !== ($origin['port'] ?? null)
+            || isset($parts['user']) || isset($parts['pass']) || isset($parts['query']) || isset($parts['fragment'])) {
             throw new RuntimeException('DiscussionBridge source author profile URL is invalid.');
         }
 

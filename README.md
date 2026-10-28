@@ -1,265 +1,76 @@
-# DiscussionBridge for Statamic
+# DiscussionBridge for Statamic V4
 
-For the public GitHub Alpha, install the tagged Composer package into an
-existing Statamic 6 application:
+One unpublished development addon, version0.4.0-alpha.1, covers Statamic6 Flat, official Eloquent DB, and official SSG profiles. It consumes one private unchanged V4 typed pair, candidate discussionbridge-v4-core-20261025-r6. This is an implementation candidate, not exact-approved/frozen/released or installed/public qualification. Earlier development protocol selectors, legacy initialization/adoption and dual-codec/profile switching are absent. Normal future upgrades/recovery begin at this new V4 baseline and must preserve existing identities, discussions, configuration, schema/data, accepted history, exact pending mutations, fences and restoration records.
 
-```sh
-composer config repositories.discussionbridge vcs https://github.com/DiscussionBridge/statamic-discussion-bridge.git
-composer require codeworkslabs/statamic-discussion-bridge:0.2.0-alpha.46
-php please discussionbridge:install
+The native Statamic article remains the frame. Simple, Full and Interactive rendering and the existing optional Mermaid/KaTeX assets remain available. Plugin-free topic presenters use the existing public Discourse integration; they do not need a Bridge connection. The optional DISCUSSIONBRIDGE_FORUM_NAME uses native discussionbridge.forum_name, otherwise the validated native forum siteSettings.title. Connected content uses the authoritative V4 Connection.forum_name; there is no second local override or hostname label.
+
+## Configure
+
+Install through normal Composer/Statamic addon discovery. The supported native dependencies are PHP8.3+, Statamic6, and the official Eloquent driver or SSG package when that profile is selected. The addon does not bundle a vendor tree or a Node runtime.
+
+Use `php please discussionbridge:install` as the native server administrator. It asks for the protected connection secret and the explicit native profile: statamic_flat, statamic_db or statamic_ssg. Existing environment backup/atomic write, native migrations, optional additive template/assets publication and actual selected-template inspection remain. It does not enable receiver policy or choose native authors/taxonomies. Configure DISCUSSIONBRIDGE_ENABLED, FORUM_URL, SITE_ORIGIN, CONNECTION_ID, SECRET_FILE, LANE, COLLECTIONS and CMS_PROFILE through their DISCUSSIONBRIDGE_ prefixed environment settings; see config/discussionbridge.php. Keep CMS_STATE_DIRECTORY private and outside the public tree. Changing its path is not a reset or import mechanism.
+
+The From destination is the actual configured discussionbridge collection. Its current boundary is nonpropagating, nonstructured/nonorderable, without automatic title generation. The selected native template must invoke the article and selected discussion; the installer and writer preserve it rather than replacing operator templates. A missing or unsupported binding needs attention. Actual generated/public qualification remains separate from inspecting template calls.
+
+## Native work
+
+- `php please discussionbridge:reconcile` traverses configured native source entries with bounded lazy pagination and enqueues opted-in published authoring editions.
+- `php please discussionbridge:work --limit=25` uses that durable queue and the single shared writer to deliver To records. It captures actual persisted native state, not a working-copy preview, and retains exact uncertain POST identities before dispatch. Resource/topic/native IDs and accepted opaque predecessors remain strings; a genuinely changed native edition updates the same binding.
+- `php please discussionbridge:sync-publications` stages the complete pinned source feed/content, resolves mapping intent, claims existing authorized work and applies the native From path. Flat and DB use the actual native repositories; synchronization and actual anonymous public verification are separate receipts/clocks.
+- `php please discussionbridge:cms-catalog authors` or `taxonomy` explicitly refreshes the configured collection's actual supported Users/Terms fields. Opaque repository IDs, native blueprint/cardinality and supported picker scopes govern the snapshot. Durable begin/page/finalize/readback uses sequential pages of at most100 entries and the typed65536-byte request cap. Zero items sends no pages. An incomplete upload preserves the old active snapshot. There is no guessed timer, remote provider refresh, policy enablement or reassignment of unavailable selections. Empty selections preserve new defaults and existing assignments without a catalog gate.
+
+**Native To preparation:** the selected content blueprint field supplies the actual native Markdown parser/options and configured Antlers context, or native Bard HTML without sets. Supported cases use the ordinary production preparation path. Missing field/site/set presentation and unsupported function/data/reference bindings produce a specific local native_source_html_unqualified diagnostic; they do not imply that all sources need another preparation approval. Full prepared UTF8 SHA/count is calculated before the exact shared full/generated-excerpt helper. Both an oversized source and a valid source whose full JSON envelope exceeds65536 bytes use the declared generated Read More representation. No configuration switch fabricates a new native edition. Source creation/update times are actual nullable facts, never insertion/build/verification substitutes or rounded submillisecond values.
+
+Unformatted text and nontext content are valid sources; formatting/type is not a Bridge eligibility condition. Image-only native Markdown/Bard output has no prose-text test. Bard structured originals retain their typed native value. Ordered Bard sets require an actual article presentation binding; their augmented arrays are never silently string-cast or given guessed partial names. Unsupported presentation is a local Bridge limitation, never a claim that the source is invalid or ineligible. The original native content remains intact.
+
+The source article URL and exact original content are captured together before rendering. Native Field/Value augmentation retains the field's configured parser/options/extensions/renderers and deferred Antlers semantics without altering the global parser. The rendered copy resolves link/media attributes and supported srcset candidates through the installed URI resolver against that captured article URL. Absolute URL semantics remain native; this selects no new allowed scheme/provider policy. Complete prepared HTML is hashed/counted only afterward, before excerpt selection. New private pending/accepted receipts retain the original capture; accepted/pending/history bytes are never recaptured or rebased because a later canonical URL changes.
+
+This is bounded native preparation, not complete portable HTML support. Actual players, embedded applications, styles, active handlers and nonempty script/data blocks without a supported binding report a specific limitation before dispatch; source content is not silently removed or replaced. Ambiguous srcset/data syntax also reports its parser limit. Unknown set/custom presentation, true absence and any new URI/provider/execution/fallback/default choice remain separate cases. Existing string-only source URL move integration is not automatically extended to Bard by field rendering. Current native checks and their exact source/package scope are recorded in the checkpoint.
+
+The existing content-derived revision identifies the actual complete prepared snapshot under current published-source authority and predecessor CAS. Actual source dates remain unchanged or unknown when that is the native fact. A candidate/configuration label alone does not mint a source edition. No blanket raw-editor-token requirement or preparation-change gate is added, and no accepted or pending article is rewritten during the private pair upgrade.
+
+For an established NEW-V4 To binding, supported native unpublication, deletion or loss of the native opt-in/allowed collection captures the real persisted source and accepted nonnull revision before the native operation can erase them. The existing work command sends the exact journaled V4-05 withdrawal; the resource/topic/discussion and accepted edition/history are retained. This binding-only action does not prepare article HTML or promise native/public privacy. It does not reactivate a withdrawn binding. No native policy_excluded trigger is invented.
+
+The stock Flat and configured stock Eloquent entry factories use subclasses that wrap the actual native save/delete methods. Their ordinary, quiet and direct repository operations join one source writer and completion context. A completed cancelled/failed operation with unchanged persisted state restores the exact prior queue/count/retry time and retains its abandoned capture history. Actual persisted closure is authoritative even if a later native callback throws. Custom entry factories/classes and cached unwrapped eventful objects cannot supply the outer completion witness and their closing operation is rejected before capture; custom repositories, raw filesystem/SQL writes and outer native DB transactions are not claimed covered. Interrupted operations without a completion witness remain local reconciliation limits; PID disappearance or unchanged storage alone does not prove that a DB command cannot still commit.
+
+If an earlier accepted edition A coexists with uncertain pending02(B), withdrawal preserves B and its exact journal without replaying or promoting it. Current scoped04(A) permits05(A) under receiver CAS. A differing04 revision or05 revision conflict preserves A, B and native closure for local reconciliation. A lost05 response replays the identical mutation after restart. From policy.enabled is not added as a To withdrawal gate; current connection, direction, scope, binding and exact accepted revision still govern.
+
+**Current From preservation boundary:** valid captions, table spans/groups, list numbering and passive image meaning survive. Relative links/images resolve from the validated actual Source.topic_url using the existing URI resolver and existing HTTPS/no-userinfo predicate. The complete pinned source is retained. Meaningful player/provider/structured-media content that this native renderer cannot yet faithfully represent is refused before mutation, with a durable local content limitation. This is not a new receiver Failure code or a claim of receiver Work_attention. Existing-order positive per-mapping claims allow unrelated work to proceed; an exact known still-unrepresentable work/cycle/source/policy is not repeatedly claimed. New source, withdrawal, current terminal authority or faithful repair is reevaluated; no count/time reset, permanent mapping blacklist, global manual gate or automatic central-attention retry is added. No arbitrary provider/iframe policy or new shared HTML rule is selected.
+
+Native details/summary disclosure, initial open state and native group name survive import and the owned-article render pass. The existing optional Mermaid/KaTeX and configured Discourse discussion components remain specific supported functions; displayed source code stays content. Imported script initialization, recognized event-handler interactions and native form/control behavior with no supported article binding produce a specific lost_function diagnostic in the existing private local issue before mutation. Existing media issue identity is retained when diagnostics become more specific, so the same held Work does not consume another claim. The operator must decide how an unrepresented function is to proceed; keeping original bytes does not make a broken copy equivalent. This adds no execution permission/ban, automatic fallback, generic UI or wire error. Inert data scripts and escaped code do not imply an executable function; script-type recognition follows the [HTML script preparation rules](https://html.spec.whatwg.org/multipage/scripting.html#prepare-the-script-element) and [JavaScript MIME essence definitions](https://mimesniff.spec.whatwg.org/#javascript-mime-type).
+
+If this article path would remove actual nonempty inert script data, it instead records a separate local lost_data limitation with the removed data's byte count/hash before mutation. It does not call that data executable, invent a code-block conversion or declare the lossy copy equivalent. The complete original Source stays pinned. This data limitation uses the existing exact Work/local recovery path; it creates no wire error or global gate.
+
+Flat and DB From save fences apply to owned/mapped/reserved entries. Normal, quiet and direct native repository saves share the per-entry lock and persisted expected-original revision. Stale editor/worker writes reject; cancellation/throw releases the lock. The separate To save/delete context above applies only to tracked native To sources. Custom repositories and unsupported propagation/structure remain unsupported. Raw out-of-band filesystem/SQL edits are detection limits, not a claimed native-editor fence. Native state/owned fragments, receiver source hash and actual rendered-fragment hash are distinct.
+
+## Protected SSG
+
+`php please discussionbridge:ssg-prepare` reconciles the native To queue and invokes the protected From static coordinator. The actual generator is `statamic:ssg:generate`, with full generation, strict warning failures, supported same-process ConsecutiveTasks, no symlinks, contained output and inspected copy sources. It requires explicitly configured local structured deploy/reconcile/restore hooks in discussionbridge.cms_static_hooks: each contains argv (a native executable and arguments), cwd and timeout_seconds. Remote requests never select shell commands. Unbound production deployment remains attention.
+
+The coordinator preserves native snapshots, current lease/fence/ownership, command ID/PID/receipt, generated artifact manifest and exact pending prepare/finalize/abort mutations. Exit0 alone is insufficient: actual completion, expected files/owned rendered fragments/copy bytes/containment/freshness and artifact hashes are checked before deployment. The supported console output path renews between native generation steps in the owning process. There is no periodic renewal guarantee inside a silent render/gather/clear/copy, quiet mode or forked worker. Failed/expired renewal prevents deployment. A lost command receipt is reconciled with the configured native owner; uncertain commands are not blindly rerun. Finalization needs actual anonymous canonical public proof. Abort reports restoration only after native/artifact restore and actual restoration proof; an unavailable restore stays explicit.
+
+Ordinary To source URL moves use the existing source writer, supported Entry/repository save fences, exact28–31 journal and a source-specific full Antlers article proof. The bounded caller covers same-site, same-collection, nonstructured/nonpropagating Entry slug saves, including quiet and direct repository saves. Bind the actual collection template in discussionbridge.cms_source_templates; the supported full article path uses the existing discussionbridge:article tag. SSG separately requires the actual configured local deploy/reconcile/restore owner and cms_source_static_public_directory. Full accepted article/native identities and copied original targets stay fixed; generated excerpts change only the owned Read More target. See [native source URL moves](docs/TO_SOURCE_URL_MOVES.md) for the versioned component receipt/profile, exact native/public boundaries, replay, abort and restoration semantics. Separate collection/site/tree/mount/custom/raw-storage changes and independently installed public/receiver bindings are not qualified by those fixtures. Native administrator retry/support reconciliation and applied presentation rebind boundaries remain unresolved; From proof is never To source proof.
+
+## Artifacts and validation
+
+src/Cms/Shared/PROVENANCE.md pins the unchanged shared PHP/schema pair and explicit portability limitations. docs/NATIVE_CARRY_SOURCE_MANIFEST.json records selected predecessor source identities before V4 adaptations; it is not current release evidence. resources/dist/browser-assets-provenance.json records actual current source/output/dependency/license hashes. Existing native fragment/ownership format1 names identify byte encodings, not an old Bridge protocol.
+
+Focused native fixtures use the official CMS/Eloquent/SSG packages with isolated Flat files, real migration-backed Eloquent entries, actual SSG generation and harmless local processes. Known-safe preparation, controlled HTTP and VM browser doubles have explicit limits. No live service/deployment,1000-item installed/public qualification, release or formal review is established. STATAMIC_V4_CHECKPOINT.md records actual commands/results and safe recovery steps and is excluded from the normal Composer archive.
+
+A validated To02/29 content_preservation_unavailable rejection is permanent for its exact request. Its route/status/six-field Error and exact request identity are persisted in the private journal before the SQL queue terminal status; restart never retransmits that rejected request. The original pending capture, accepted article/IDs/history and rejected outcome stay intact. Ordinary actual new published prepared content can form a new02 intent under current connection/native scope and accepted predecessor CAS (or normal new-creation identity/collision checks). An identical request after receiver-only repair is not an automatic probe. Transport uncertainty retains exact mutation replay. Existing SSG readiness is unchanged. The code never applies to From Failure/attention. A producer-local preparation limitation does not fabricate that receiver error.
+
+## Administrator attention recovery (r6 candidate)
+
+The adapter probes the closed `attention-recovery-1` capability. Unsupported/absent capability leaves actual attention held. The ordinary `discussionbridge:sync-publications` flow reports requested observations and discovers exact authorized successors even when the publication source revision is unchanged. Each successor uses the new exact-target claim and current native reread/fences; the old Work, mutation UUID/body, native identity and protected history are retained. Pending/retry_wait and local content limitations do not gain a new manual-resume requirement.
+
+`php please discussionbridge:check-native-attention` performs only requested inspection/reporting. It does not claim, replay recovery, write native content, build, deploy or restore. Reports distinguish known native baseline/candidate/never-applied facts from conflicts and unknown outcomes; report completion never retries attention. Dynamic optional public observation does not replace the ordinary mandatory verification under the new lease.
+
+For the narrow SSG restored-baseline subset, the native owner can preview:
+
+```text
+php please discussionbridge:restore-recorded-baseline <inspection-id>
 ```
 
-The GitHub VCS repository is the current distribution source; this package is
-not yet listed on Packagist or the Statamic Marketplace. Do not substitute a
-mutable `main` checkout for the tagged version when reproducing an Alpha
-installation. The guided installer handles the profile-specific connection
-and protected credential after Composer installs the addon.
+Explicit restoration requires both `--apply --deploy-baseline`. This uses the already configured native restore command and retained verified baseline/artifact; the command must actually restore the expected generated baseline and serving deployment. Native readback, complete artifact comparison and fresh anonymous public proof must succeed afterward. Missing baseline, foreign/partial state, active or uncertain commands/mutations, or unavailable proof stays Not ready. A lost/uncertain restoration is retained for native reconciliation, not blindly rerun. The control does not admit or retry receiver Work; a fresh forum Check and explicit **Settle restored baseline and retry** are still required. Applied static candidate adoption is unsupported.
 
-This Statamic 6 addon connects an explicitly opted-in, durably published entry
-to the DiscussionBridge Bridge Record contract. The same package serves the
-Alpha Statamic Flat, DB, and SSG profiles; each installation has its own
-origin, Content Connection, secret, operational table, worker, content and
-rollback package.
-
-## Behavior
-
-- Imported forum content loads the addon's local
-  `/discussionbridge/rich-content.js` asset. It renders Discourse Mermaid
-  blocks in strict security mode, renders cooked math and supported `[math]`,
-  `$$...$$`, and inline `$...$` forms, and keeps `.md-table` wrappers usable on
-  narrow screens. It loads no third-party renderer or receiver credential and
-  leaves code examples literal.
-
-- `EntrySaved` performs only a local, idempotent enqueue into the addon-owned
-  `discussionbridge_deliveries` table. It never calls Discourse during the
-  content-save request.
-- `discussionbridge:work --limit=25` atomically claims and processes a bounded
-  batch. A root-owned systemd timer should invoke it under the owning Statamic
-  application user.
-- The worker renders the entry's published Markdown into a bounded HTML
-  snapshot. The receiving topic therefore contains meaningful source content
-  plus canonical attribution; missing or oversized content fails closed.
-- `discussionbridge:retry <entry-id>` explicitly requeues one failed,
-  cancelled or reconciliation-required item without changing its stable
-  external identity or original correlation ID. The additional
-  `--delivered` switch is required to exercise an already successful identity;
-  the returned resource/topic tuple must remain exact.
-- `discussionbridge:reconcile` traverses the configured collections in bounded
-  entry batches and enqueues any eligible entry missing addon state. Statamic's
-  own Stache index remains a separate memory and build-time cost.
-- `discussionbridge:ssg-prepare` is the static-build gate. It reconciles the
-  configured collections, drains a bounded number of deliveries, and fails
-  closed while any pending, processing, failed or reconciliation-required
-  record remains. Run it immediately before `php please ssg:generate`.
-- `discussionbridge:refresh-platform-catalog` reads the installation's actual
-  configured collections, attached taxonomies and terms, and publish-capable
-  Statamic users, then uploads that bounded nonsecret inventory to The Bridge.
-  The receiver owns category/tag/author mapping; the addon never guesses a
-  destination that the operator has not selected.
-- `discussionbridge:sync-publications` consumes only From Discourse bindings
-  carrying explicit native-materialization authority. It creates or updates a
-  genuine entry in the mapped collection at its authorized native route, applies
-  mapped taxonomy terms and the selected native author, and records the exact
-  Discourse post revision in an addon-owned table and leaves presentation-only
-  records alone. Root publication is the default; an optional source path must
-  identify an existing Statamic parent destination.
-  Flat, DB and SSG use the same package but retain independent connections,
-  storage and native entry identities. Exact retries are unchanged;
-  destination or resource collisions fail closed. Updated entries explicitly
-  invalidate Statamic's affected public-page cache and the addon's bounded
-  record cache before synchronization reports success.
-- `discussionbridge:sync-publication-work --limit=8` is the steady-state
-  incremental worker for Statamic Flat and DB after the initial synchronization.
-  It claims receiver-owned work with an exact five-minute lease, processes only
-  the identified topic or withdrawal, acknowledges against that lease, and
-  reports bounded failures to the receiver's shared operator queue. It does not
-  repeat the complete Bridge Record census. The original Discourse topic
-  creation time becomes the native entry date; later first-post edits update
-  the same entry without changing that publication date.
-- Statamic SSG uses a protected two-phase lifecycle. Run
-  `discussionbridge:ssg-prepare-publication-work`, then the existing
-  `discussionbridge:ssg-prepare --bounded-publication-work` delivery gate and
-  `ssg:generate`; deploy the
-  generated estate; and run `discussionbridge:ssg-finalize-publication-work`.
-  The bounded option is for the scheduled two-phase sequence only, after the
-  publication-work prepare command has succeeded. When that prepare finds no
-  receiver-owned work, the build gate reports `bounded_queue_empty` without
-  repeating the complete Bridge Record census. Omit the option when an initial
-  or operator-requested full
-  reconciliation is required.
-  Package-only maintenance releases retain the latest compatible receiver
-  protocol identity until the wire contract or native publication semantics
-  change. This lets an operator install a scheduler or presentation correction
-  without rematerializing every already-current publication.
-  While the protected transaction is prepared, the static-build gate drains
-  To Discourse delivery work but deliberately does not repeat the complete
-  From Discourse publication feed. The journaled, receiver-owned items are the
-  only native publication mutations admitted to that build.
-  Finalize performs a bounded public HTTPS check for the exact resource and
-  publication-revision markers before acknowledging the receiver lease.
-  `discussionbridge:ssg-abort-publication-work` restores every unacknowledged
-  native change and returns it to the shared attention queue. The protected,
-  atomically replaced transaction journal survives interrupted builds and must
-  never be copied into generated output. The dynamic publication worker must
-  not be scheduled for the SSG profile.
-- The Statamic Control Panel exposes the same operation under
-  **Utilities → DiscussionBridge**. Its permissioned **Synchronize
-  publications** action prevents concurrent runs and reports created, updated,
-  already-current, skipped and failed totals. The command remains available
-  for automation, recovery and SSG build gates.
-- The same utility serves Flat, DB and SSG only for DiscussionBridge
-  publication synchronization. Native Statamic SSG generation remains a
-  separate platform operation, never implied by a successful sync.
-- `{{ discussionbridge:record resource="{discussionbridge_resource_id}" }}`
-  performs a bounded authenticated server-side pull, sanitizes the cooked first
-  post, builds native page navigation, and presents the same topic's replies in
-  a credential-free Interactive frame.
-- `{{ discussionbridge:discussion entry="{id}" }}` presents the healthy topic owned by the
-  current To Discourse entry. Both tags use the same centered DiscussionBridge
-  credit and responsive discussion treatment.
-- `{{ discussionbridge:article entry="{id}" }}` renders a publishing entry with a
-  native heading-derived **On this page** navigation.
-- `{{ discussionbridge:simple topic="{discussionbridge_topic_id}" }}` renders
-  the public replies from one ordinary Discourse topic as native Statamic
-  markup. The generated or server-rendered reply snapshot is an immediate
-  no-JavaScript/failure fallback; a credential-free browser refresh retrieves
-  current public replies on every page load. It uses no Content Connection
-  credential and does not create or read a Bridge Record.
-- `{{ discussionbridge:full canonical="{discussionbridge_canonical_url}" }}`
-  uses Discourse Core's standard canonical-URL comments embed. It is likewise
-  plugin-free: there is no topic-ID claim, receiver credential, or Bridge
-  Record request.
-
-The addon adds two ephemeral blueprint fields to configured collection entries:
-`discussionbridge_publish` for To Discourse opt-in and
-`discussionbridge_resource_id` for From Discourse presentation. Field values
-persist through Statamic's active repository, while delivery state remains in
-the addon table. The optional `discussionbridge_mode` and
-`discussionbridge_topic_id` fields select plugin-free Simple or Full
-presentation; Full resolves from the page's canonical URL.
-
-## Configuration
-
-Run the native guided installer from the Statamic application root:
-
-```shell
-php please discussionbridge:install
-```
-
-It prompts for the forum and site origins, Content Connection ID, hidden
-connection secret, optional lane, collections, native publication service
-author ID and source author. It stores the
-secret outside the public webroot with owner-only permissions, updates `.env`
-atomically after creating a timestamped backup, runs migrations, clears cached
-configuration, uploads the current platform catalog, and verifies the
-connection without creating content. A
-successful verification records the addon identity, version and last-seen time
-on The Bridge. The installer also publishes the addon's versioned Control Panel
-stylesheet through Statamic's normal addon asset mechanism.
-
-After updating an existing installation, refresh the published Control Panel
-asset from the application root:
-
-```shell
-php please vendor:publish --tag=statamic-discussion-bridge --force
-```
-
-The resulting protected environment contains these nonsecret values:
-
-```dotenv
-DISCUSSIONBRIDGE_ENABLED=true
-DISCUSSIONBRIDGE_FORUM_URL=https://sandbox-forum.discussionbridge.dev
-DISCUSSIONBRIDGE_SITE_ORIGIN=https://statamic-flat.sandbox.discussionbridge.dev
-DISCUSSIONBRIDGE_CONNECTION_ID=dbc_000000000000000000000000
-DISCUSSIONBRIDGE_SECRET_FILE=/absolute/application/storage/app/discussionbridge/connection-secret
-DISCUSSIONBRIDGE_LANE=statamic-flat-alpha
-DISCUSSIONBRIDGE_COLLECTIONS=pages
-DISCUSSIONBRIDGE_NATIVE_AUTHOR_ID=publisher@example.com
-DISCUSSIONBRIDGE_SSG_TRANSACTION_FILE=/absolute/application/storage/app/discussionbridge/ssg-publication-transaction.json
-DISCUSSIONBRIDGE_SOURCE_AUTHOR_NAME="Statamic Flat Demo"
-DISCUSSIONBRIDGE_SOURCE_AUTHOR_PROFILE_URL=https://statamic-flat.demo.discussionbridge.dev/
-```
-
-`DISCUSSIONBRIDGE_NATIVE_AUTHOR_ID` identifies the real publish-capable
-Statamic user used when the receiver mapping selects the service author. The
-source-author values are per-profile operator settings reported to The
-Bridge and can be mapped there to the selected Discourse user. The secret file
-must be outside the webroot and readable only by the owning
-application group. Flat and DB must never share a connection secret or secret
-directory.
-
-## Static site generation
-
-Statamic SSG is a third installed profile of this same addon, not a separate
-adapter. Its authoring/build application owns an independent origin,
-connection, secret and delivery database. Simple comments and From The Bridge
-content are rendered into the generated files at build time. Simple then
-refreshes its public replies in the browser, so new comments do not require a
-new static build; the generated snapshot remains the fallback. Full comments
-and Publishing through The Bridge retain their credential-free live Discourse
-frames in the generated HTML.
-
-The release build order is strict:
-
-```shell
-php please discussionbridge:refresh-platform-catalog
-php please discussionbridge:ssg-prepare-publication-work --limit=8
-php please discussionbridge:ssg-prepare
-php please ssg:generate
-# deploy the exact generated estate
-php please discussionbridge:ssg-finalize-publication-work
-```
-
-The publication-work preparation command writes an owner-protected transaction
-journal before changing native entries. It deliberately leaves each receiver
-item leased and unacknowledged. After deployment, finalize fetches each exact
-public canonical URL without credentials or redirects and requires the prepared
-resource and publication-revision markers before acknowledging it. A failed
-build or abandoned candidate must be returned with
-`php please discussionbridge:ssg-abort-publication-work`; abort restores the
-prior native state and reports each item to the shared operator attention queue.
-An interrupted finalize is safely resumable from its journal. Never delete or
-edit that journal by hand, and never run prepare while one exists.
-
-When that journal is in the exact `prepared` phase,
-`discussionbridge:ssg-prepare` recognizes the bounded transaction and skips
-the legacy complete publication-feed sweep. A journal in any other phase fails
-the build closed. Without a journal, the command retains its ordinary full-sync
-behavior for standalone and legacy static builds.
-
-Regenerate Statamic-authored pages through the native Statamic SSG workflow.
-The Control Panel synchronization utility remains appropriate for Flat and DB;
-it must not replace the protected two-phase commands on the SSG profile. No
-successful preparation or native save implies that the public static site was
-regenerated or deployed.
-
-Do not deploy output when the preparation command fails. A generated site may
-be hosted without PHP, Statamic, a connection secret or an adapter worker; only
-the protected authoring/build application performs receiver-authenticated
-requests.
-
-### Large-site verification
-
-The opt-in `LargeSiteReconcileBenchmarkTest` creates a temporary file-backed
-collection and measures the addon's reconciliation pass. It is skipped during
-the ordinary test suite. On PowerShell, run it with:
-
-```powershell
-$env:DISCUSSIONBRIDGE_STATAMIC_BENCHMARK = '1'
-$env:DISCUSSIONBRIDGE_STATAMIC_BENCHMARK_PAGES = '1000'
-php vendor/bin/phpunit tests/LargeSiteReconcileBenchmarkTest.php --colors=never
-Remove-Item Env:DISCUSSIONBRIDGE_STATAMIC_BENCHMARK
-Remove-Item Env:DISCUSSIONBRIDGE_STATAMIC_BENCHMARK_PAGES
-```
-
-The separate `scripts/prepare-ssg-benchmark.php` can populate a disposable
-full Statamic application for measuring Statamic's native `ssg:generate`. It
-requires an explicit `.discussionbridge-benchmark-sandbox` marker and refuses
-to overwrite an existing benchmark collection. These are engineering fixtures,
-not release or deployment commands. A native SSG timing without this addon
-installed does not prove the end-to-end DiscussionBridge build time.
-
-Install the package through Composer, run `php please discussionbridge:install`,
-and add the presentation tag to the selected Antlers template. Before
-installation, preserve the profile-specific backup set described in the
-DiscussionBridge successor checkpoint.
+This is source-level implementation with focused reduced-host author evidence, not installed Flat/DB/SSG, live command, public deployment or package qualification. Exact evidence and known limits: `planning/v4-attention-recovery-fixes-20261025/STATAMIC_CHECKPOINT.md` in the enclosing DiscussionBridge workspace.

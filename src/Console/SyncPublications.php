@@ -2,25 +2,24 @@
 
 namespace CodeWorksLabs\DiscussionBridgeStatamic\Console;
 
-use CodeWorksLabs\DiscussionBridgeStatamic\Publication\PublicationSynchronizer;
+use CodeWorksLabs\DiscussionBridgeStatamic\Cms\DynamicWorker;
 use Illuminate\Console\Command;
 
 class SyncPublications extends Command
 {
     protected $signature = 'discussionbridge:sync-publications';
+    protected $description = 'Apply authorized native Statamic publications and verify their actual public output';
 
-    protected $description = 'Create or update explicitly authorized native Statamic publications';
-
-    public function handle(PublicationSynchronizer $synchronizer): int
+    public function handle(DynamicWorker $worker): int
     {
-        $summary = $synchronizer->synchronize();
-        foreach ($summary['errors'] as $error) {
-            $this->error($error);
+        try {
+            $summary = $worker->run();
+            $this->line(json_encode($summary, JSON_THROW_ON_ERROR));
+            return $summary['attention'] === 0 && ($summary['local_issues'] ?? 0) === 0
+                && ($summary['attempt_failures'] ?? 0) === 0 ? self::SUCCESS : self::FAILURE;
+        } catch (\Throwable $error) {
+            $this->error('DiscussionBridge current authority, typed transport or native integration requires attention.');
+            return self::FAILURE;
         }
-        $output = $summary;
-        unset($output['errors']);
-        $this->line(json_encode($output, JSON_THROW_ON_ERROR));
-
-        return $summary['failed'] === 0 ? self::SUCCESS : self::FAILURE;
     }
 }

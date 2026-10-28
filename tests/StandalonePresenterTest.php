@@ -6,7 +6,7 @@ use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\HtmlSanitizer;
 use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\PresentationChrome;
 use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\StandalonePresenter;
 use CodeWorksLabs\DiscussionBridgeStatamic\Support\Configuration;
-use CodeWorksLabs\DiscussionBridgeStatamic\Transport\BridgeClient;
+use CodeWorksLabs\DiscussionBridgeStatamic\Transport\NativeForumClient;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
@@ -25,7 +25,7 @@ class StandalonePresenterTest extends TestCase
         ], JSON_THROW_ON_ERROR)), $this->brandingResponse()]);
         $configuration = app(Configuration::class);
         $presenter = new StandalonePresenter(
-            new BridgeClient(new Client(['handler' => HandlerStack::create($mock)]), $configuration),
+            new NativeForumClient(new Client(['handler' => HandlerStack::create($mock)]), $configuration),
             $configuration,
             new HtmlSanitizer(),
             new PresentationChrome(),
@@ -46,6 +46,8 @@ class StandalonePresenterTest extends TestCase
         $this->assertStringContainsString('data-discourse-origin="https://forum.example"', $html);
         $this->assertStringContainsString('data-topic-id="42"', $html);
         $this->assertStringContainsString('data-topic-url="https://forum.example/t/public-topic/42"', $html);
+        $this->assertStringContainsString('data-forum-name="Native &lt;community&gt; &amp; readers"', $html);
+        $this->assertStringContainsString('Open discussion on Native &lt;community&gt; &amp; readers', $html);
         $this->assertStringContainsString('credentials:"omit"', $html);
         $this->assertStringContainsString('Showing the saved comment snapshot', $html);
         $this->assertStringContainsString('Open the discussion for current replies', $html);
@@ -64,7 +66,7 @@ class StandalonePresenterTest extends TestCase
         ], JSON_THROW_ON_ERROR)), $this->brandingResponse()]);
         $configuration = app(Configuration::class);
         $presenter = new StandalonePresenter(
-            new BridgeClient(new Client(['handler' => HandlerStack::create($mock)]), $configuration),
+            new NativeForumClient(new Client(['handler' => HandlerStack::create($mock)]), $configuration),
             $configuration,
             new HtmlSanitizer(),
             new PresentationChrome(),
@@ -90,9 +92,10 @@ class StandalonePresenterTest extends TestCase
 
     public function test_interactive_topic_uses_the_full_app_without_receiver_credentials(): void
     {
+        config(['discussionbridge.forum_name' => 'Community <members> & readers']);
         $configuration = app(Configuration::class);
         $presenter = new StandalonePresenter(
-            new BridgeClient(new Client(), $configuration),
+            new NativeForumClient(new Client(), $configuration),
             $configuration,
             new HtmlSanitizer(),
             new PresentationChrome(),
@@ -102,6 +105,7 @@ class StandalonePresenterTest extends TestCase
 
         $this->assertStringContainsString('"topicId":56', $html);
         $this->assertStringContainsString('"fullApp":true', $html);
+        $this->assertStringContainsString('Open discussion on Community &lt;members&gt; &amp; readers', $html);
         $this->assertStringContainsString('https://forum.example/t/56', $html);
         $this->assertStringNotContainsString('X-DiscussionBridge', $html);
     }
@@ -128,7 +132,7 @@ class StandalonePresenterTest extends TestCase
         ]);
         $configuration = app(Configuration::class);
         $presenter = new StandalonePresenter(
-            new BridgeClient(new Client(['handler' => HandlerStack::create($mock)]), $configuration),
+            new NativeForumClient(new Client(['handler' => HandlerStack::create($mock)]), $configuration),
             $configuration,
             new HtmlSanitizer(),
             new PresentationChrome(),
@@ -144,7 +148,7 @@ class StandalonePresenterTest extends TestCase
 
     private function brandingResponse(bool $enabled = true): Response
     {
-        $settings = json_encode(['enable_powered_by_discourse' => $enabled], JSON_THROW_ON_ERROR);
+        $settings = json_encode(['title' => 'Native <community> & readers', 'enable_powered_by_discourse' => $enabled], JSON_THROW_ON_ERROR);
         $preload = json_encode(['siteSettings' => $settings], JSON_THROW_ON_ERROR);
 
         return new Response(200, ['Content-Type' => 'text/html'], '<script type="application/json" id="data-preloaded">'.$preload.'</script>');

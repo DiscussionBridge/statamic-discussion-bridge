@@ -2,9 +2,11 @@
 
 namespace CodeWorksLabs\DiscussionBridgeStatamic\Presentation;
 
+use CodeWorksLabs\DiscussionBridgeStatamic\Support\ForumName;
+
 class PresentationChrome
 {
-    public function discussion(int $topicId, string $topicUrl, string $forumOrigin, bool $sourcePresentation): string
+    public function discussion(int|string $topicId, string $topicUrl, string $forumOrigin, bool $sourcePresentation, ?string $forumName = null): string
     {
         $configuration = [
             'discourseUrl' => rtrim($forumOrigin, '/').'/',
@@ -16,7 +18,7 @@ class PresentationChrome
 
         return $this->styles()
             .'<section class="discussionbridge-discussion">'
-            .'<div class="discussionbridge-discussion__header"><h2>Discussion</h2><a href="'.htmlspecialchars($topicUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" rel="nofollow noopener noreferrer">Open in Discourse</a></div>'
+            .'<div class="discussionbridge-discussion__header"><h2>Discussion</h2><a href="'.htmlspecialchars($topicUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" rel="nofollow noopener noreferrer">Open discussion'.($forumName === null ? '' : ' on '.htmlspecialchars(ForumName::validate($forumName), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')).'</a></div>'
             .'<div id="discourse-comments"></div>'
             .$this->credit()
             .'</section>'
@@ -24,7 +26,7 @@ class PresentationChrome
             .'<script async src="'.htmlspecialchars(rtrim($forumOrigin, '/').'/javascripts/embed.js', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'"></script>';
     }
 
-    public function standardEmbed(string $canonicalUrl, string $forumOrigin): string
+    public function standardEmbed(string $canonicalUrl, string $forumOrigin, string $forumName): string
     {
         $configuration = [
             'discourseUrl' => rtrim($forumOrigin, '/').'/',
@@ -33,7 +35,7 @@ class PresentationChrome
 
         return $this->styles()
             .'<section class="discussionbridge-discussion discussionbridge-discussion--full">'
-            .'<div class="discussionbridge-discussion__header"><h2>Discussion</h2></div>'
+            .'<div class="discussionbridge-discussion__header"><h2>Discussion on '.htmlspecialchars(ForumName::validate($forumName), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'</h2></div>'
             .'<div id="discourse-comments"></div>'
             .$this->credit()
             .'</section>'
@@ -41,7 +43,7 @@ class PresentationChrome
             .'<script async src="'.htmlspecialchars(rtrim($forumOrigin, '/').'/javascripts/embed.js', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'"></script>';
     }
 
-    public function standardTopicEmbed(int $topicId, string $forumOrigin): string
+    public function standardTopicEmbed(int|string $topicId, string $forumOrigin, string $forumName): string
     {
         $configuration = [
             'discourseUrl' => rtrim($forumOrigin, '/').'/',
@@ -51,7 +53,7 @@ class PresentationChrome
 
         return $this->styles()
             .'<section class="discussionbridge-discussion discussionbridge-discussion--full">'
-            .'<div class="discussionbridge-discussion__header"><h2>Discussion</h2><a href="'.htmlspecialchars($topicUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" rel="nofollow noopener noreferrer">Open in Discourse</a></div>'
+            .'<div class="discussionbridge-discussion__header"><h2>Discussion</h2><a href="'.htmlspecialchars($topicUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" rel="nofollow noopener noreferrer">Open discussion on '.htmlspecialchars(ForumName::validate($forumName), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'</a></div>'
             .'<div id="discourse-comments"></div>'
             .$this->credit()
             .'</section>'
