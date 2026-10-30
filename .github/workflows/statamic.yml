@@ -50,6 +50,7 @@ jobs:
         with:
           name: statamic-native-${{ matrix.php }}-${{ github.sha }}
           path: .tmp/native-junit.xml
+          include-hidden-files: true
           if-no-files-found: error
 
   browser:
@@ -109,6 +110,7 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: statamic-v4-${{ github.sha }}
-          path: .artifacts/*.zip
+          path: .artifacts/statamic-discussion-bridge-v4.zip
+          include-hidden-files: true
           if-no-files-found: error
 
