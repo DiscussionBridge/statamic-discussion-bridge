@@ -39,8 +39,13 @@ try {
     foreach ($ledger['members'] as $member) {
         if (($entries[$member['target']] ?? null) !== $member['sha256']) throw new RuntimeException('Missing/changed shared member: '.$member['target']);
     }
-    foreach (['composer.json', 'LICENSE', 'README.md', 'scripts/check-shared.php'] as $required) {
+    foreach (['composer.json', 'LICENSE', 'README.md', 'scripts/check-shared.php', 'scripts/shared-contract.mjs', 'scripts/build-browser-assets.mjs', 'scripts/managed-output.mjs', 'scripts/bundled-license.mjs'] as $required) {
         if (! isset($entries[$required])) throw new RuntimeException('Missing package control: '.$required);
+    }
+    // This exact bundled version keeps its required MIT notice in README.
+    // Byte/source equality alone also accepted the former metadata-only notice.
+    if (($entries['resources/dist/THIRD_PARTY_LICENSES/fastdom_1.0.12.txt'] ?? null) !== 'df2ae14f12f31864acef768195afe4584b08a257f25925f49884619279f02f37') {
+        throw new RuntimeException('Missing or changed actual bundled FastDom copyright/permission notice');
     }
     echo json_encode(['archive' => basename($argv[1]), 'bytes' => filesize($argv[1]), 'sha256' => hash_file('sha256', $argv[1]), 'source_members' => count($entries), 'shared_members' => count($ledger['members']), 'all_member_bytes' => 'equal', 'limitations' => 'Ordinary archive/source agreement; not installation or native/public acceptance'], JSON_THROW_ON_ERROR).PHP_EOL;
 } finally {

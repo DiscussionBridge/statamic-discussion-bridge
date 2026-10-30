@@ -5,8 +5,8 @@
   "scripts": {
     "check:shared": "node scripts/shared-contract.mjs --check",
     "build": "node scripts/build-browser-assets.mjs",
-    "check": "node --check resources/js/browser-simple.mjs && node --check resources/js/browser-rich-content.mjs && node --check scripts/build-browser-assets.mjs",
-    "test:browser": "node --test --test-concurrency=1 tests/browser-rich-content.test.mjs tests/browser-simple-forum-name.test.mjs tests/browser-build-ownership.test.mjs",
+    "check": "node --check resources/js/browser-simple.mjs && node --check resources/js/browser-rich-content.mjs && node --check scripts/build-browser-assets.mjs && node --check scripts/managed-output.mjs && node --check scripts/bundled-license.mjs && node --check scripts/shared-contract.mjs",
+    "test:browser": "node --test --test-concurrency=1 tests/browser-rich-content.test.mjs tests/browser-simple-forum-name.test.mjs tests/browser-build-ownership.test.mjs tests/browser-maintainer-guards.test.mjs",
     "test:browser:real": "node --test tests/browser-rich-content.integration.test.mjs"
   },
   "dependencies": {

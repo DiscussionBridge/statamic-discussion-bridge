@@ -28,13 +28,18 @@ test("normal builder removes only exact obsolete owned notices and preserves mod
     fs.writeFileSync(file(ledger), JSON.stringify(value) + "\n");
   };
   try {
-    for (const relative of ["scripts/build-browser-assets.mjs", "resources/js/browser-simple.mjs", "resources/js/browser-rich-content.mjs", "package.json", "package-lock.json"]) {
+    for (const relative of ["scripts/build-browser-assets.mjs", "scripts/managed-output.mjs", "scripts/bundled-license.mjs", "resources/js/browser-simple.mjs", "resources/js/browser-rich-content.mjs", "package.json", "package-lock.json"]) {
       fs.mkdirSync(path.dirname(file(relative)), { recursive: true });
       fs.copyFileSync(path.join(root, relative), file(relative));
     }
     let result = run();
     assert.equal(result.error, undefined, result.error?.message);
     assert.equal(result.status, 0, result.stderr);
+    const actualLicense = fs.readFileSync(file("resources/dist/THIRD_PARTY_LICENSES/fastdom_1.0.12.txt"), "utf8");
+    assert.match(actualLicense, /Copyright \(c\) 2016 Wilson Page/);
+    assert.match(actualLicense, /this permission notice shall be included/);
+    assert.match(actualLicense, /THE SOFTWARE IS PROVIDED/);
+    assert.equal(JSON.parse(fs.readFileSync(file(ledger), "utf8")).bundledPackages.find(item => item.name === "fastdom").licenseSource.file, "README.md#license");
     fs.writeFileSync(file(unknown), "Keep this operator file.\n");
     addStale();
     result = run();

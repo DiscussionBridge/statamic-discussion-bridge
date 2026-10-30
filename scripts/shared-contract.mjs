@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { preflightDirectory, preflightFile, statOrAbsent } from "./managed-output.mjs";
 
 // Explicit maintainer refresh only. Customer installation uses committed bytes;
 // neither Composer hooks nor the application fetch or generate dependencies.
@@ -81,6 +82,9 @@ function check() {
 
 const args = process.argv.slice(2);
 if (args.length === 2 && args[0] === "--source") {
+  // Reject fixed output links even on an initial refresh with no prior ledger.
+  preflightDirectory(root, `${shared}/idna`);
+  for (const relative of [`${shared}/PROVENANCE.json`, `${shared}/CmsCodec.php`, `${shared}/cms-schema.json`]) preflightFile(root, relative);
   const source = path.resolve(args[1]);
   const artifactBytes = read(source, "ARTIFACTS.json");
   assert.equal(hash(artifactBytes), pins.artifacts, "Wrong shared artifact set");
@@ -115,7 +119,8 @@ if (args.length === 2 && args[0] === "--source") {
   }
   const prior = new Map();
   const provenance = `${shared}/PROVENANCE.json`;
-  if (fs.existsSync(path.join(root, provenance))) {
+  const provenanceStat = preflightFile(root, provenance);
+  if (provenanceStat) {
     const old = JSON.parse(read(root, provenance));
     for (const member of old.members) {
       assert(!prior.has(member.target));
@@ -131,14 +136,13 @@ if (args.length === 2 && args[0] === "--source") {
   }
   // Preflight every output before writing anything; never sweep or delete files.
   for (const item of staged) {
-    let at = root;
-    for (const part of item.target.split("/").slice(0, -1)) { at = path.join(at, part); if (fs.existsSync(at)) assert(fs.lstatSync(at).isDirectory() && !fs.lstatSync(at).isSymbolicLink()); }
-    if (fs.existsSync(path.join(root, item.target))) {
+    if (preflightFile(root, item.target)) {
       const current = read(root, item.target);
       assert(current.equals(item.bytes) || hash(current) === prior.get(item.target), `Unowned/modified output: ${item.target}`);
     }
   }
-  if (fs.existsSync(path.join(root, `${shared}/idna`))) assert.deepEqual(inventory(root, `${shared}/idna`), [...expected].sort(), "Unexpected existing dependency member; no automatic cleanup");
+  preflightDirectory(root, `${shared}/idna`);
+  if (statOrAbsent(path.join(root, `${shared}/idna`))) assert.deepEqual(inventory(root, `${shared}/idna`), [...expected].sort(), "Unexpected existing dependency member; no automatic cleanup");
   for (const item of staged) { fs.mkdirSync(path.dirname(path.join(root, item.target)), { recursive: true }); fs.writeFileSync(path.join(root, item.target), item.bytes); }
   const ledger = { format: 1, source_repository: "https://github.com/DiscussionBridge/discussionbridge-adapter-contract", source_commit: pins.commit, source_artifacts_sha256: pins.artifacts, candidate_id: pins.candidate, normative: artifacts.normative, members: staged.map(m => m.record) };
   fs.writeFileSync(path.join(root, shared, "PROVENANCE.json"), JSON.stringify(ledger, null, 2) + "\n");
