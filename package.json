@@ -3,17 +3,21 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "check:shared": "node scripts/shared-contract.mjs --check",
     "build": "node scripts/build-browser-assets.mjs",
     "check": "node --check resources/js/browser-simple.mjs && node --check resources/js/browser-rich-content.mjs && node --check scripts/build-browser-assets.mjs",
-    "test:browser": "node --test tests/browser-rich-content.test.mjs tests/browser-simple-forum-name.test.mjs"
+    "test:browser": "node --test --test-concurrency=1 tests/browser-rich-content.test.mjs tests/browser-simple-forum-name.test.mjs tests/browser-build-ownership.test.mjs",
+    "test:browser:real": "node --test tests/browser-rich-content.integration.test.mjs"
   },
   "dependencies": {
-    "dompurify": "^3.4.14"
+    "dompurify": "3.4.17"
   },
   "devDependencies": {
     "esbuild": "0.25.9",
     "mermaid": "11.17.2",
-    "katex": "0.16.47"
+    "katex": "0.18.2",
+    "playwright-core": "1.62.1"
   },
+  "overrides": {"dompurify": "$dompurify", "katex": "$katex"},
   "version": "0.4.0-alpha.1"
 }

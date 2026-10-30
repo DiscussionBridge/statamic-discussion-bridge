@@ -1,0 +1,106 @@
+name: Statamic V4 addon
+
+on:
+  push:
+    branches: [main, 'codex/**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: statamic-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        php: ['8.3', '8.5']
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl, dom, exif, fileinfo, gd, intl, mbstring, pdo_sqlite, sqlite3, zip
+          coverage: none
+          tools: composer:2.8.1
+      - name: Install the locked ordinary native test dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress --no-plugins --no-scripts
+      - name: Verify exact shared runtime and closure
+        run: |
+          node scripts/shared-contract.mjs --check
+          php -n scripts/check-shared.php
+      - name: Run complete Flat, Eloquent DB and native SSG suites
+        run: composer test -- --do-not-cache-result --no-progress --fail-on-warning --fail-on-risky
+
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        node: ['22', '24']
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install exact browser dependency lock
+        run: npm ci --ignore-scripts --no-fund --no-audit
+      - name: Check, test and regenerate normal browser assets
+        run: |
+          npm run check
+          npm run test:browser
+          npm run build
+          npm run test:browser:real
+          git diff --exit-code -- resources/dist
+
+  package:
+    needs: [native, browser]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962
+        with:
+          php-version: '8.3'
+          extensions: curl, dom, exif, fileinfo, gd, intl, mbstring, pdo_sqlite, sqlite3, zip
+          coverage: none
+          tools: composer:2.8.1
+      - name: Build and verify the ordinary Composer archive
+        run: |
+          composer archive --format=zip --dir=.artifacts --file=statamic-discussion-bridge-v4 --no-interaction --no-plugins --no-scripts
+          php scripts/check-package.php .artifacts/statamic-discussion-bridge-v4.zip
+      - name: Install that archive in a new minimal Composer consumer
+        run: |
+          mkdir -p .tmp/package-consumer
+          cp tests/fixtures/package-consumer/composer.json tests/fixtures/package-consumer/smoke.php .tmp/package-consumer/
+          composer update --working-dir=.tmp/package-consumer --prefer-dist --no-interaction --no-progress --no-plugins --no-scripts
+          php .tmp/package-consumer/smoke.php
+          node .tmp/package-consumer/vendor/codeworkslabs/statamic-discussion-bridge/scripts/shared-contract.mjs --check
+          php -n .tmp/package-consumer/vendor/codeworkslabs/statamic-discussion-bridge/scripts/check-shared.php
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: statamic-v4-${{ github.sha }}
+          path: .artifacts/*.zip
+          if-no-files-found: error
+

@@ -1,4 +1,21 @@
-# Current r6 attention-recovery private pair
+# Current R7 private shared runtime and dependency closure
+
+Source: DiscussionBridge/discussionbridge-adapter-contract, exact commit b90348f9f010ff58fbe52237eda3187c926334ec; candidate discussionbridge-v4-core-20261029-r7, wire v4, implementation0.4.0-alpha.1, release null. The explicit maintainer refresh consumes the shared ARTIFACTS.json identity and its complete PHP dependency member ledger. PROVENANCE.json records every copied source/target/byte count/SHA256, including the common URL/ContextJ fixtures. No independent Statamic URL policy is introduced.
+
+- CmsCodec.php SHA256 9ff58c7e9547167bc8f546483c040daa0232cad171ddd48c15f8b9c821294ed7.
+- cms-schema.json SHA256 e6a15a6d70f7bc8b8ee82aa22a0b9c2ff1bbf2da6277f7087118be9e026ce5c0.
+- Normative source SHA256 808042688cbde88fac0acdf1187e4cb8c251e13025bfcf09cf3a3c361ca02003.
+- idna/DEPENDENCIES.json SHA256 5f9b6bf922e65ed4fee1c7ebad807d266140a2fc262fdd452da607f0cfd40e1e, all143 private runtime/license members included.
+
+The fixed Unicode17 domain policy supplies comparison facts only. Native source eligibility, configured scope/ownership, original URL bytes, state keys, exact pending mutations and accepted receipts remain distinct and unchanged. No edition, UUID, key or history migration is performed by replacing these artifact members. The separate attention-recovery feature-candidate enum remains the value declared by the shared schema; the root R7 label does not change it.
+
+Ordinary Composer installation uses the committed files and licenses, without Node, a runtime dependency fetch, Composer inside the private closure, or new mandatory hosting extensions. The maintainer refresh/check and normal archive verifier retain the complete nested closure while excluding an application's root vendor tree. Runtime/platform requirements remain those of the existing PHP8.3/Statamic6 addon. Current component tests/package/CI and independent review are recorded separately; shared source approval is not Statamic installation or product acceptance.
+
+## Historical r6 provenance (not the current runtime)
+
+The following record is preserved as history. Its hashes, limitations and former execution state do not describe or accept the current R7 artifact.
+
+# Historical r6 attention-recovery private pair
 
 Phil adopted V4_AR1_AR2_AR6_PROPOSAL_20261025 and authorized the bounded implementation batch. The exact generated pair below is installed together from adapter-contract; it is the additive candidate discussionbridge-v4-core-20261025-r6 with attention-recovery-1 capability negotiation and closed V4-32..36 shapes. Existing V4-01..31, Connection, Work, normal Claim, To02 and preservation semantics remain unchanged.
 

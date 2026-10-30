@@ -1,0 +1,10 @@
+{
+  "name": "discussionbridge/statamic-package-smoke",
+  "description": "Disposable ordinary Composer archive consumer; not an installed Statamic profile",
+  "license": "MIT",
+  "require": {"codeworkslabs/statamic-discussion-bridge": "0.4.0-alpha.1"},
+  "repositories": [{"type": "artifact", "url": "../../.artifacts"}],
+  "config": {"allow-plugins": {}},
+  "minimum-stability": "alpha",
+  "prefer-stable": true
+}

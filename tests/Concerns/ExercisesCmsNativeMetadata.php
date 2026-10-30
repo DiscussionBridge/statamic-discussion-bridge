@@ -126,10 +126,32 @@ trait ExercisesCmsNativeMetadata
         $this->assertNull($entry->id());
     }
 
-    public function test_native_current_user_default_without_real_current_user_requires_attention(): void
+    public function test_native_current_user_default_without_real_current_user_preserves_the_actual_native_outcome(): void
     {
         $entry = $this->metadataEntry(['native_author' => ['type' => 'users', 'default' => 'current']]);
         $this->assertNull(User::current());
+        $field = $entry->blueprint()->fields()->all()->get('native_author');
+        try {
+            // Native Statamic6 versions either refuse this preparation or
+            // produce an empty value. Bridge must not invent a user or replace
+            // the native result with its own mandatory attention policy.
+            $native = $field->fieldtype()->process($field->fieldtype()->preProcess($field->defaultValue()));
+        } catch (\Throwable) {
+            $this->expectException(CmsException::class);
+            $this->expectExceptionMessage('metadata_unavailable');
+            app(NativePolicy::class)->initialDefaults($entry);
+
+            return;
+        }
+        $defaults = app(NativePolicy::class)->initialDefaults($entry);
+        $this->assertSame($native, $defaults['native_author']);
+        $this->assertEmpty($defaults['native_author']);
+        $this->assertNull(User::current());
+    }
+
+    public function test_actual_native_default_preparation_failure_remains_metadata_unavailable(): void
+    {
+        $entry = $this->metadataEntry(['native_author' => ['type' => '__missing_native_fieldtype__']]);
         $this->expectException(CmsException::class);
         $this->expectExceptionMessage('metadata_unavailable');
         app(NativePolicy::class)->initialDefaults($entry);

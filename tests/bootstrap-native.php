@@ -1,7 +1,10 @@
 <?php
 
 $root = dirname(__DIR__);
-$vendor = getenv('DISCUSSIONBRIDGE_NATIVE_TEST_VENDOR') ?: dirname($root, 2).'/.tools/statamic-native-tests/vendor';
+$vendor = getenv('DISCUSSIONBRIDGE_NATIVE_TEST_VENDOR') ?: $root.'/vendor';
+if (! is_file($vendor.'/autoload.php')) {
+    throw new RuntimeException('Run composer install before the native addon tests. An explicit DISCUSSIONBRIDGE_NATIVE_TEST_VENDOR may select isolated test dependencies.');
+}
 $loader = require $vendor.'/autoload.php';
 $loader->setPsr4('CodeWorksLabs\\DiscussionBridgeStatamic\\', $root.'/src');
 $loader->setPsr4('CodeWorksLabs\\DiscussionBridgeStatamic\\Tests\\', $root.'/tests');

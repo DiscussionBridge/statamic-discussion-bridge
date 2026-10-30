@@ -7,7 +7,7 @@
   "autoload": {"psr-4": {"CodeWorksLabs\\DiscussionBridgeStatamic\\": "src/"}},
   "autoload-dev": {"psr-4": {"CodeWorksLabs\\DiscussionBridgeStatamic\\Tests\\": "tests/"}},
   "require": {"php": "^8.3", "statamic/cms": "^6.0"},
-  "require-dev": {"orchestra/testbench": "^10.8", "phpunit/phpunit": "^12.5"},
+  "require-dev": {"orchestra/testbench": "^10.8", "phpunit/phpunit": "^12.5", "statamic/eloquent-driver": "^5.12", "statamic/ssg": "4.1.0"},
   "extra": {
     "statamic": {"name": "DiscussionBridge", "description": "Connect published Statamic entries and Discourse Bridge Records"},
     "laravel": {"providers": ["CodeWorksLabs\\DiscussionBridgeStatamic\\ServiceProvider"]}
@@ -15,5 +15,6 @@
   "minimum-stability": "stable",
   "prefer-stable": true,
   "archive": {"exclude": ["/vendor", "/node_modules", "/.tmp", "/.git", "/.agents", "/.phpunit.cache", "/.artifacts", "/STATAMIC_V4_CHECKPOINT.md"]},
-  "scripts": {"test": "phpunit"}
+  "scripts": {"test": "phpunit"},
+  "config": {"allow-plugins": {}, "sort-packages": true}
 }
