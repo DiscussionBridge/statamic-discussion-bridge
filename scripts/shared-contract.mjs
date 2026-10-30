@@ -10,13 +10,13 @@ import { preflightDirectory, preflightFile, statOrAbsent } from "./managed-outpu
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const shared = "src/Cms/Shared";
 const pins = Object.freeze({
-  commit: "b90348f9f010ff58fbe52237eda3187c926334ec",
+  commit: "09d77c0209835c2d996aad294d161f167c7bd838",
   candidate: "discussionbridge-v4-core-20261029-r7",
-  artifacts: "76b65ee100c1c0157e34c06b00a3ff128cf06e7b2a76de900ac5c95288732224",
+  artifacts: "8b8be89df45117a1270ee6a317cb85f5646b04df2d42e59a3297bca9b3640657",
   normative: "808042688cbde88fac0acdf1187e4cb8c251e13025bfcf09cf3a3c361ca02003",
-  codec: "9ff58c7e9547167bc8f546483c040daa0232cad171ddd48c15f8b9c821294ed7",
+  codec: "502df4f0324ac9b65c0068f1025d71290d149522e98a29382763816f01a20555",
   schema: "e6a15a6d70f7bc8b8ee82aa22a0b9c2ff1bbf2da6277f7087118be9e026ce5c0",
-  idna: "5f9b6bf922e65ed4fee1c7ebad807d266140a2fc262fdd452da607f0cfd40e1e",
+  idna: "478d6e5c8f96255f7124e5bd0d28f79975d4b8466fea097ef2edb2fb1151c282",
 });
 const hash = value => createHash("sha256").update(value).digest("hex");
 function safe(relative) {

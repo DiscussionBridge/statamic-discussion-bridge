@@ -1,8 +1,8 @@
 {
   "format": 1,
   "source_repository": "https://github.com/DiscussionBridge/discussionbridge-adapter-contract",
-  "source_commit": "b90348f9f010ff58fbe52237eda3187c926334ec",
-  "source_artifacts_sha256": "76b65ee100c1c0157e34c06b00a3ff128cf06e7b2a76de900ac5c95288732224",
+  "source_commit": "09d77c0209835c2d996aad294d161f167c7bd838",
+  "source_artifacts_sha256": "8b8be89df45117a1270ee6a317cb85f5646b04df2d42e59a3297bca9b3640657",
   "candidate_id": "discussionbridge-v4-core-20261029-r7",
   "normative": {
     "path": "normative/CONTRACT.json",
@@ -14,7 +14,7 @@
       "source": "src/php/CmsCodec.php",
       "target": "src/Cms/Shared/CmsCodec.php",
       "bytes": 56195,
-      "sha256": "9ff58c7e9547167bc8f546483c040daa0232cad171ddd48c15f8b9c821294ed7"
+      "sha256": "502df4f0324ac9b65c0068f1025d71290d149522e98a29382763816f01a20555"
     },
     {
       "source": "src/cms-schema.json",
@@ -25,8 +25,8 @@
     {
       "source": "src/php/idna/DEPENDENCIES.json",
       "target": "src/Cms/Shared/idna/DEPENDENCIES.json",
-      "bytes": 57494,
-      "sha256": "5f9b6bf922e65ed4fee1c7ebad807d266140a2fc262fdd452da607f0cfd40e1e"
+      "bytes": 57885,
+      "sha256": "478d6e5c8f96255f7124e5bd0d28f79975d4b8466fea097ef2edb2fb1151c282"
     },
     {
       "source": "src/php/idna/bridge.php",
@@ -49,8 +49,8 @@
     {
       "source": "src/php/idna/vendor/autoload.php",
       "target": "src/Cms/Shared/idna/vendor/autoload.php",
-      "bytes": 771,
-      "sha256": "ee1ae5d4c6e2d946c8a3dc1bbae0b3b88c38b804d120790b34451c86bd564d94"
+      "bytes": 1023,
+      "sha256": "c5afc42bd8da50260f59691b38db3be669bcef3b511c09a615f9ecf89ffc070c"
     },
     {
       "source": "src/php/idna/vendor/composer/ClassLoader.php",
@@ -73,8 +73,8 @@
     {
       "source": "src/php/idna/vendor/composer/autoload_classmap.php",
       "target": "src/Cms/Shared/idna/vendor/composer/autoload_classmap.php",
-      "bytes": 2576,
-      "sha256": "b31dc5d363ed70fc225bb3bc69573a3baa289b54eb49b30147bd1ca7523adb76"
+      "bytes": 2613,
+      "sha256": "6f7b74e14f5e7323646d6f0e249da2471ab426688830b0be3d5da0c345039de2"
     },
     {
       "source": "src/php/idna/vendor/composer/autoload_files.php",
@@ -103,8 +103,8 @@
     {
       "source": "src/php/idna/vendor/composer/autoload_static.php",
       "target": "src/Cms/Shared/idna/vendor/composer/autoload_static.php",
-      "bytes": 5052,
-      "sha256": "cdc57381fc5412f5d2d18b739f959f8c8b9f5842593065c62636add5195f7a44"
+      "bytes": 5089,
+      "sha256": "b5a207a340db973632023bb63cba885123057b5fda1847ec49488778ab0b9c31"
     },
     {
       "source": "src/php/idna/vendor/composer/installed.json",

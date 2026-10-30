@@ -20,7 +20,7 @@ class SharedContractTest extends PlainTestCase
     {
         $root = dirname(__DIR__);
         $manifest = json_decode(file_get_contents($root.'/src/Cms/Shared/PROVENANCE.json'), true, flags: JSON_THROW_ON_ERROR);
-        $this->assertSame('b90348f9f010ff58fbe52237eda3187c926334ec', $manifest['source_commit']);
+        $this->assertSame('09d77c0209835c2d996aad294d161f167c7bd838', $manifest['source_commit']);
         foreach ($manifest['members'] as $member) {
             $file = $root.'/'.$member['target'];
             $this->assertFileExists($file);

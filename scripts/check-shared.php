@@ -8,7 +8,21 @@ use DiscussionBridge\CmsV4\Codec;
 use DiscussionBridge\CmsV4\ValidationException;
 
 $root = dirname(__DIR__);
+if (class_exists('Composer\\InstalledVersions', false) || class_exists('Composer\\Autoload\\ClassLoader', false)) {
+    throw new RuntimeException('Run this standalone check without a preloaded Composer host');
+}
+$beforeLoaders = count(spl_autoload_functions());
 $codec = new Codec($root.'/src/Cms/Shared/cms-schema.json');
+$composerProbes = 0;
+for ($i = 0; $i < 3; $i++) {
+    foreach (['Composer\\InstalledVersions', 'Composer\\Autoload\\ClassLoader'] as $class) {
+        if (class_exists($class)) throw new RuntimeException('Private runtime intercepted global Composer');
+        $composerProbes++;
+    }
+}
+if (count(spl_autoload_functions()) !== $beforeLoaders + 1) throw new RuntimeException('Unexpected private loader registration');
+require $root.'/src/Cms/Shared/idna/vendor/autoload.php';
+if (count(spl_autoload_functions()) !== $beforeLoaders + 1) throw new RuntimeException('Private loader registered twice');
 $read = static fn (string $name) => json_decode(file_get_contents($root.'/tests/fixtures/v4/'.$name), false, flags: JSON_THROW_ON_ERROR);
 $checks = 0;
 $check = static function (string $type, mixed $input, bool $accepted, string $label) use ($codec, &$checks): void {
@@ -47,4 +61,4 @@ foreach (['https://é.example/path', 'https://é.example/?', 'https://é.example
     $input->destination_origin = $url;
     $check('Connection', $input, false, 'not origin-only');
 }
-echo json_encode(['candidate' => Codec::CANDIDATE_ID, 'checks' => $checks, 'context_labels' => count($context->cases), 'php' => PHP_VERSION, 'limitations' => 'Shipped codec only; no native platform, HTTP, persistence or installed acceptance'], JSON_THROW_ON_ERROR).PHP_EOL;
+echo json_encode(['candidate' => Codec::CANDIDATE_ID, 'checks' => $checks, 'context_labels' => count($context->cases), 'standalone_composer_probes' => $composerProbes, 'global_composer_absent' => true, 'private_loader_once' => true, 'php' => PHP_VERSION, 'limitations' => 'Shipped codec only; no native platform, HTTP, persistence or installed acceptance'], JSON_THROW_ON_ERROR).PHP_EOL;

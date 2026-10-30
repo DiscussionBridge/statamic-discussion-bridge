@@ -1,11 +1,13 @@
 # Current R7 private shared runtime and dependency closure
 
-Source: DiscussionBridge/discussionbridge-adapter-contract, exact commit b90348f9f010ff58fbe52237eda3187c926334ec; candidate discussionbridge-v4-core-20261029-r7, wire v4, implementation0.4.0-alpha.1, release null. The explicit maintainer refresh consumes the shared ARTIFACTS.json identity and its complete PHP dependency member ledger. PROVENANCE.json records every copied source/target/byte count/SHA256, including the common URL/ContextJ fixtures. No independent Statamic URL policy is introduced.
+Source: DiscussionBridge/discussionbridge-adapter-contract, exact commit 09d77c0209835c2d996aad294d161f167c7bd838; candidate discussionbridge-v4-core-20261029-r7, wire v4, implementation0.4.0-alpha.1, release null. The explicit maintainer refresh consumes the shared ARTIFACTS.json identity and its complete PHP dependency member ledger. PROVENANCE.json records every copied source/target/byte count/SHA256, including the common URL/ContextJ fixtures. No independent Statamic URL policy is introduced.
 
-- CmsCodec.php SHA256 9ff58c7e9547167bc8f546483c040daa0232cad171ddd48c15f8b9c821294ed7.
+- CmsCodec.php SHA256 502df4f0324ac9b65c0068f1025d71290d149522e98a29382763816f01a20555.
 - cms-schema.json SHA256 e6a15a6d70f7bc8b8ee82aa22a0b9c2ff1bbf2da6277f7087118be9e026ce5c0.
 - Normative source SHA256 808042688cbde88fac0acdf1187e4cb8c251e13025bfcf09cf3a3c361ca02003.
-- idna/DEPENDENCIES.json SHA256 5f9b6bf922e65ed4fee1c7ebad807d266140a2fc262fdd452da607f0cfd40e1e, all143 private runtime/license members included.
+- idna/DEPENDENCIES.json SHA256 478d6e5c8f96255f7124e5bd0d28f79975d4b8466fea097ef2edb2fb1151c282, all143 private runtime/license members included.
+
+The corrected authoritative bootstrap registers only its private class map, not a global Composer engine or host package metadata. Same-byte copies initialize once; a conflicting loaded identity is refused. Standalone no-Composer and actual normal Composer-consumer checks exercise this addon's shipped files. Shared source review does not replace the separate Statamic qualification/review gates.
 
 The fixed Unicode17 domain policy supplies comparison facts only. Native source eligibility, configured scope/ownership, original URL bytes, state keys, exact pending mutations and accepted receipts remain distinct and unchanged. No edition, UUID, key or history migration is performed by replacing these artifact members. The separate attention-recovery feature-candidate enum remains the value declared by the shared schema; the root R7 label does not change it.
 
