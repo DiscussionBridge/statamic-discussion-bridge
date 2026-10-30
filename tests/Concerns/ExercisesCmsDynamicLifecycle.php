@@ -293,7 +293,7 @@ trait ExercisesCmsDynamicLifecycle
                 try {
                     $summary = app(DynamicWorker::class)->run();
                     $this->assertSame('generation-renew-failed', $scenario);
-                    $this->assertSame(['processed' => 1, 'verified' => 0, 'attention' => 1], $summary);
+                    $this->assertSame(['processed' => 1, 'verified' => 0, 'attention' => 1, 'attempt_failures' => 1], $summary);
                 } catch (\CodeWorksLabs\DiscussionBridgeStatamic\Cms\CmsException $error) {
                     $this->assertSame('generation-lease-expired', $scenario);
                     $this->assertSame('lease_expired', $error->failureCode);
@@ -402,7 +402,7 @@ trait ExercisesCmsDynamicLifecycle
             }
             $second = app(DynamicWorker::class)->run();
             if ($kind === 'static' && in_array($scenario, ['public-verification-restored', 'restore-unavailable'], true)) {
-                $this->assertSame(['processed' => 1, 'verified' => 0, 'attention' => 1], $second);
+                $this->assertSame(['processed' => 1, 'verified' => 0, 'attention' => 1, 'attempt_failures' => 1], $second);
                 app(PrivateState::class)->locked(function ($store) use ($scenario, $nativeId, $staticPublic, $url) {
                     $state = $store->read();
                     $transaction = end($state['static']);

@@ -70,7 +70,7 @@ final class CmsFeedOrderingTest extends TestCase
 
     private function event(string $sequence, int $id, string $sourceId = 'source:a'): stdClass
     {
-        $fixtures = json_decode(file_get_contents(dirname(__DIR__, 2).'/adapter-contract/fixtures/positive-examples.json'), false, 512, JSON_THROW_ON_ERROR);
+        $fixtures = json_decode(file_get_contents(__DIR__.'/fixtures/v4/positive-examples.json'), false, 512, JSON_THROW_ON_ERROR);
         $source = null;
         foreach ($fixtures->fixtures as $fixture) if ($fixture->id === 'initial_feed') $source = $fixture->value->items[0]->source;
         self::assertInstanceOf(stdClass::class, $source);

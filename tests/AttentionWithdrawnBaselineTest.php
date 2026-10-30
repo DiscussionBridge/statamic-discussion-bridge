@@ -25,7 +25,7 @@ class AttentionWithdrawnBaselineTest extends TestCase
 
     protected function setUp():void
     {
-        $this->root=self::EVIDENCE.'/STATAMIC_WITHDRAWN_FIXTURE_'.bin2hex(random_bytes(8));
+        $this->root=str_replace('\\','/',sys_get_temp_dir()).'/STATAMIC_WITHDRAWN_FIXTURE_'.bin2hex(random_bytes(8));
         if(file_exists($this->root)||!mkdir($this->root,0700))throw new \RuntimeException('Exclusive fixture creation failed');
         $this->created[]=$this->root;$this->generated=$this->root.'/generated';$this->retained=$this->root.'/retained';
         foreach([$this->generated,$this->retained]as$dir){if(!mkdir($dir,0700))throw new \RuntimeException('Fixture directory failed');$this->created[]=$dir;}
@@ -92,11 +92,11 @@ class AttentionWithdrawnBaselineTest extends TestCase
     protected function tearDown():void
     {
         Facade::clearResolvedInstances();Facade::setFacadeApplication(null);Container::setInstance(null);
-        $resolved=realpath($this->root);$base=realpath(self::EVIDENCE);
+        $resolved=realpath($this->root);$base=realpath(sys_get_temp_dir());
         if($resolved===false||$base===false||!str_starts_with(str_replace('\\','/',$resolved),str_replace('\\','/',$base).'/STATAMIC_WITHDRAWN_FIXTURE_'))throw new \RuntimeException('Refuse unverified fixture cleanup');
         foreach(array_reverse($this->created)as$path){if(is_link($path))throw new \RuntimeException('Unexpected fixture link');if(!file_exists($path))continue;$actual=realpath($path);
             if($actual===false||($actual!==$resolved&&!str_starts_with(str_replace('\\','/',$actual),str_replace('\\','/',$resolved).'/')))throw new \RuntimeException('Cleanup escaped owned root');if(is_dir($path)){if(!rmdir($path))throw new \RuntimeException('Owned fixture residue');}else{if(!unlink($path))throw new \RuntimeException('Owned fixture file residue');}}
-        $log=self::EVIDENCE.'/STATAMIC_WITHDRAWN_FIXTURE_CLEANUP.json';$records=is_file($log)?json_decode(file_get_contents($log),true):[];$records[]=['root'=>$resolved,'test'=>$this->name(),'created_members'=>count($this->created),'removed'=>!file_exists($this->root)];file_put_contents($log,json_encode($records,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));
+        $this->assertDirectoryDoesNotExist($this->root,'Only this test\'s newly created fixture was removed.');
     }
     private function observe(?stdClass $i=null,?array $state=null):stdClass{return $this->inspector->inspect($state??$this->state,$i??$this->inspection);}
     private function baselineCase():array{$i=unserialize(serialize($this->inspection));$s=$this->state;$i->prepared_transaction=null;$i->native_result=clone$i->verified_native_result;$i->mapping->synchronized_source_revision=null;$i->mapping->destination_native_revision=$i->verified_native_result->native_revision;$s['static'][$this->tx]['state']='aborted';$s['static'][$this->tx]['native_restored']=true;return[$i,$s];}

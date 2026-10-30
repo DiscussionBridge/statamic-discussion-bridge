@@ -8,6 +8,7 @@ if (! is_file($vendor.'/autoload.php')) {
 $loader = require $vendor.'/autoload.php';
 $loader->setPsr4('CodeWorksLabs\\DiscussionBridgeStatamic\\', $root.'/src');
 $loader->setPsr4('CodeWorksLabs\\DiscussionBridgeStatamic\\Tests\\', $root.'/tests');
+$loader->setPsr4('CodeWorksLabs\\DiscussionBridgeStatamic\\Tests\\Fixtures\\', $root.'/tests/fixtures');
 foreach (['CodeWorksLabs\\DiscussionBridgeStatamic\\ServiceProvider', 'CodeWorksLabs\\DiscussionBridgeStatamic\\Cms\\PrivateState'] as $class) {
     $file = realpath((new ReflectionClass($class))->getFileName());
     if (! str_starts_with(str_replace('\\', '/', $file), str_replace('\\', '/', realpath($root)).'/src/')) {

@@ -42,7 +42,15 @@ jobs:
           node scripts/shared-contract.mjs --check
           php -n scripts/check-shared.php
       - name: Run complete Flat, Eloquent DB and native SSG suites
-        run: composer test -- --do-not-cache-result --no-progress --fail-on-warning --fail-on-risky
+        run: |
+          mkdir -p .tmp
+          composer test -- --do-not-cache-result --no-progress --fail-on-warning --fail-on-risky --log-junit .tmp/native-junit.xml
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: statamic-native-${{ matrix.php }}-${{ github.sha }}
+          path: .tmp/native-junit.xml
+          if-no-files-found: error
 
   browser:
     runs-on: ubuntu-latest
