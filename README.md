@@ -4,6 +4,8 @@ One unpublished development addon, version0.4.0-alpha.1, covers Statamic6 Flat, 
 
 The native Statamic article remains the frame. Simple, Full and Interactive rendering and the existing optional Mermaid/KaTeX assets remain available. Plugin-free topic presenters use the existing public Discourse integration; they do not need a Bridge connection. The optional DISCUSSIONBRIDGE_FORUM_NAME uses native discussionbridge.forum_name, otherwise the validated native forum siteSettings.title. Connected content uses the authoritative V4 Connection.forum_name; there is no second local override or hostname label.
 
+The starter templates render the native title with `discussionbridge:article_header`. Custom templates that already render a title should keep their own heading. For a Statamic-origin entry, use an `author` Users field to select its original authors. A user's optional `public_profile_url` can link to a public page on the same Statamic site. R7 sends author IDs and names to Discourse. An existing configured author serves as a fallback, and a site homepage URL is treated as a site identity.
+
 ## Configure
 
 Install through normal Composer/Statamic addon discovery. The supported native dependencies are PHP8.3+, Statamic6, and the official Eloquent driver or SSG package when that profile is selected. The addon does not bundle an application Composer vendor tree or a Node runtime. The shared codec's pinned private dependency files and licenses do ship under src/Cms/Shared/idna; they require no additional mandatory hosting extensions and are not rebuilt or downloaded during installation.

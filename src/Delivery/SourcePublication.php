@@ -25,7 +25,7 @@ class SourcePublication
         if (! is_string($title) || trim($title) === '' || strlen($title) > 1024 || preg_match('/[\x00-\x1F\x7F]/', $title)) {
             throw new RuntimeException('Statamic entry title is invalid.');
         }
-        $authorship = $configuration->sourceAuthor();
+        $authorship = $configuration->sourceAuthor($entry);
         $createdValue = $entry->get('created_at') ?? $entry->get('date');
         if ($entry instanceof \Statamic\Eloquent\Entries\Entry) {
             // Reserved created_at data is discarded by the native driver. A

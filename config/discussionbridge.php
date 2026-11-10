@@ -9,7 +9,7 @@ return [
     'secret_file' => env('DISCUSSIONBRIDGE_SECRET_FILE'),
     'lane' => env('DISCUSSIONBRIDGE_LANE'),
     'collections' => array_values(array_filter(array_map('trim', explode(',', (string) env('DISCUSSIONBRIDGE_COLLECTIONS', 'pages'))))),
-    'source_author_name' => env('DISCUSSIONBRIDGE_SOURCE_AUTHOR_NAME', 'Statamic'),
+    'source_author_name' => env('DISCUSSIONBRIDGE_SOURCE_AUTHOR_NAME'),
     'source_author_profile_url' => env('DISCUSSIONBRIDGE_SOURCE_AUTHOR_PROFILE_URL'),
     'rich_content' => env('DISCUSSIONBRIDGE_RICH_CONTENT'),
     'adapter_id' => 'statamic-discussion-bridge',

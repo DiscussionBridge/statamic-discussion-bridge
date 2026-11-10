@@ -3,6 +3,8 @@
 namespace CodeWorksLabs\DiscussionBridgeStatamic\Support;
 
 use RuntimeException;
+use Statamic\Contracts\Entries\Entry;
+use Statamic\Facades\User;
 
 class Configuration
 {
@@ -103,10 +105,39 @@ class Configuration
         return in_array($handle, config('discussionbridge.collections', []), true);
     }
 
-    /** @return array{source_authors: list<array{id: string, name: string, profile_url?: string}>, primary_source_author_id: string} */
-    public function sourceAuthor(): array
+    /** @return array{source_authors: list<array{id: string, name: string, profile_url?: string}>, primary_source_author_id?: string} */
+    public function sourceAuthor(Entry $entry): array
     {
+        $selected = (array) $entry->get('author');
+        if ($selected !== []) {
+            $authors = [];
+            foreach ($selected as $id) {
+                $user = is_string($id) && $id !== '' ? User::find($id) : null;
+                $name = $user ? trim((string) $user->name()) : '';
+                if ($name === '' || strlen($name) > 200 || preg_match('/[\x00-\x1f\x7f]/', $name)) {
+                    continue;
+                }
+                $author = ['id' => 'statamic-user:'.hash('sha256', $id), 'name' => $name];
+                $profile = $user->get('public_profile_url');
+                if (is_string($profile) && $profile !== '') {
+                    try {
+                        $author['profile_url'] = $this->sameSiteUrl($profile);
+                    } catch (RuntimeException) {
+                        // A missing or invalid public profile does not hide the author.
+                    }
+                }
+                $authors[$id] = $author;
+            }
+
+            $authors = array_values($authors);
+            return $authors === [] ? ['source_authors' => []] :
+                ['source_authors' => $authors, 'primary_source_author_id' => $authors[0]['id']];
+        }
+
         $name = config('discussionbridge.source_author_name');
+        if ($name === null || $name === '') {
+            return ['source_authors' => []];
+        }
         if (! is_string($name) || ($name = trim(strip_tags($name))) === '' || strlen($name) > 200) {
             throw new RuntimeException('DiscussionBridge source author name is invalid.');
         }
@@ -115,6 +146,9 @@ class Configuration
         $profile = config('discussionbridge.source_author_profile_url');
         if (is_string($profile) && $profile !== '') {
             $author['profile_url'] = $this->sameSiteUrl($profile);
+            if (rtrim($profile, '/') === $this->siteOrigin()) {
+                return ['source_authors' => []];
+            }
         }
 
         return ['source_authors' => [$author], 'primary_source_author_id' => $id];

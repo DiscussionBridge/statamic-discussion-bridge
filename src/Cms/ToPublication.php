@@ -23,10 +23,12 @@ class ToPublication
             'representation' => (object) ['kind' => 'full'],
             'source_content_sha256' => $metadata['content_sha256'], 'source_content_bytes' => $metadata['content_bytes'],
             'source_authors' => array_map(fn ($author) => (object) ['id' => $author['id'], 'name' => $author['name']], $source['source_authors']),
-            'primary_source_author_id' => $source['primary_source_author_id'],
             'lane' => $connection->publication_lane, 'visibility' => 'unlisted',
             'adapter_id' => (string) config('discussionbridge.adapter_id'), 'adapter_version' => (string) config('discussionbridge.adapter_version'),
             'correlation_id' => $row->correlation_id];
+        if (isset($source['primary_source_author_id'])) {
+            $record->primary_source_author_id = $source['primary_source_author_id'];
+        }
         $measurement = $codec->measureToFullEnvelope($record, $complete);
         if (strlen($complete) <= 49152 && $measurement <= 65536) {
             return $codec->validateGeneratedEnvelope($record);

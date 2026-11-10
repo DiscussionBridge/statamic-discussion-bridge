@@ -3,6 +3,7 @@
 namespace CodeWorksLabs\DiscussionBridgeStatamic\Tags;
 
 use CodeWorksLabs\DiscussionBridgeStatamic\Delivery\PublishedContent;
+use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\ArticleAttribution;
 use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\PageNavigation;
 use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\DeliveryPresenter;
 use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\StandalonePresenter;
@@ -70,6 +71,14 @@ class DiscussionBridge extends Tags
 
             return '<p class="discussionbridge-unavailable">Discussion unavailable.</p>';
         }
+    }
+
+    public function articleHeader(): string
+    {
+        $id = $this->entryId();
+        $entry = $id === null ? null : Entry::find($id);
+
+        return $entry && $entry->published() ? app(ArticleAttribution::class)->header($entry) : '';
     }
 
     public function article(): string

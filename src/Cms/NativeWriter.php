@@ -135,12 +135,8 @@ class NativeWriter
                 app(\CodeWorksLabs\DiscussionBridgeStatamic\Publication\NativePublication::class)
                     ->sourceTopicUrl($source->topic_url, (int) $source->topic_id);
                 $content = app(HtmlSanitizer::class)->sanitizeArticle($html, $source->topic_url);
-                $authors = implode(', ', array_map(fn ($author) => $author->name, $source->source_authors));
-                $content .= '<hr><aside class="discussionbridge-publication"><p><strong>Published from <a href="'
-                    .$this->escape($source->topic_url).'">'.$this->escape($connection->forum_name).'</a></strong></p><p>Source author: '
-                    .$this->escape($authors).($source->source_updated_at === null ? '' : ' · Updated <time datetime="'
-                    .$this->escape($source->source_updated_at).'">'.$this->escape($source->source_updated_at).'</time>')
-                    .' · Revision '.$this->escape($source->source_revision).'</p></aside>';
+                $content .= app(\CodeWorksLabs\DiscussionBridgeStatamic\Presentation\ArticleAttribution::class)
+                    ->fromForum($source, $connection->forum_name);
                 if (config('discussionbridge.rich_content') === null && is_string($entry->get('content'))) {
                     $content .= PresentationAssets::nativeMarkup($entry->get('content'));
                 }
@@ -450,8 +446,4 @@ class NativeWriter
         }
     }
 
-    private function escape(string $value): string
-    {
-        return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-    }
 }
