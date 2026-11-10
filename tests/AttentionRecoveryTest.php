@@ -267,6 +267,66 @@ class AttentionRecoveryTest extends TestCase
         $this->state['mappings'][$this->inspection->mapping->mapping_id]['receipt']='old-known-receipt';
         $o=$this->inspector()->inspect($this->state,$this->inspection);$this->assertSame('conflict',$o->native_state);
     }
+    public static function unusedStaticIntentCases(): array
+    {
+        return [
+            'untouched intent' => [null],
+            'build started' => ['build'],
+            'native result retained' => ['native_result'],
+            'deployment command retained' => ['commands'],
+        ];
+    }
+
+    #[DataProvider('unusedStaticIntentCases')]
+    public function test_ssg_retry_settles_only_an_untouched_intent(?string $startedField): void
+    {
+        $this->neverApplied();
+        config(['discussionbridge.cms_profile' => 'statamic_ssg']);
+        $id = '11111111-1111-4111-8111-000000000081';
+        $mappingId = $this->inspection->mapping->mapping_id;
+        $snapshot = ['exists' => false, 'binding' => $this->state['mappings'][$mappingId]];
+        $this->state['mappings'][$mappingId]['static_transaction'] = $id;
+        $intent = ['state' => 'intent', 'snapshot' => $snapshot, 'commands' => []];
+        foreach (['work_id', 'mapping_id', 'source_id', 'source_revision', 'policy_revision', 'action'] as $field) {
+            $intent[$field] = $this->inspection->work->$field;
+        }
+        if ($startedField !== null) {
+            $intent[$startedField] = ['state' => 'running'];
+        }
+        $this->state['static'][$id] = $intent;
+        $this->store->save($this->state);
+        [$http, $event] = $this->wire();
+        $recovery = $this->recovery();
+        $state = $this->store->read();
+        $recovery->poll($state);
+        $journal = new ReplayJournal($this->client, $this->store);
+
+        if ($startedField !== null) {
+            try {
+                $recovery->claim($state, $journal);
+                $this->fail('A started static intent cannot be settled by an absence check.');
+            } catch (CmsException $error) {
+                $this->assertSame('native_restore_required', $error->failureCode);
+            }
+            $http->assertNotSent(fn ($request) => str_ends_with($request->url(), '/claim.json'));
+            $this->assertSame($intent, $state['static'][$id]);
+            return;
+        }
+
+        $lease = $recovery->claim($state, $journal);
+        $this->assertSame($event->work->work_id, $lease->work->work_id);
+        $this->assertSame($intent, $state['attention_recoveries'][$event->recovery_id]['predecessor_static']);
+        $this->assertSame([
+            ...$intent,
+            'state' => 'settled_for_retry',
+            'recovered_by' => ['recovery_id' => $event->recovery_id, 'work_id' => $event->work->work_id],
+        ], $state['static'][$id]);
+        $this->assertSame('owned-entry', $state['mappings'][$mappingId]['native_id']);
+        $durable = $this->store->read();
+        $this->assertSame($lease->work->work_id, $recovery->claim($durable, $journal)->work->work_id);
+        $this->assertSame($state['static'][$id], $durable['static'][$id]);
+    }
+
     public function test_static_restored_baseline_needs_actual_native_artifact_and_fresh_public_comparison():void
     {
         $artifact=$this->staticBaseline();$before=serialize($this->state);$o=$this->inspector($artifact)->inspect($this->state,$this->inspection);

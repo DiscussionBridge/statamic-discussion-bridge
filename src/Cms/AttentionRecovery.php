@@ -119,6 +119,7 @@ class AttentionRecovery
                 if ($current->$field !== $prior->$field) throw new CmsException('native_ownership_conflict');
             }
             if ($current->issue !== 'none' || ! in_array($current->native_state, ['baseline', 'never_applied', 'candidate_applied', 'restored_baseline'], true)) throw new CmsException('native_restore_required');
+            $settledTransaction = $this->unusedStaticIntent($state, $event, $request, $current);
             $lease = $journal->mutate($state, $key, 'V4-36', ['recovery_id' => $id], (object) ['work_id' => $event->work->work_id]);
             if ($lease === NoContent::VALUE) { $state['attention_recoveries'][$id]['poll']++; $this->store->save($state); return null; }
             foreach (['work_id', 'mapping_id', 'source_id', 'source_revision', 'policy_revision', 'action', 'attempt_cycle'] as $field) {
@@ -136,8 +137,11 @@ class AttentionRecovery
                 if ($current->native_state !== 'restored_baseline' || $transaction !== $request->prepared_transaction?->transaction_id
                     || $event->native_baseline === null || $this->client->codec()->semanticIdentity($event->native_baseline) !== $this->client->codec()->semanticIdentity($prior->native_result)
                     || $event->verification === null || $this->client->codec()->semanticIdentity($event->verification) !== $this->client->codec()->semanticIdentity($prior->verification)) throw new CmsException('native_restore_required');
-                $state['static'][$transaction]['state'] = 'settled_for_retry';
-                $state['static'][$transaction]['recovered_by'] = ['recovery_id' => $id, 'work_id' => $event->work->work_id];
+                $settledTransaction = $transaction;
+            }
+            if ($settledTransaction !== null) {
+                $state['static'][$settledTransaction]['state'] = 'settled_for_retry';
+                $state['static'][$settledTransaction]['recovered_by'] = ['recovery_id' => $id, 'work_id' => $event->work->work_id];
             }
             $binding['mapping'] = $this->client->codec()->encodeJson($event->mapping); unset($binding);
             $state['attention_recoveries'][$id]['status'] = 'claiming';
@@ -145,6 +149,31 @@ class AttentionRecovery
             $this->store->save($state); return $lease;
         }
         return null;
+    }
+
+    private function unusedStaticIntent(array $state, stdClass $event, stdClass $request, stdClass $observation): ?string
+    {
+        $binding = $state['mappings'][$event->mapping->mapping_id];
+        $id = $binding['static_transaction'] ?? null;
+        if ($id === null || $event->mode !== 'retry' || $observation->profile !== 'statamic-ssg-1'
+            || $observation->native_state !== 'never_applied') {
+            return null;
+        }
+
+        $intent = $state['static'][$id] ?? [];
+        if (($intent['state'] ?? null) !== 'intent' || ($intent['snapshot']['exists'] ?? null) !== false
+            || ($intent['commands'] ?? null) !== [] || $request->prepared_transaction !== null
+            || $observation->object_exists !== false || $observation->native_command !== 'none'
+            || $observation->pending_mutation !== 'none' || isset($binding['pending'])
+            || array_intersect_key($intent, array_flip(['native_result', 'prepared_at', 'build', 'artifact', 'deployment'])) !== []) {
+            throw new CmsException('native_restore_required');
+        }
+        foreach (['work_id', 'mapping_id', 'source_id', 'source_revision', 'policy_revision', 'action'] as $field) {
+            if (($intent[$field] ?? null) !== $request->work->$field) {
+                throw new CmsException('native_ownership_conflict');
+            }
+        }
+        return $id;
     }
 
     public function handedOff(array &$state, stdClass $lease): void
