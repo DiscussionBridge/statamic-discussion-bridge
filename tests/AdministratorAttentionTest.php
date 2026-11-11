@@ -15,10 +15,10 @@ use stdClass;
 /** Actual run/claim/fail receipt path, no native writer/source/DB; typed HTTP is fake. */
 class AdministratorAttentionTest extends TestCase
 {
-    public static function outcomes(): array { return [['retry_wait', false, 0, 1], ['attention', false, 1, 1], ['attention', true, 1, 0], ['attention', true, 1, 0, 1], ['attention', false, 1, 1, 0, 'receipt'], ['attention', false, 0, 1, 0, 'missing']]; }
+    public static function outcomes(): array { return [['retry_wait', false, 0, 1], ['attention', false, 1, 1], ['attention', true, 1, 0], ['attention', true, 1, 0, 1], ['attention', false, 1, 1, 0, 'receipt'], ['attention', false, 0, 1, 0, 'missing'], ['attention', false, 0, 0, 0, 'none', true]]; }
 
     #[DataProvider('outcomes')]
-    public function test_summary_distinguishes_actual_receiver_attention_and_failed_attempts(string $outcome, bool $already, int $attention, int $failures, int $generationDelta = 0, string $staticAbort = 'none'): void
+    public function test_summary_distinguishes_actual_receiver_attention_and_failed_attempts(string $outcome, bool $already, int $attention, int $failures, int $generationDelta = 0, string $staticAbort = 'none', bool $untypedRead = false): void
     {
         $container = new Container; Container::setInstance($container); Facade::setFacadeApplication($container);
         $container->instance('config', new Repository(['discussionbridge' => ['enabled' => true, 'site_origin' => 'https://publisher.example',
@@ -55,14 +55,24 @@ class AdministratorAttentionTest extends TestCase
             $store->save($state);
         }
         $http = new Factory; $http->preventStrayRequests(); Http::swap($http); $statusCalls = 0;
-        $http->fake(function ($request) use ($http, $codec, $connection, $policy, $mapping, $lease, $status, $failure, &$statusCalls) {
+        $http->fake(function ($request) use ($http, $codec, $connection, $policy, $mapping, $lease, $status, $failure, $untypedRead, &$statusCalls) {
             $path = parse_url($request->url(), PHP_URL_PATH);
             $route = fn ($id) => str_replace(['{mapping_id}', '{work_id}'], [$mapping->mapping_id, $lease->work->work_id], $codec->route($id)['path']);
             if ($path === $route('V4-01')) $value = $connection;
             elseif ($path === $route('V4-08')) $value = $policy;
             elseif ($path === $route('V4-11')) $value = $mapping;
             elseif ($path === $route('V4-13')) $value = $lease;
-            elseif ($path === $route('V4-14')) { if (++$statusCalls > 1) throw new ConnectionException('Synthetic status read failure'); $value = $status; }
+            elseif ($path === $route('V4-14')) {
+                if (++$statusCalls > 1) {
+                    if ($untypedRead) {
+                        throw new ConnectionException('Synthetic status read failure');
+                    }
+                    return $http->response(json_encode(['outcome' => 'rejected', 'code' => 'transport_timeout',
+                        'retryable' => true, 'retry_after_seconds' => null, 'correlation_id' => null, 'core_fallback' => false]),
+                        504, ['Content-Type' => 'application/json']);
+                }
+                $value = $status;
+            }
             elseif ($path === $route('V4-17')) $value = $failure;
             else throw new \RuntimeException('Unexpected fake route '.$path);
             return $http->response(json_encode($value), 200, ['Content-Type' => 'application/json']);
@@ -78,6 +88,19 @@ class AdministratorAttentionTest extends TestCase
                 (new \ReflectionClass(OwnedFragments::class))->newInstanceWithoutConstructor(),
                 (new \ReflectionClass(PublicVerifier::class))->newInstanceWithoutConstructor(),
                 $static);
+            if ($untypedRead) {
+                try {
+                    $worker->run(1);
+                    $this->fail('An untyped status read failure must surface for reconciliation.');
+                } catch (CmsException $error) {
+                    $this->assertSame('transport_timeout', $error->failureCode);
+                    $this->assertNull($error->httpStatus);
+                }
+                $http->assertNotSent(fn ($request) => str_contains($request->url(), '/fail.json'));
+                $this->assertArrayHasKey($lease->work->work_id, $store->read()['work']);
+                $this->assertSame(0, $store->read()['claim_poll']);
+                return;
+            }
             $summary = $worker->run(1);
             $this->assertSame($attention, $summary['attention']);
             $this->assertSame($failures, $summary['attempt_failures'] ?? 0);

@@ -35,8 +35,12 @@ class ArticleAttribution
             }
         }
 
+        $updatedAt = $source->source_updated_at === null ? '' : e($source->source_updated_at);
+
         return '<hr><aside class="discussionbridge-publication">'.$this->byline($authors)
-            .'<p>Originally published in <a href="'.e($source->topic_url).'">'.e($forumName).'</a></p></aside>';
+            .'<p>Originally published in <a href="'.e($source->topic_url).'">'.e($forumName).'</a></p>'
+            .($updatedAt === '' ? '' : '<p>Updated <time datetime="'.$updatedAt.'">'.$updatedAt.'</time></p>')
+            .'</aside>';
     }
 
     public function header(Entry $entry): string

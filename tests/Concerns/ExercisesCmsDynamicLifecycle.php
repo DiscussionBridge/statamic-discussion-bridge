@@ -426,6 +426,7 @@ trait ExercisesCmsDynamicLifecycle
             $this->assertStringContainsString('Complete new source edition.', $pages[1]);
             $this->assertStringNotContainsString('Complete first native source', $pages[1]);
             $this->assertSame('2026-10-14T00:55:00.000Z', Entry::find($nativeId)->get('discussionbridge_source_updated_at'));
+            $this->assertStringContainsString('<time datetime="2026-10-14T00:55:00.000Z">2026-10-14T00:55:00.000Z</time>', $pages[1]);
             $withdraw = true;
             $mapping['desired_source_revision'] = null;
             $work = $this->cmsWork($mapping, 3, true);

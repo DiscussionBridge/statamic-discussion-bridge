@@ -48,8 +48,11 @@ class PresentationChromeTest extends TestCase
 
         $this->assertSame(1, substr_count($discussion, 'data-discussionbridge-presentation'));
         $this->assertSame(1, substr_count($full, 'data-discussionbridge-presentation'));
-        $this->assertStringContainsString('.discussionbridge-credit__prefix{opacity:.72}', $discussion);
-        $this->assertStringContainsString('transition:color 160ms ease,opacity 160ms ease', $discussion);
+        foreach ([$discussion, $full] as $html) {
+            $this->assertSame(1, substr_count($html, 'data-discussionbridge-credit-style'));
+            $this->assertStringContainsString('var(--discussionbridge-credit-hover-background,', $html);
+            $this->assertStringContainsString('@media (prefers-reduced-motion: reduce)', $html);
+        }
     }
 
     public function test_standard_topic_embed_reuses_one_discussion_without_enabling_full_app(): void

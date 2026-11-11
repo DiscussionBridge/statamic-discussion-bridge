@@ -91,8 +91,11 @@ class ForumNameTest extends TestCase
         $topic = $presenter->fullTopic(53);
         $interactive = $presenter->interactiveTopic(53);
         foreach ([$full, $topic, $interactive] as $html) {
-            $this->assertStringContainsString('&lt;Configured &amp; community&gt;', $html);
+            $this->assertStringContainsString('<h2>Discussion</h2>', $html);
             $this->assertStringNotContainsString('X-DiscussionBridge', $html);
+        }
+        foreach ([$topic, $interactive] as $html) {
+            $this->assertStringContainsString('data-discussionbridge-forum-label="Open in &lt;Configured &amp; community&gt;">Open in forum</a>', $html);
         }
         $this->assertStringContainsString('"discourseEmbedUrl":"https://statamic.example/source"', $full);
         $this->assertStringNotContainsString('"topicId"', $full);

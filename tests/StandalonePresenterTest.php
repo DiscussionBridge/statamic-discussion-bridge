@@ -33,7 +33,7 @@ class StandalonePresenterTest extends TestCase
 
         $html = $presenter->simple(42);
 
-        $this->assertStringContainsString('<h2>Comments</h2>', $html);
+        $this->assertStringContainsString('<h2>Discussion</h2>', $html);
         $this->assertStringContainsString('Demo Reader', $html);
         $this->assertStringContainsString('Useful reply', $html);
         $this->assertStringContainsString('https://forum.example/t/public-topic/42/2', $html);
@@ -47,7 +47,7 @@ class StandalonePresenterTest extends TestCase
         $this->assertStringContainsString('data-topic-id="42"', $html);
         $this->assertStringContainsString('data-topic-url="https://forum.example/t/public-topic/42"', $html);
         $this->assertStringContainsString('data-forum-name="Native &lt;community&gt; &amp; readers"', $html);
-        $this->assertStringContainsString('Open discussion on Native &lt;community&gt; &amp; readers', $html);
+        $this->assertStringContainsString('data-discussionbridge-forum-label="Open in Native &lt;community&gt; &amp; readers">Open in forum</a>', $html);
         $this->assertStringContainsString('credentials:"omit"', $html);
         $this->assertStringContainsString('Showing the saved comment snapshot', $html);
         $this->assertStringContainsString('Open the discussion for current replies', $html);
@@ -105,7 +105,7 @@ class StandalonePresenterTest extends TestCase
 
         $this->assertStringContainsString('"topicId":56', $html);
         $this->assertStringContainsString('"fullApp":true', $html);
-        $this->assertStringContainsString('Open discussion on Community &lt;members&gt; &amp; readers', $html);
+        $this->assertStringContainsString('data-discussionbridge-forum-label="Open in Community &lt;members&gt; &amp; readers">Open in forum</a>', $html);
         $this->assertStringContainsString('https://forum.example/t/56', $html);
         $this->assertStringNotContainsString('X-DiscussionBridge', $html);
     }

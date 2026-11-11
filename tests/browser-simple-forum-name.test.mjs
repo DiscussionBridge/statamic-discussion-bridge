@@ -8,12 +8,13 @@ const source = fs.readFileSync(new URL("../resources/js/browser-simple.mjs", imp
 
 class Node {
   children = [];
+  attributes = new Map();
   text = "";
   append(...nodes) { this.children.push(...nodes); }
   set textContent(value) { this.text = value; }
   get textContent() { return this.text + this.children.map(node => typeof node === "string" ? node : node.textContent).join(""); }
   replaceChildren(...nodes) { this.children = nodes; }
-  setAttribute() {}
+  setAttribute(name, value) { this.attributes.set(name, value); }
   querySelector() { return null; }
 }
 
@@ -37,7 +38,9 @@ test("live empty state preserves effective label as text and keeps public reques
   const f = fixture(name);
   await f.naming.refresh(f.root);
   assert.equal(f.root.dataset.discussionbridgeSimpleState, "live");
-  assert.ok(f.root.textContent.includes(`Open discussion on ${name}`));
+  const discussionLink = f.root.children[0].children[0].children[1];
+  assert.equal(discussionLink.textContent, "Open in forum");
+  assert.equal(discussionLink.attributes.get("data-discussionbridge-forum-label"), "Open in " + name);
   assert.ok(f.root.textContent.includes(`Start the conversation on ${name}.`));
   assert.ok(!f.root.textContent.includes("The Bridge"));
   assert.equal(Object.hasOwn(f.root, "innerHTML"), false);
