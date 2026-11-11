@@ -23,7 +23,7 @@ class StandalonePresenter
     ) {
     }
 
-    public function simple(int $topicId, ?string $forumName = null): string
+    public function simple(int $topicId, ?string $forumName = null, bool $retainCredit = false): string
     {
         $topic = $this->client->publicTopic($topicId);
         $postStream = $topic['post_stream'] ?? null;
@@ -126,12 +126,12 @@ class StandalonePresenter
         return $this->chrome->styles()
             .'<section class="discussionbridge-simple">'
             .'<div data-discussionbridge-simple-live data-discussionbridge-simple-state="snapshot" data-discourse-origin="'.htmlspecialchars($forumOrigin, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" data-topic-id="'.$topicId.'" data-topic-url="'.htmlspecialchars($topicUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" data-forum-name="'.$escapedForumName.'">'
-            .'<div class="discussionbridge-simple__header"><h2>Comments</h2><a href="'.htmlspecialchars($topicUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'" rel="nofollow noopener noreferrer">Open discussion on '.$escapedForumName.'</a></div>'
+            .'<div class="discussionbridge-simple__header"><h2>Discussion</h2>'.$this->chrome->topicLink($topicUrl, $forumName).'</div>'
             .$replies
             .'<p data-discussionbridge-simple-status hidden>Showing the saved comment snapshot. Open the discussion for current replies.</p>'
             .$this->chrome->discourseCredit($poweredBy)
-            .'</div>'.$this->chrome->credit().'</section>'
-            .'<script>'.$this->simpleLoader().'</script>';
+            .'</div>'.$this->chrome->credit($retainCredit).'</section>'
+            .'<script>'.$this->simpleLoader().'</script>'.$this->chrome->labelsScript();
     }
 
     public function full(string $canonicalUrl, ?string $forumName = null): string

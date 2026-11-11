@@ -141,9 +141,9 @@ class NativeWriter
                     $content .= PresentationAssets::nativeMarkup($entry->get('content'));
                 }
                 $discussion = match ($policy->presentation_mode) {
-                    'simple' => app(StandalonePresenter::class)->simple((int) $source->topic_id, $connection->forum_name),
-                    'full' => app(PresentationChrome::class)->standardTopicEmbed($source->topic_id, $this->configuration->forumOrigin(), $connection->forum_name),
-                    'interactive' => app(PresentationChrome::class)->discussion($source->topic_id, $source->topic_url, $this->configuration->forumOrigin(), true, $connection->forum_name),
+                    'simple' => app(StandalonePresenter::class)->simple((int) $source->topic_id, $connection->forum_name, retainCredit: true),
+                    'full' => app(PresentationChrome::class)->standardTopicEmbed($source->topic_id, $this->configuration->forumOrigin(), $connection->forum_name, retainCredit: true),
+                    'interactive' => app(PresentationChrome::class)->discussion($source->topic_id, $source->topic_url, $this->configuration->forumOrigin(), true, $connection->forum_name, retainCredit: true),
                 };
                 $data = array_merge($data, $this->policyMapper->assignments($entry, $policy), [
                     'title' => $source->title, 'content' => $content, 'discussionbridge_mode' => $policy->presentation_mode,

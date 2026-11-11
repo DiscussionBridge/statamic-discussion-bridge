@@ -4,6 +4,8 @@ namespace CodeWorksLabs\DiscussionBridgeStatamic\Cms;
 
 use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\HtmlSanitizer;
 use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\PageNavigation;
+use CodeWorksLabs\DiscussionBridgeStatamic\Presentation\PresentationChrome;
+use CodeWorksLabs\DiscussionBridgeStatamic\Support\ForumName;
 use CodeWorksLabs\DiscussionBridgeStatamic\Support\PresentationAssets;
 
 /** Versioned native proof over actual article and selected discussion output bytes. */
@@ -35,6 +37,29 @@ class OwnedFragments
     public function expected($entry): array
     {
         return ['article' => $this->article($entry), 'discussion' => $this->discussion($entry)];
+    }
+
+    public function readerDiscussion($entry): string
+    {
+        $frame = $this->discussion($entry);
+        $chrome = app(PresentationChrome::class);
+        if (! $chrome->creditEnabled()) {
+            // Hide the retained credit without changing the bytes used for publication proof.
+            $frame = '<style>[data-discussionbridge-credit-disabled] .discussionbridge-credit{display:none!important}</style>'
+                .'<div data-discussionbridge-credit-disabled>'.$frame.'</div>';
+        }
+        $creditStyles = str_contains($frame, 'class="discussionbridge-credit"')
+            && ! str_contains($frame, 'data-discussionbridge-credit-style')
+            ? $chrome->creditStyles() : '';
+        if (str_contains($frame, 'data-discussionbridge-forum-label=')) {
+            return $frame.$creditStyles;
+        }
+        $name = $entry->get('discussionbridge_forum_name');
+        $preferred = is_string($name) && $name !== '' ? 'Open in '.ForumName::validate($name) : '';
+        // Keep the exact verified discussion frame inside its existing markers.
+        return '<div data-discussionbridge-legacy-label="'
+            .htmlspecialchars($preferred, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'">'.$frame.'</div>'
+            .$creditStyles.$chrome->labelsScript();
     }
 
     public function sha256(array $fragments): string

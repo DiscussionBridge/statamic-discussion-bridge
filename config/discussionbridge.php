@@ -12,6 +12,7 @@ return [
     'source_author_name' => env('DISCUSSIONBRIDGE_SOURCE_AUTHOR_NAME'),
     'source_author_profile_url' => env('DISCUSSIONBRIDGE_SOURCE_AUTHOR_PROFILE_URL'),
     'rich_content' => env('DISCUSSIONBRIDGE_RICH_CONTENT'),
+    'credit_enabled' => env('DISCUSSIONBRIDGE_CREDIT_ENABLED', true),
     'adapter_id' => 'statamic-discussion-bridge',
     'adapter_version' => \CodeWorksLabs\DiscussionBridgeStatamic\Version::VALUE,
     'connect_timeout_seconds' => 2,

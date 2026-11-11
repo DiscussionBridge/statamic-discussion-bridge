@@ -15,6 +15,6 @@ class PublicationPresenter
             throw new RuntimeException('DiscussionBridge native publication is unavailable.');
         }
         return $entry->published() && $entry->get('discussionbridge_source_status') !== 'withdrawn'
-            ? app(OwnedFragments::class)->discussion($entry) : '';
+            ? app(OwnedFragments::class)->readerDiscussion($entry) : '';
     }
 }

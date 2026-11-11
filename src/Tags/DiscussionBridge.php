@@ -34,11 +34,16 @@ class DiscussionBridge extends Tags
             $entry = $entries->first();
             return $entry->published() && $entry->get('discussionbridge_source_status') !== 'withdrawn'
                 ? app(\CodeWorksLabs\DiscussionBridgeStatamic\Cms\OwnedFragments::class)->article($entry)
-                    .app(\CodeWorksLabs\DiscussionBridgeStatamic\Cms\OwnedFragments::class)->discussion($entry) : '';
+                    .app(\CodeWorksLabs\DiscussionBridgeStatamic\Cms\OwnedFragments::class)->readerDiscussion($entry) : '';
         } catch (Throwable $error) {
             report($error);
             return '<p class="discussionbridge-unavailable">Discussion unavailable.</p>';
         }
+    }
+
+    public function credit(): string
+    {
+        return app(\CodeWorksLabs\DiscussionBridgeStatamic\Presentation\PresentationChrome::class)->credit();
     }
 
     public function discussion(): string
@@ -202,7 +207,7 @@ class DiscussionBridge extends Tags
             return '<p class="discussionbridge-unavailable">Selected discussion integration requires attention.</p>';
         }
         return $entry->published() && $entry->get('discussionbridge_source_status') !== 'withdrawn'
-            ? app(\CodeWorksLabs\DiscussionBridgeStatamic\Cms\OwnedFragments::class)->discussion($entry) : '';
+            ? app(\CodeWorksLabs\DiscussionBridgeStatamic\Cms\OwnedFragments::class)->readerDiscussion($entry) : '';
     }
 
     private function nativeForumName(int $topicId): ?string

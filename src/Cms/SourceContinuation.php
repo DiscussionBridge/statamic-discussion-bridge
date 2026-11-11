@@ -13,7 +13,10 @@ class SourceContinuation
 
     public function stage(array &$state, int $maximumPages = 25): int
     {
-        if (isset($state['feed']['attention'])) {
+        if (($state['feed']['attention'] ?? null) === 'cursor_scope_changed' && ! isset($state['feed_reconciliation'])) {
+            $this->startReconciliation($state, 'cursor_scope_changed');
+        }
+        if (isset($state['feed']['attention']) && ! isset($state['feed_reconciliation'])) {
             throw new CmsException($state['feed']['attention']);
         }
         if (isset($state['feed_reconciliation'])) {
@@ -31,13 +34,19 @@ class SourceContinuation
             try {
                 $response = $this->client->request('V4-06', [], $query);
             } catch (CmsException $error) {
-                if (in_array($error->failureCode, ['cursor_invalid', 'cursor_expired', 'cursor_scope_changed'], true)) {
-                    // Preserve the staged/native ledger; absence is never withdrawal.
-                    if ($error->failureCode === 'cursor_expired') {
-                        $state['feed_reconciliation'] = ['reason' => $error->failureCode, 'cursor' => null, 'items' => [], 'cursors' => []];
-                    } else {
-                        $state['feed']['attention'] = $error->failureCode;
+                // A policy change invalidates the cursor, so prove the existing
+                // mappings before asking for a new snapshot under current authority.
+                if ($error->failureCode === 'cursor_scope_changed' && $feed['cursor'] !== null) {
+                    $this->startReconciliation($state, $error->failureCode);
+                    if (! $this->reconcileInventory($state, $maximumPages)) {
+                        return $count;
                     }
+                    continue;
+                }
+                if ($error->failureCode === 'cursor_expired') {
+                    $this->startReconciliation($state, $error->failureCode);
+                } elseif (in_array($error->failureCode, ['cursor_invalid', 'cursor_scope_changed'], true)) {
+                    $state['feed']['attention'] = $error->failureCode;
                     $this->store->save($state);
                 }
                 throw $error;
@@ -93,6 +102,7 @@ class SourceContinuation
             && hash_file('sha256', $path) === $source->content_sha256) {
             return $path;
         }
+
         $temporary = $this->store->path('content-'.bin2hex(random_bytes(16)).'.tmp');
         $stream = fopen($temporary, 'xb');
         if ($stream === false) {
@@ -148,6 +158,12 @@ class SourceContinuation
         }
     }
 
+    private function startReconciliation(array &$state, string $reason): void
+    {
+        $state['feed_reconciliation'] = ['reason' => $reason, 'cursor' => null, 'items' => [], 'cursors' => []];
+        $this->store->save($state);
+    }
+
     private function reconcileInventory(array &$state, int $maximumPages): bool
     {
         for ($page = 0; $page < $maximumPages; $page++) {
@@ -192,6 +208,7 @@ class SourceContinuation
             // from census absence. Fresh initial after expiry is explicit/durable.
             $state['last_feed_reconciliation'] = $pending;
             unset($state['feed_reconciliation']);
+            $state['retired_feeds'][] = $state['feed'];
             $state['feed'] = ['stream' => 'initial', 'cursor' => null];
             $this->store->save($state);
             return true;
