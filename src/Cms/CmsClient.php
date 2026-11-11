@@ -145,7 +145,8 @@ class CmsClient
         }
         if (! in_array($response->status(), $route['success_http'], true)) {
             if ($value->code === 'content_preservation_unavailable' && in_array($id, ['V4-02', 'V4-29'], true)
-                || $value->code === 'invalid_field' && $id === 'V4-02' && $response->status() === 422) {
+                || $value->code === 'invalid_field' && $id === 'V4-02' && $response->status() === 422
+                || $value->code === 'revision_conflict' && $id === 'V4-09' && $response->status() === 409) {
                 throw DefinitiveRejection::fromResponse($this->codec, $id, $value, $response->status());
             }
             throw new CmsException($value->code, $response->status());

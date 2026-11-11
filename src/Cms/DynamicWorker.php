@@ -113,9 +113,10 @@ class DynamicWorker
                     $this->recovery?->handedOff($state, $lease);
                     continue;
                 } catch (CmsException $error) {
-                    if ($error instanceof UncertainMutation) {
-                        // Preserve the POST journal/claim pointer. The next pass
-                        // reads status and replays exactly; never substitute fail.
+                    if ($error instanceof UncertainMutation || $error->httpStatus === null
+                        && in_array($error->failureCode, ['transport_timeout', 'unsupported_media_type'], true)) {
+                        // An untyped transport failure cannot say what the receiver
+                        // accepted. Preserve the claim and replay its journal next pass.
                         throw $error;
                     }
                     $summary['attempt_failures'] = ($summary['attempt_failures'] ?? 0) + 1;
@@ -277,9 +278,20 @@ class DynamicWorker
                 }
                 $destination = $existing === null ? $this->writer->destination($source)
                     : ['external_id' => $existing->external_id, 'canonical_url' => $existing->canonical_url];
-                $mapping = $journal->mutate($state, 'prepare:'.$eventId.':'.$policy->policy_revision, 'V4-09', [], (object) [
-                    'source_id' => $source->source_id, 'source_revision' => $source->source_revision,
-                    'policy_revision' => $policy->policy_revision, ...$destination]);
+                try {
+                    $mapping = $journal->mutate($state, 'prepare:'.$eventId.':'.$policy->policy_revision, 'V4-09', [], (object) [
+                        'source_id' => $source->source_id, 'source_revision' => $source->source_revision,
+                        'policy_revision' => $policy->policy_revision, ...$destination]);
+                } catch (DefinitiveRejection $error) {
+                    if ($error->routeId !== 'V4-09' || $error->httpStatus !== 409 || $error->failureCode !== 'revision_conflict'
+                        || $existing?->destination_native_id === null) {
+                        throw $error;
+                    }
+                    $mapping = $this->currentMappingForSupersededPrepare($state, $event, $existing);
+                    if ($mapping === null) {
+                        throw $error;
+                    }
+                }
                 if ($mapping->source_id !== $source->source_id || $mapping->external_id !== $destination['external_id']
                     || $mapping->canonical_url !== $destination['canonical_url']) {
                     throw new CmsException('identity_conflict');
@@ -294,6 +306,32 @@ class DynamicWorker
             $state['handled_events'][$eventId] = true;
             $this->store->save($state);
         }
+    }
+
+    private function currentMappingForSupersededPrepare(array $state, stdClass $event, stdClass $owned): ?stdClass
+    {
+        $mapping = $this->client->request('V4-11', ['mapping_id' => $owned->mapping_id]);
+        foreach (['mapping_id', 'connection_id', 'resource_id', 'source_id', 'external_id', 'canonical_url', 'destination_native_id'] as $field) {
+            if ($mapping->$field !== $owned->$field) {
+                return null;
+            }
+        }
+        if ($mapping->desired_source_revision === null || $mapping->desired_source_revision === $event->source->source_revision) {
+            return null;
+        }
+        foreach ($state['events'] as $raw) {
+            $successor = $this->client->codec()->parseJson($raw, 262144);
+            $this->client->codec()->validate('SourceEvent', $successor);
+            if ($successor->event_type === 'publication' && $successor->source->source_id === $mapping->source_id
+                && $successor->source->source_revision === $mapping->desired_source_revision
+                && (strlen($successor->event_sequence) > strlen($event->event_sequence)
+                    || strlen($successor->event_sequence) === strlen($event->event_sequence)
+                        && strcmp($successor->event_sequence, $event->event_sequence) > 0)) {
+                // The exact rejected request stays in the mutation journal.
+                return $mapping;
+            }
+        }
+        return null;
     }
 
     private function perform(array &$state, ReplayJournal $journal, SourceContinuation $continuation, stdClass $lease): void

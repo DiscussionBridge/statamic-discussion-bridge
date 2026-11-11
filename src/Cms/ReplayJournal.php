@@ -56,7 +56,10 @@ class ReplayJournal
             $this->store->save($state);
             throw $error;
         } catch (CmsException $error) {
-            if ($error->failureCode === 'transport_timeout') {
+            if ($error->failureCode === 'transport_timeout'
+                || $error->failureCode === 'unsupported_media_type' && $error->httpStatus === null) {
+                // No typed receiver response was available. Retry the already
+                // journaled request without inventing a new publication intent.
                 throw new UncertainMutation($error->failureCode, $error->httpStatus);
             }
             throw $error;
@@ -88,7 +91,7 @@ class ReplayJournal
             || ($rejection['route'] ?? null) !== $route
             || ($rejection['mutation_id'] ?? null) !== $prior['mutation_id']
             || ($rejection['request_identity'] ?? null) !== $prior['identity']
-            || ($rejection['http_status'] ?? null) !== 422 || ! is_string($rejection['envelope'] ?? null)
+            || ($rejection['http_status'] ?? null) !== ($route === 'V4-09' ? 409 : 422) || ! is_string($rejection['envelope'] ?? null)
             || $prior['result'] !== null) {
             throw new CmsException('native_restore_required');
         }
