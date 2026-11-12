@@ -1,33 +1,26 @@
 # DiscussionBridge Starter Kit for Statamic
 
-This is an additive integration layer for an existing Statamic site, not a
-replacement theme. It provides the recommended template placement, native
-article typography, heading-derived page navigation, responsive discussion
-frame and DiscussionBridge credit.
+Use these template fragments to show an article and its discussion in your
+Statamic site. Keep your existing theme and place the fragment where you
+want the content to appear.
 
-Merge the supplied template fragment into the site's entry template. Keep the
-site's own header, footer, design tokens and content layout. The addon owns the
-connection, delivery, presentation and discussion behavior; a site theme owns
-the surrounding brand experience.
+1. Run `php please discussionbridge:install --templates` or publish the
+   `statamic-discussion-bridge-templates` assets with Laravel's
+   `vendor:publish` command. Your existing fragments are preserved.
+2. In your entry template, add `{{ partial:vendor/discussionbridge/entry }}`
+   once. For static generation, use the `entry-ssg` fragment.
+3. Check the result with your theme and the discussion mode you selected.
 
-The later DiscussionBridge showcase theme is separate and optional. Installation
-does not change your theme or install these fragments by default. Explicitly
-select `php please discussionbridge:install --templates`, or run native
-`vendor:publish --tag=statamic-discussion-bridge-templates`. Existing fragments
-are preserved. Include `{{ partial:vendor/discussionbridge/entry }}` or the
-`entry-ssg` fragment once within your entry layout, or merge the tag calls.
+The starter fragments provide article typography, navigation built from the
+headings, a responsive discussion area, and DiscussionBridge credit.
 
-The optional bundled Mermaid renderer is a separate choice:
-`discussionbridge:install --rich-content` publishes it and sets
-`DISCUSSIONBRIDGE_RICH_CONTENT=true`. The article tag includes that asset only
-when selected. A site's equivalent remains operator-owned; keep the bundled
-selection false and integrate your renderer through the site's layout and
-native SSG asset configuration. Selecting a fragment does not select a renderer.
+Simple can use a public Discourse topic ID. Full can use the article's
+canonical URL. For publishing and Interactive discussions, configure
+DiscussionBridge for Discourse and the site's Content Connection.
 
-The supplied template also shows the four initial presentation boundaries:
-plugin-free Simple, plugin-free Full, publishing to The Bridge with
-Interactive discussion, and From The Bridge. Use the site's canonical URL
-for Full mode and an ordinary public Discourse topic ID for Simple mode.
-Simple and Full both render their entry body through the addon's native article
-typography and heading-derived page navigation. Full leaves iframe height under
-Discourse Core's measured embed contract rather than imposing a fixed canvas.
+If you want the bundled Mermaid renderer, run
+`php please discussionbridge:install --rich-content`. A site that already
+has its own renderer can keep using it.
+
+[DiscussionBridge for Statamic](../README.md) ·
+[Presentation modes](https://docs.discussionbridge.dev/presentation-modes/)
