@@ -34,8 +34,7 @@ class PublishedContent
             throw new NativePreparationLimitation('native_content_field_not_supported');
         }
         if (is_string($source) && trim($source) === '') {
-            // Phil has not selected the actual true-absence algorithm. Do not
-            // interpret that unresolved preparation case as source ineligibility.
+            // An empty source is a preparation limitation. Leave its eligibility undecided.
             throw new NativePreparationLimitation('source_absence_rule_unselected');
         }
 
